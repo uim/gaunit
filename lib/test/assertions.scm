@@ -49,17 +49,13 @@
                    (cadr s)))))))
 
 (define (eval-body body-thunk)
-  (let ((prev-handler (current-exception-handler)))
-    (call/cc
-     (lambda (cont)
-       (with-exception-handler
-        (lambda (exn)
-          (if (assertion-failure? exn)
-              (cont exn)
-              (call-with-values (prev-handler exn) cont)))
-        (lambda ()
-          (parameterize ((count-assertion #f))
-            (body-thunk))))))))
+  (call/cc
+   (lambda (cont)
+     (with-exception-handler
+      cont
+      (lambda ()
+        (parameterize ((count-assertion #f))
+          (body-thunk)))))))
   
 (define-macro (define-assertion name&args . body)
   `(with-module test.unit
@@ -67,17 +63,21 @@
      (define ,name&args
        (if (test-result)
            (let ((result (eval-body (lambda () ,@body))))
-             (if (assertion-failure? result)
-                 (if (count-assertion)
-                     (add-failure!
-                      (test-result) (test-ui) (current-test)
-                      (failure-message-of result)
-                      (get-stack-trace))
-                     (begin
-                       (raise result)))
-                 (when (count-assertion)
-                   (add-success!
-                    (test-result) (test-ui) (current-test)))))))))
+             (if (count-assertion)
+                 (cond ((assertion-failure? result)
+                        (add-failure!
+                         (test-result) (test-ui) (current-test)
+                         (failure-message-of result)
+                         (get-stack-trace)))
+                       ((is-a? result <error>)
+                        (add-error! (test-result) (test-ui)
+                                    (current-test) result))
+                       (else
+                        (add-success! (test-result) (test-ui)
+                                      (current-test))))
+                 (if (or (assertion-failure? result)
+                         (is-a? result <error>))
+                     (raise result))))))))
 
 (define-assertion (fail . message)
   (raise (make <assertion-failure>
@@ -119,38 +119,57 @@
        object)))
 
 (define-assertion (assert-raise expected-class thunk . message)
+  (assert-true (procedure? thunk)
+               (format " <~s> must be procedure" thunk))
   (assert is-a? expected-class <class>
           " Should expect a class of exception")
   (call/cc
    (lambda (cont)
-     (let* ((prev-handler (current-exception-handler)))
-       (with-exception-handler
-        (lambda (exn)
-          (cont
-           (if (is-a? exn expected-class)
-               #t
-               (make-assertion-failure
-                (get-optional
-                 message
-                 (format " expected:<~s> class exception\n  but was:<~s>"
-                         expected-class (class-of exn)))
-                exn))))
-        (lambda ()
-          (thunk)
-          (make-assertion-failure
-           (get-optional
-            message
-            (format " expected:<~s> class exception\n  but none was thrown"
-                    expected-class)))))))))
+     (with-exception-handler
+      (lambda (exn)
+        (cont
+         (if (is-a? exn expected-class)
+             #t
+             (make-assertion-failure
+              (get-optional
+               message
+               (format " expected:<~s> class exception\n  but was:<~s>"
+                       expected-class (class-of exn)))
+              exn))))
+      (lambda ()
+        (thunk)
+        (make-assertion-failure
+         (get-optional
+          message
+          (format " expected:<~s> class exception\n  but none was thrown"
+                  expected-class))))))))
 
 (define-assertion (assert-error thunk . message)
-  (assert-true (procedure? thunk) " Must be procedure")
+  (assert-true (procedure? thunk)
+               (format " <~s> must be procedure" thunk))
   (with-error-handler
    (lambda (err) #t)
    (lambda ()
      (thunk)
      (assertion-failure
       (get-optional message " None expection was thrown")))))
+
+(define-assertion (assert-not-raise thunk . message)
+  (assert-true (procedure? thunk)
+               (format " <~s> must be procedure" thunk))
+  (call/cc
+   (lambda (cont)
+     (with-exception-handler
+      (lambda (exn)
+        (cont (make-assertion-failure
+               (get-optional
+                message
+                (format (string-append " expected no exception was thrown\n"
+                                       "  but <~s> class exception was thrown")
+                        (class-of exn)))
+               exn)))
+      (lambda ()
+        (thunk) #t)))))
 
 (define-assertion (assert-each assert-proc lst . keywords)
   (let-keywords* keywords ((run-assert (lambda (assert-proc prepared-item)

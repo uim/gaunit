@@ -97,6 +97,17 @@
      (assert-test-case-result test 1 1 2 0))))
 
 (let ((test
+       (make-test-case "Test assert-not-raise"
+         ("assert-not-raise"
+          (assert-not-raise (lambda () 1))
+          (assert-not-raise (lambda () (1)))
+          (assert-not-raise #f)))))
+  (run-test-with-no-output test)
+  (define-test-case "Test assert-not-raise"
+    ("Test assert-not-raise"
+     (assert-test-case-result test 1 1 2 0))))
+
+(let ((test
        (make-test-case "Test assert-each"
          ("assert-each success"
           (assert-each assert-equal

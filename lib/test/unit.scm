@@ -19,7 +19,7 @@
 
 (autoload test.ui.text <test-ui-text>)
 
-(define *gaunit-version* "0.0.3")
+(define *gaunit-version* "0.0.4")
 
 (define test-result (make-parameter #f))
 (define test-ui (make-parameter #f))
@@ -41,13 +41,9 @@
 
 (define-class <test> (<collection>)
   ((name :accessor name-of :init-keyword :name)
-   (result :accessor result-of)
+   (result :accessor result-of :init-thunk (lambda () (make <result>)))
    (asserts :accessor asserts-of :init-keyword :asserts :init-value '())
    ))
-
-(define-method initialize ((self <test>) args)
-  (next-method)
-  (set! (result-of self) (make <result>)))
 
 (define-method call-with-iterator ((coll <test>) proc . args)
   (apply call-with-iterator (asserts-of coll) proc args))
@@ -105,9 +101,7 @@
                (for-each
                 (lambda (slot)
                   (slot-set! result slot 0))
-                '(success
-                  failure
-                  error))))
+                '(success failure error))))
            (tests-of test-case)))
         (test-cases-of suite)))
      suites)))
@@ -146,7 +140,7 @@
 (define-method add-test-cases! ((self <test-suite>) test-cases)
   (for-each (lambda (test-case) (add-test-case! self test-cases))
             test-cases))
-  
+
 (define-syntax define-test-case
   (syntax-rules ()
     ((_ name) #f)
@@ -292,7 +286,7 @@
 
 (define-method error-of ((self <test-case>))
   (x-of self error-of))
- 
+
 (define-assertion-number-of <test-case>)
 
 (define-method x-of ((self <test-suite>) get-x-proc)
@@ -308,15 +302,15 @@
 (define-method success-of ((self <test-suite>))
   (x-of self success-of))
 (define success-number-of success-of)
-  
+
 (define-method failure-of ((self <test-suite>))
   (x-of self failure-of))
 (define failure-number-of failure-of)
-  
+
 (define-method error-of ((self <test-suite>))
   (x-of self error-of))
 (define error-number-of error-of)
-  
+
 (define-assertion-number-of <test-suite>)
 
 (provide "test/unit")

@@ -9,6 +9,13 @@
 (defvar run-test-search-directories '("./" "../" "../../" "../../../")
   "Searched directories when searching run-test-file.")
 
+(defvar run-test-verbose-level-table '((0 . "-vs")
+                                       (1 . "")
+                                       (2 . "-vp")
+                                       (3 . "-vn")
+                                       (4 . "-vv"))
+  "Passed argumets to run-test-file for set verbose level.")
+
 (defun flatten (lst)
   (cond ((null lst) '())
         ((listp (car lst))
@@ -16,9 +23,16 @@
                  (flatten (cdr lst))))
         (t (cons (car lst) (flatten (cdr lst))))))
 
-(defun run-test ()
-  (interactive)
-  (let ((test-file
+
+(defun get-verbose-level-arg (num)
+  (let ((elem (assoc num run-test-verbose-level-table)))
+    (concat " "
+            (if elem (cdr elem) ""))))
+
+(defun run-test (&optional arg)
+  (interactive "P")
+  (let ((verbose-arg (get-verbose-level-arg (prefix-numeric-value arg)))
+        (test-file
          (find-if #'file-exists-p
                   (flatten
                    (mapcar (lambda (dir)
@@ -32,7 +46,8 @@
           (compile (concat
                     (concat "./"
                             (file-name-directory run-test-file))
-                    (file-name-nondirectory test-file)))
+                    (file-name-nondirectory test-file)
+                    verbose-arg))
           (cd current-directory)))))
 
 (define-key global-map "\C-c\C-t" 'run-test)

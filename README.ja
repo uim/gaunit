@@ -39,11 +39,9 @@ GaUnitはGaucheで実装されたUnit Testing Frameworkです．おまけ
 
 == インストール
 
-  # gosh install.scm
+  # gosh install/install.scm
 
 == 使い方
-
-test.unitは一般的過ぎるので変更されるかもしれません．
 
   (use test.unit)
 
@@ -51,6 +49,8 @@ test.unitは一般的過ぎるので変更されるかもしれません．
   とか
   (define-test-case ...)
   とか
+
+test.unitは一般的過ぎるので変更されるかもしれません．
 
 === run-test.el
 
