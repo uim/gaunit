@@ -143,3 +143,13 @@
      (assertion-failure
       (get-optional message " None expection was thrown")))))
 
+(define-assertion (assert-each assert-proc lst . keywords)
+  (let-keywords* keywords ((run-assert (lambda (assert-proc prepared-item)
+                                         (apply assert-proc prepared-item)))
+                           (prepare (lambda (x)
+                                      (if (list? x) x (list x)))))
+    (for-each (lambda (args)
+                (call-with-values (lambda () (prepare args))
+                  (lambda args
+                    (apply run-assert assert-proc args))))
+              lst)))

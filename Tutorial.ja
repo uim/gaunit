@@ -1697,6 +1697,21 @@ GaUnitは以下に示すテストをするための手続きを用意しています．
     
     thunk(引数無しの手続き)内で例外が発生すれば成功します．
 
+--- assert-each(assert-proc lst &keyword :run-assert :prepare)
+    
+    assert-procをlstの各要素に対して適用します．
+    
+    lstの各要素はprepareに適用され，run-assertによって
+    assert-procに適用されます．
+    
+    イメージとしてはこんな感じです．
+
+      (define (run-assert assert-proc args)
+        (apply assert-proc args))
+      (for-each (lambda (item)
+                  (run-assert assert-proc (prepare item)))
+                lst)
+
 === 必要最小限
 
 GaUnitは以下の手続きを用意しています．
