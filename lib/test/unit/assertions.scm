@@ -1,5 +1,6 @@
 (define-module test.unit.assertions
   (extend test.unit.common)
+  (use srfi-1)
   (use test.unit.base)
   (use test.unit.result)
   (use gauche.parameter)
@@ -12,8 +13,7 @@
                     :init-value "assertion failed")
    (actual :accessor actual-of
            :init-keyword :actual
-           :init-value #f)
-   ))
+           :init-value #f)))
 
 (define (assertion-failure? obj)
   (is-a? obj <assertion-failure>))
@@ -195,5 +195,8 @@
 
 (define-assertion (assert-macro expanded form . message)
   (apply assert-equal expanded (macroexpand form) message))
+
+(define-assertion (assert-lset-equal expected actual . message)
+  (apply assert (cut lset= equal? <> <>) expected actual message))
 
 (provide "test/unit/assertions")

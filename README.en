@@ -194,6 +194,11 @@ is a procedure test result is passed to the procedure.
     It succeeds when (({(equal? expanded (macroexpand-1
     form))})) is #t.
     
+--- assert-lset-equal(expanded actual [message])
+    
+    It succeeds when (({(lset= equal? expanded actual)})) is
+    #t.
+    
 ====  Requisite minimum
 
 GaUnit has following procedure.

@@ -214,3 +214,23 @@
   (define-test-case "Test assert-macro"
     ("Test assert-macro"
      (assert-test-case-result test 3 3 1 1))))
+
+(let ((test
+       (make-test-case "Test assert-lset-equal"
+         ("assert-lset-equal success3"
+          (assert-lset-equal '(1 2 3)
+                             '(3 2 1))
+          (assert-lset-equal '(1 (2) 3)
+                             '(3 1 (2)))
+          (assert-lset-equal '((1) (2 3) (1))
+                             '((2 3) (1) (2 3))))
+         ("assert-lset-equal fail-1"
+          (assert-lset-equal '(a b c)
+                             '(a b c d)))
+         ("assert-lset-equal error-1"
+          (assert-lset-equal #(1) '(1))))))
+  (run-test-with-no-output test)
+  ;; (run test)
+  (define-test-case "Test assert-lset-equal"
+    ("Test assert-lset-euqal"
+     (assert-test-case-result test 3 3 1 1))))
