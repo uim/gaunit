@@ -11,7 +11,7 @@
              (let ((result (begin body ...)))
                (apply (if (eq? #t result)
                           add-success!
-                          add-fail!)
+                          add-failure!)
                       `(,(test-result) ,(test-ui) ,(current-test)
                         ,@(if (eq? #t result)
                               '()

@@ -54,6 +54,19 @@ GaUnitは以下に示すテストをするための手続きを用意しています．
     
     actualが#fならば成功します．
 
+--- assert-instance-of(expected-class object)
+    
+    objectがexpected-classのインスタンスであれば成功します．
+
+--- assert-raise(expected-class thunk)
+    
+    thunk(引数無しの手続き)内で起こった例外がexpected-class
+    のインスタンスであれば成功します．
+
+--- assert-error(tunk)
+    
+    thunk(引数無しの手続き)内で例外が発生すれば成功します．
+
 === 必要最小限
 
 GaUnitは以下の手続きを用意しています．

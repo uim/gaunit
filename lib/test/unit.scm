@@ -1,4 +1,5 @@
 (define-module test.unit
+  (use gauche.collection)
   (use gauche.parameter)
   (require "test/assertions")
   (require "test/utils")
@@ -21,11 +22,11 @@
 
 (define-class <result> ()
   ((success :accessor success-of :init-value 0)
-   (fail :accessor fail-of :init-value 0)
+   (failure :accessor failure-of :init-value 0)
    (error :accessor error-of :init-value 0)
    ))
 
-(define-class <test> ()
+(define-class <test> (<collection>)
   ((name :accessor name-of :init-keyword :name)
    (result :accessor result-of)
    (asserts :accessor asserts-of :init-keyword :asserts :init-value '())
@@ -35,7 +36,10 @@
   (next-method)
   (set! (result-of self) (make <result>)))
 
-(define-class <test-case> ()
+(define-method call-with-iterator ((coll <test>) proc . args)
+  (apply call-with-iterator (asserts-of coll) proc args))
+
+(define-class <test-case> (<collection>)
   ((name :accessor name-of :init-keyword :name)
    (tests :accessor tests-of :init-keyword :tests :init-value '())
    (setup :accessor setup-of :init-keyword :setup
@@ -44,7 +48,10 @@
              :init-value (lambda () #f))
    ))
 
-(define-class <test-suite> ()
+(define-method call-with-iterator ((coll <test-case>) proc . args)
+  (apply call-with-iterator (tests-of coll) proc args))
+
+(define-class <test-suite> (<collection>)
   ((name :accessor name-of :init-keyword :name)
    (test-cases :accessor test-cases-of :init-keyword :test-cases
                :init-value '())
@@ -53,6 +60,9 @@
    (teardown :accessor teardown-of :init-keyword :teardown
              :init-value (lambda () #f))
    ))
+
+(define-method call-with-iterator ((coll <test-suite>) proc . args)
+  (apply call-with-iterator (test-cases-of coll) proc args))
 
 (define *default-test-suite* (make <test-suite> :name "Default test suite"))
 (define *test-suites* (list *default-test-suite*))
@@ -188,54 +198,63 @@
   (inc! (success-of self))
   (test-successed test-ui test))
 
-(define-method add-fail! ((self <result>) test-ui test message stack-trace)
-  (inc! (fail-of self))
+(define-method add-failure! ((self <result>) test-ui test message stack-trace)
+  (inc! (failure-of self))
   (test-failed test-ui test message stack-trace))
 
 (define-method add-error! ((self <result>) test-ui test err)
   (inc! (error-of self))
   (test-errored test-ui test err))
 
-(define (xmap proc x)
-  (map proc (x->list x)))
+(define-method x-of ((self <test>) get-x-proc)
+  (get-x-proc (result-of self)))
 
-(define-method x->list ((self <test-case>))
-  (tests-of self))
+(define-method success-of ((self <test>))
+  (x-of self success-of))
 
-(define-method x->list ((self <test-suite>))
-  (test-cases-of self))
+(define-method failure-of ((self <test>))
+  (x-of self failure-of))
 
-(define-method map-result ((self <test-case>) proc)
-  (xmap (lambda (test) (proc (result-of test)))
+(define-method error-of ((self <test>))
+  (x-of self error-of))
+
+(define-method x-of ((self <test-case>) get-x-proc)
+  (fold (lambda (test prev) (+ prev (get-x-proc test)))
+        0
         self))
 
 (define-method success-of ((self <test-case>))
-  (apply + (map-result self
-                       (lambda (result) (success-of result)))))
-  
-(define-method fail-of ((self <test-case>))
-  (apply + (map-result self
-                       (lambda (result) (fail-of result)))))
+  (x-of self success-of))
+
+(define-method failure-of ((self <test-case>))
+  (x-of self failure-of))
 
 (define-method error-of ((self <test-case>))
-  (apply + (map-result self
-                       (lambda (result) (error-of result)))))
+  (x-of self error-of))
   
+(define-method x-of ((self <test-suite>) get-x-proc)
+  (fold (lambda (test prev) (+ prev (get-x-proc test)))
+        0
+        self))
+
 (define-method test-number-of ((self <test-suite>))
-  (apply + (xmap (lambda (test-case)
-                   (length (tests-of test-case)))
-                 self)))
+  (x-of self
+        (lambda (test-case)
+          (length (tests-of test-case)))))
   
 (define-method success-number-of ((self <test-suite>))
-  (apply + (xmap (lambda (test-case) (success-of test-case))
-                 self)))
+  (x-of self success-of))
   
 (define-method failure-number-of ((self <test-suite>))
-  (apply + (xmap (lambda (test-case) (fail-of test-case))
-                 self)))
+  (x-of self failure-of))
   
 (define-method error-number-of ((self <test-suite>))
-  (apply + (xmap (lambda (test-case) (error-of test-case))
-                 self)))
+  (x-of self error-of))
+  
+(define-method assertion-number-of ((self <test-suite>))
+  (fold (lambda (get-number-proc prev)
+          (+ prev (get-number-proc self)))
+        0
+        (list success-number-of failure-number-of error-number-of)))
   
 (provide "test/unit")

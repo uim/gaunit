@@ -43,8 +43,9 @@
   (print #`"- Start test suite ,(name-of test-suite)"))
 
 (define-method test-suite-finish ((self <test-ui-text>) test-suite)
-  (print (format "~s tests, ~s successes, ~s failures, ~s errors"
+  (print (format "~s tests, ~s assertions, ~s successes, ~s failures, ~s errors"
                  (test-number-of test-suite)
+                 (assertion-number-of test-suite)
                  (success-number-of test-suite)
                  (failure-number-of test-suite)
                  (error-number-of test-suite))))
