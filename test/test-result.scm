@@ -22,13 +22,15 @@
   (run-test-with-no-output test)
   (define-test-case "Test result"
     ("Test test-case1"
-     (test-test-case-result (car (with-module test.unit (test-cases-of test)))
-                            1 1 2 0))
+     (assert-test-case-result
+      (car (with-module test.unit (test-cases-of test)))
+      1 1 2 0))
     ("Test test-case2"
-     (test-test-case-result (cadr (with-module test.unit (test-cases-of test)))
-                            2 1 2 2))
+     (assert-test-case-result
+      (cadr (with-module test.unit (test-cases-of test)))
+      2 1 2 2))
     ("Test test-suite"
-     (test-test-suite-result test 3 8 2 4 2))))
+     (assert-test-suite-result test 3 8 2 4 2))))
 
 (run-all-test)
      

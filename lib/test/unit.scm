@@ -1,7 +1,8 @@
 (define-module test.unit
-  (extend test.assertions)
+  (use srfi-1)
   (use gauche.collection)
   (use gauche.parameter)
+  (require "test/assertions")
   (export *gaunit-version*
           make-test make-test-case make-test-suite
           define-test-suite define-test-case
@@ -10,15 +11,16 @@
           ))
 (select-module test.unit)
 
-(define *gaunit-version* "0.0.0")
-
-(define *default-test-ui* #f)
-(define (set-default-test-ui! ui)
-  (set! *default-test-ui* ui))
+(define *gaunit-version* "0.0.1")
 
 (define test-result (make-parameter #f))
 (define test-ui (make-parameter #f))
 (define current-test (make-parameter #f))
+(define count-assertion (make-parameter #t))
+
+(define *default-test-ui* #f)
+(define (set-default-test-ui! ui)
+  (set! *default-test-ui* ui))
 
 (define-class <result> ()
   ((success :accessor success-of :init-value 0)

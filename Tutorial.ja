@@ -2,6 +2,8 @@
 
 = Tutorial.ja
 
+$Id$
+
 テストファーストってなかなかできないよねぇ．
 
 == 基本
@@ -1674,32 +1676,40 @@ cは数値か変数)を実装しましょう．テストは以下のようになります．
 
 GaUnitは以下に示すテストをするための手続きを用意しています．
 
---- assert(actual)
-    
-    actualが#fでないならば成功します．
+((|[message]|))はオプションです．失敗時のメッセージである文
+字列か，引数をひとつとる手続きを指定します．手続きの場合はテ
+スト結果が引数として渡されます．
 
---- assert-equal(expected actual)
+--- fail([message])
+    
+    必ず失敗します．
+
+--- assert(pred expected actual [message])
+    
+    (pred expected actual)が#fでないならば成功します．
+
+--- assert-equal(expected actual [message])
     
     (equal? expected actual)が#tを返せば成功します．
 
---- assert-true(actual)
+--- assert-true(actual [message])
     
     actualが#tならば成功します．
 
---- assert-false(actual)
+--- assert-false(actual [message])
     
     actualが#fならば成功します．
 
---- assert-instance-of(expected-class object)
+--- assert-instance-of(expected-class object [message])
     
     objectがexpected-classのインスタンスであれば成功します．
 
---- assert-raise(expected-class thunk)
+--- assert-raise(expected-class thunk [message])
     
     thunk(引数無しの手続き)内で起こった例外がexpected-class
     のインスタンスであれば成功します．
 
---- assert-error(tunk)
+--- assert-error(tunk [message])
     
     thunk(引数無しの手続き)内で例外が発生すれば成功します．
 
@@ -1758,8 +1768,12 @@ GaUnitは以下の構文を用意しています．
     assertion(表明?)を定義します．
     
       (define-assertion (表明名 引数 ...)
-        "失敗したときに表示されるメッセージ"
-        式の列:最後の式の値が成功(#t)か失敗(#f)か示す)
+        式の列:最後の式の値が成功か失敗か示す)
+    
+    ((|式の列|))の値が<assertion-failure>クラスのオブジェク
+    トなら失敗，それ以外なら成功を示します．詳しくは
+    lib/test/assertions.scmのdefine-assertionを使って定義さ
+    れているassertionを見てください．
 
 --- make-test
     

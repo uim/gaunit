@@ -14,7 +14,7 @@
              ((pair? info))
              ((pair? (cdr info))))
             (print (format "~a:~a: ~s" (car info) (cadr info) code))))
-
+  
 (define-method test-errored ((self <test-ui-text>) test err)
   (print "E")
   (print-error-line (cadddr (vm-get-stack-trace)))
@@ -41,14 +41,16 @@
   (test-thunk))
 
 (define-method test-case-run ((self <test-ui-text>) test-case test-thunk)
-  (print #`"-- Start test case ,(name-of test-case)")
+;  (print #`"-- Start test case ,(name-of test-case)")
   (test-thunk)
-  (newline))
+;  (newline)
+  )
 
 (define-method test-suite-run ((self <test-ui-text>) test-suite test-thunk)
   (let ((counter (make <real-time-counter>)))
-    (print #`"- Start test suite ,(name-of test-suite)")
+;    (print #`"- Start test suite ,(name-of test-suite)")
     (with-time-counter counter (test-thunk))
+    (newline)
     (print
      (format "~s tests, ~s assertions, ~s successes, ~s failures, ~s errors"
              (test-number-of test-suite)
