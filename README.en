@@ -1,0 +1,285 @@
+# -*- rd -*-
+
+= README.en
+
+$Id$
+
+((*I'm not good in English. Please fix.*))
+
+Kimura ((<set
+up|URL:http://lists.sourceforge.jp/mailman/archives/gauche-devel-jp/2003-November/000437.html>))
+ports for FreeBSD. Thank you.
+
+== Author
+
+Kouhei Sutou <kou@cozmixng.org>
+
+== License
+
+GPL or BSD License
+
+== Mailing list
+
+Send mail that To field is cozdev@cozmixng.quickml.com , Cc
+field is kou@cozmixng.org and Subject and Body contain
+somthig to
+((<"cozdev@cozmixng.quickml.com"|URL:mailto:cozdev@cozmixng.quickml.com?cc=kou@cozmixng.org&subject=Join!>)).
+
+Note that this mailing list's main language is Japanese. But
+English mail is welcome too.
+
+== What's this?
+
+GaUnit is Unit Testing Framework for Gauche. This includes
+Emacs-Lisp which suports running tests.
+
+((<SchemeUnit|URL:http://schematics.sourceforge.net/schemeunit.html>))
+is similar program.
+
+== How to pronounce?
+
+What about `go-ni-tto'?
+
+== Get
+
+((<URL:http://www.cozmixng.org/~kou/download/gaunit.tar.gz>))
+
+  % svn co http://www.cozmixng.org/repos/gauche/gaunit/trunk gaunit
+
+== Install
+
+  # gosh install/install.scm
+
+== Use
+
+  (use test.unit)
+
+  (define-test-suite ...)
+  or
+  (define-test-case ...)
+
+=== Reference
+
+==== Assertions
+
+GaUnit has some procedures to test.
+
+((|[message]|)) is optional. It is string which is message
+on failure or a procedure which is accept an argument. If it
+is a procedure test result is passed to the procedure.
+
+--- fail([message])
+    
+    It always fail.
+
+--- assert(pred expected actual [message])
+    
+    It succeeds when (({(pred expected actual)})) is not #f.
+
+--- assert-equal(expected actual [message])
+    
+    It succeeds when (({(equal? expected actual)})) is #t.
+
+--- assert-true(actual [message])
+    
+    It succeeds when ((|actual|)) is #t.
+
+--- assert-false(actual [message])
+    
+    It succeeds when ((|actual|)) is #f.
+
+--- assert-instance-of(expected-class object [message])
+    
+    It succeeds when ((|object|)) is an instance of ((|expected-class|)).
+
+--- assert-raise(expected-class thunk [message])
+    
+    It succeeds when exception which is raised in
+    ((|thunk|)) (which is a non arity procedure) is an instance of
+    ((|expected-class|)).
+
+--- assert-error(tunk [message])
+    
+    Is succeeds when ((|exception|)) is raised in
+    ((|thunk|)) (which is a non arity procedure).
+
+--- assert-each(assert-proc lst &keyword :apply-if-can :run-assert :prepare)
+    
+    It applies each element of ((|lst|)) to ((|assert-proc|)).
+    
+    It works like below.
+    
+      (define (run-assert assert-proc args)
+        (if (and (list? args) apply-if-can)
+            (apply assert-proc args)
+            (assert-proc args)))
+      (for-each (lambda (item)
+                  (run-assert assert-proc (prepare item)))
+                lst)
+
+--- assert-macro(expanded form [message])
+    
+    It succeeds when (({(equal? expanded (macroexpand
+    form))})) is #t.
+    
+--- assert-macro1(expanded form [message])
+    
+    It succeeds when (({(equal? expanded (macroexpand-1
+    form))})) is #t.
+    
+====  Requisite minimum
+
+GaUnit has following procedure.
+
+--- run-all-test(&keyword :ui)
+
+    It runs test which is defiend by (({define-test-case}))
+    or (({define-test-suite})).
+    
+GaUnit has following syntaxes.
+
+--- define-test-case
+    
+    It defines test case.
+    
+      (define-test-case "name of test case"
+        (setup a-non-arity-procedure-which-is-evaled-before-each-test) ; if you need
+        (teardown a-non-arity-procedure-which-is-evaled-after-each-test) ; if you need
+        ("name of test"
+          (assert-foo ...))
+        ...)
+
+--- define-test-suite
+    
+    It defined test suite.
+    
+      (define-test-suite "name of test suite"
+        ("name of test case"
+          (setup a-non-arity-procedure-which-is-evaled-before-each-test) ; if you need
+          (teardown a-non-arity-procedure-which-is-evaled-after-each-test) ; if you need
+          ("name-of-set"
+            (assert-foo ...)
+            ...)
+          ...)
+        ...)
+
+==== If you need
+
+GaUnit has following procedure.
+
+--- run(<test-suite> or <test-case> or <test> &keyword :ui)
+
+    It runs test.
+    
+    You can change user interface by specifing keyword argument :ui.
+
+GaUnit has following syntaxes.
+
+--- define-assertion
+    
+    It defines assertion.
+    
+      (define-assertion (name-of-assertion argument ...)
+        body:last expression show success or failure)
+    
+    If ((|body|)) returns an object of <assertion-failure>
+    class the test is failure otherwise success. See
+    lib/test/assertions.scm.
+
+--- make-test
+    
+    It defined test.
+
+--- make-test-case
+    
+    It defined test case.
+
+--- make-test-suite
+    
+    It defined test suite.
+
+== Accessory
+
+It is included in the package.
+
+=== run-test.el
+
+sample/site-lisp/run-test.el is Emacs-Lisp for support
+running test in Emacs.
+
+Write following code in your .emacs.
+
+  (setq load-path (cons directory-which-has-run-test.el load-path))
+  (load "run-test")
+
+Write run-test.scm which run test like below. 
+
+  #!/usr/bin/env gosh
+
+  (use file.util)
+  (use test.unit)
+
+  (if (symbol-bound? 'main)
+      (define _main main))
+
+  (define (main args)
+    (let ((dir (sys-dirname (car args))))
+      (for-each (lambda (test-script)
+                  (load (string-join (list dir test-script) "/")))
+                (directory-list dir
+                                :filter (lambda (x) (rxmatch #/^test-/ x)))
+                )
+      (if (symbol-bound? '_main)
+          (_main args)
+          (run-all-test))))
+
+
+Make a directory whose name is `test' and move run-test.scm to
+the directory. Don't forget add execution authority to
+run-test.scm.
+
+Make some test files whose name is started in `test-' in the
+`test' directry. The organization of directory is following.
+
+  topdir --- test --- run-test.sh or run-test.scm
+                   |
+                   +- test-hoge.scm
+                   |
+                   .
+                   .
+                   .
+                   |
+                   +- test-fuga.scm
+
+A test (run-test.scm) is invoked in topdir. That is test is
+invoked following.
+
+  % test/run-test.sh
+
+Don't forget it when you write run-test.scm.
+
+Setup is finished.
+
+You can run test C-cC-t (run-test) in direcotry that is
+three deeper less than or equal topdir. You can jump
+to error assertion by C-x`.
+
+Happy testing!!
+
+==== Customize variables
+
+: run-test-file
+   Is is base name of file that runs test.
+   
+   default: "test/run-test"
+
+: run-test-suffixes
+   It is a list of suffix that is added to
+   ((|run-test-file|)). 
+   
+   default: (".scm" ".rb" ".sh")
+
+: run-test-search-directories
+   It is a list of search directory to find `run-test-file'.
+   
+   default: ("./" "../" "../../" "../../../")

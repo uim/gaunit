@@ -19,7 +19,7 @@
 
 (autoload test.ui.text <test-ui-text>)
 
-(define *gaunit-version* "0.0.4")
+(define *gaunit-version* "0.0.5")
 
 (define test-result (make-parameter #f))
 (define test-ui (make-parameter #f))
