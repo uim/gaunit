@@ -10,6 +10,8 @@
 (select-module test.ui.gtk)
 (gtk-init (with-module user *argv*))
 
+(define *timeout-time* 100)
+
 (define-class <test-ui-gtk> ()
   ((main-window :accessor main-window-of)
    (load-library-name-entry :accessor load-library-name-entry-of)
@@ -61,7 +63,7 @@
 
 (define (make-load-library-name-entry ui)
   (let ((entry (gtk-entry-new)))
-    ;; (gtk-entry-set-text entry "test/test-result.scm")
+    (gtk-entry-set-text entry (with-module user *program-name*))
     (slot-set! ui 'load-library-name-entry entry)
     entry))
 
@@ -109,18 +111,29 @@
 (define (make-test-progress-bar ui)
   (let ((bar (gtk-progress-bar-new)))
     (slot-set! ui 'progress-bar bar)
-    (gtk-widget-set-style bar (make-green-style ui))
+    (set-progress-bar-color! ui (make-green-color))
     bar))
 
-(define (make-green-style ui)
-  (let ((style (gtk-style-new)))
-;    (gtk-style-set-background style (main-window-of ui) GTK_STATE_PRELIGHT)
-    style))
+(define (set-progress-bar-color! ui color)
+  (gtk-timeout-add *timeout-time*
+                   (lambda _
+                     (gtk-widget-modify-bg (progress-bar-of ui)
+                                           GTK_STATE_PRELIGHT
+                                           color)
+                     #f)))
+  
+(define (make-color r g b)
+  (let ((color (make <gdk-color>)))
+    (slot-set! color 'red r)
+    (slot-set! color 'green g)
+    (slot-set! color 'blue b)
+    color))
 
-(define (make-red-style ui)
-  (let ((style (gtk-style-new)))
-;    (gtk-style-set-background style (main-window-of ui) GTK_STATE_PRELIGHT)
-    style))
+(define (make-green-color)
+  (make-color #x0000 #xffff #x0000))
+
+(define (make-red-color)
+  (make-color #xffff #x0000 #x0000))
 
 (define (make-info-panel ui)
   (let ((panel (gtk-hbox-new #f 0)))
@@ -241,7 +254,7 @@
     (number->string (+ inc-value (string->number string)))))
 
 (define (count-up-label label)
-  (gtk-timeout-add 0
+  (gtk-timeout-add *timeout-time*
                    (lambda _
                      (gtk-label-set-text label (string-inc-as-number 
                                                 (gtk-label-get-text label)))
@@ -252,9 +265,8 @@
   (count-up-label (success-count-label-of self)))
 
 (define-method test-failed ((self <test-ui-gtk>) test message stack-trace)
+  (set-progress-bar-color! self (make-red-color))
   (count-up-label (failure-count-label-of self))
-  (let ((bar (progress-bar-of self)))
-    (gtk-widget-set-style bar (make-red-style self)))
   (let ((fault-list (fault-list-of self))
         (fault-item (gtk-list-item-new-with-label
                      #`",(error-line (car stack-trace))\n,message in ,(name-of test)")))
@@ -263,6 +275,7 @@
     (gtk-list-append-items fault-list (list fault-item))))
 
 (define-method test-errored ((self <test-ui-gtk>) test err)
+  (set-progress-bar-color! self (make-red-color))
   (count-up-label (error-count-label-of self))
   (let ((stack-trace (cdr (vm-get-stack-trace))))
     (let ((fault-list (fault-list-of self))
@@ -292,7 +305,7 @@
       (lambda ()
         (count-up-label (test-count-label-of self))
         (gtk-timeout-add
-         0
+         *timeout-time*
          (lambda _
            (let ((bar (progress-bar-of self)))
              (gtk-progress-set-value bar
@@ -314,10 +327,11 @@
      (g-signal-connect (run-button-of self) "clicked"
                        (lambda _ (rerun self test-suite test-thunk)))
      (gtk-widget-show-all window))
-  (gtk-timeout-add 100 (lambda _ (run-test self test-thunk) #f))
+  (gtk-timeout-add *timeout-time* (lambda _ (run-test self test-thunk) #f))
   (gtk-main))
 
 (define (rerun ui test-suite test-thunk)
+  ;; (gtk-widget-activate (load-button-of ui))
   (soft-reset-test-suites (list test-suite))
   (reset-ui ui test-suite)
   (gtk-timeout-add 10 (lambda _ (run-test ui test-thunk) #f)))
@@ -329,7 +343,7 @@
     (output-status ui #`"Finished in ,(time-counter-value counter) seconds.")))
 
 (define (output-status ui message)
-  (gtk-timeout-add 0
+  (gtk-timeout-add *timeout-time*
                    (lambda _
                      (gtk-entry-set-text (status-entry-of ui) message)
                      #f)))
@@ -339,6 +353,7 @@
   (gtk-progress-configure (progress-bar-of ui) 0 0 (test-number-of suite))
   (slot-set! ui 'fault-detail-list '())
   (gtk-list-clear-items (fault-list-of ui) 0 -1)
+  (set-progress-bar-color! ui (make-green-color))
   (for-each (lambda (label-accessor)
               (gtk-label-set-text (label-accessor ui) "0"))
             (list test-count-label-of

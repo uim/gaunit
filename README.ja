@@ -20,8 +20,8 @@ GPL or BSD License
 
 == なにこれ？
 
-GaUnitはGaucheで実装されたUnit Testing Frameworkです．テスト
-の実行を支援するEmacs-Lispが付いています．
+GaUnitはGaucheで実装されたUnit Testing Frameworkです．おまけ
+でテストの実行を支援するEmacs-Lispが付いています．
 
 同様のものに
 ((<SchemeUnit|URL:http://schematics.sourceforge.net/schemeunit.html>))
