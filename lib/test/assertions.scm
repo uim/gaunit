@@ -69,6 +69,8 @@
 (define-assertion (assert-error thunk)
   (lambda (result)
     (format "none expection was thrown"))
-  (with-error-handler
-   (lambda (err) #t)
-   (lambda () (thunk))))
+  (if (procedure? thunk)
+      (with-error-handler
+       (lambda (err) #t)
+       (lambda () (thunk) #f))
+      #f))
