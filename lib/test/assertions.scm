@@ -30,6 +30,14 @@
         (message actual)
         message)))
 
+(define (make-message-handler expected . keywords)
+  (let-keywords* keywords ((after-expected "")
+                           (after-actual ""))
+    (lambda (actual)
+      (format " expected:<~s>~a\n  but was:<~s>~a"
+              expected after-expected
+              actual after-actual))))
+
 (define (get-stack-trace . options)
   (let-optionals* options ((stack-trace (cddr (vm-get-stack-trace))))
     (do ((s stack-trace (cdr s)))
@@ -40,23 +48,25 @@
                    (car stack-trace)
                    (cadr s)))))))
 
+(define (eval-body body-thunk)
+  (let ((prev-handler (current-exception-handler)))
+    (call/cc
+     (lambda (cont)
+       (with-exception-handler
+        (lambda (exn)
+          (if (assertion-failure? exn)
+              (cont exn)
+              (call-with-values (prev-handler exn) cont)))
+        (lambda ()
+          (parameterize ((count-assertion #f))
+            (body-thunk))))))))
+  
 (define-macro (define-assertion name&args . body)
   `(with-module test.unit
      (export ,(car name&args))
      (define ,name&args
        (if (test-result)
-           (let* ((prev-handler (current-exception-handler))
-                  (result
-                   (call/cc
-                    (lambda (cont)
-                      (with-exception-handler
-                       (lambda (exn)
-                         (if (assertion-failure? exn)
-                             (cont exn)
-                             (call-with-values (prev-handler exn) cont)))
-                       (lambda ()
-                         (parameterize ((count-assertion #f))
-                           ,@body)))))))
+           (let ((result (eval-body (lambda () ,@body))))
              (if (assertion-failure? result)
                  (if (count-assertion)
                      (add-failure!
@@ -78,8 +88,7 @@
       #t
       (assertion-failure
        (get-optional message
-                     (format " expected:<~s>\n  but was:<~s>"
-                             expected actual))
+                     (make-message-handler expected))
        actual)))
 
 (define-assertion (assert-equal expected actual . message)
@@ -90,7 +99,7 @@
       #t
       (assertion-failure
        (get-optional message
-                     (format " expected:<null>\n  but was:<~s>" actual))
+                     (make-message-handler '()))
        actual)))
 
 (define-assertion (assert-true actual . message)
@@ -105,7 +114,7 @@
       (assertion-failure
        (get-optional
         message
-        (format " expaceted:<~s> is an instance of <~s> but was:<~s>"
+        (format " expaceted:<~s> is an instance of <~s>\n  but was:<~s>"
                 object expected-class (class-of object)))
        object)))
 

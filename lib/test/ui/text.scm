@@ -49,13 +49,13 @@
 (define-method test-failed ((self <test-ui-text>) test message stack-trace)
   (display-when self :progress "F\n")
   (print-error-line (car stack-trace))
-  (print message #`" in ,(name-of test)")
-  (with-error-to-port (current-output-port)
-                      (lambda ()
-                        (with-module gauche.vm.debugger
-                                     (debug-print-stack
-                                      stack-trace
-                                      *stack-show-depth*)))))
+  (print message #`" in ,(name-of test)"))
+;   (with-error-to-port (current-output-port)
+;                       (lambda ()
+;                         (with-module gauche.vm.debugger
+;                                      (debug-print-stack
+;                                       stack-trace
+;                                       *stack-show-depth*)))))
 
 (define-method test-run ((self <test-ui-text>) test test-thunk)
   (test-thunk)

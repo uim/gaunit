@@ -8,36 +8,35 @@
 
 (select-module test.unit)
 
-(define (make-message-handler expect type)
-  (lambda (actual)
-    (format " expected:<~s> number of ~a\n  but was <~s>"
-            expect type actual)))
+(define (make-number-of-message-handler expect type)
+  (make-message-handler expect :after-expected
+                        (format " number of ~a" type)))
 
 (define-assertion (assert-test-case-result test-case test-num
                                            success-num failure-num
                                            error-num)
   (assert-equal test-num (length (tests-of test-case))
-                (make-message-handler test-num "test"))
+                (make-number-of-message-handler test-num "test"))
   (assert-equal success-num (success-of test-case)
-                (make-message-handler success-num "success"))
+                (make-number-of-message-handler success-num "success"))
   (assert-equal failure-num (failure-of test-case)
-                (make-message-handler failure-num "failure"))
+                (make-number-of-message-handler failure-num "failure"))
   (assert-equal error-num (error-of test-case)
-                (make-message-handler error-num "error")))
+                (make-number-of-message-handler error-num "error")))
 
 (define-assertion (assert-test-suite-result test-suite test-num
                                             assertion-num success-num
                                             failure-num error-num)
   (assert-equal test-num (test-number-of test-suite)
-                (make-message-handler test-num "test"))
+                (make-number-of-message-handler test-num "test"))
   (assert-equal assertion-num (assertion-number-of test-suite)
-                (make-message-handler assertion-num "assertion"))
+                (make-number-of-message-handler assertion-num "assertion"))
   (assert-equal success-num (success-number-of test-suite)
-                (make-message-handler success-num "success"))
+                (make-number-of-message-handler success-num "success"))
   (assert-equal failure-num (failure-number-of test-suite)
-                (make-message-handler failure-num "failure"))
+                (make-number-of-message-handler failure-num "failure"))
   (assert-equal error-num (error-number-of test-suite)
-                (make-message-handler error-num "error")))
+                (make-number-of-message-handler error-num "error")))
 
 (define-assertion (assert-have-error-message str)
   (if (rxmatch #/\*\*\* ERROR:/ str)
