@@ -40,50 +40,40 @@
                    (car stack-trace)
                    (cadr s)))))))
 
-(define-macro (assertion-body body)
-  `(if (test-result)
-       (let* ((prev-handler (current-exception-handler))
-              (result
-               (call/cc
-                (lambda (cont)
-                  (with-exception-handler
-                   (lambda (exn)
-                     (if (assertion-failure? exn)
-                         (cont exn)
-                         (call-with-values (prev-handler exn) cont)))
-                   (lambda ()
-                     (parameterize ((count-assertion #f))
-                       ,@body)))))))
-         (if (assertion-failure? result)
-             (if (count-assertion)
-                 (add-failure!
-                  (test-result) (test-ui) (current-test)
-                  (failure-message-of result)
-                  (get-stack-trace))
-                 (begin
-                   (raise result)))
-             (when (count-assertion)
-               (add-success!
-                (test-result) (test-ui) (current-test)))))))
+(define-macro (define-assertion name&args . body)
+  `(with-module test.unit
+     (export ,(car name&args))
+     (define ,name&args
+       (if (test-result)
+           (let* ((prev-handler (current-exception-handler))
+                  (result
+                   (call/cc
+                    (lambda (cont)
+                      (with-exception-handler
+                       (lambda (exn)
+                         (if (assertion-failure? exn)
+                             (cont exn)
+                             (call-with-values (prev-handler exn) cont)))
+                       (lambda ()
+                         (parameterize ((count-assertion #f))
+                           ,@body)))))))
+             (if (assertion-failure? result)
+                 (if (count-assertion)
+                     (add-failure!
+                      (test-result) (test-ui) (current-test)
+                      (failure-message-of result)
+                      (get-stack-trace))
+                     (begin
+                       (raise result)))
+                 (when (count-assertion)
+                   (add-success!
+                    (test-result) (test-ui) (current-test)))))))))
 
-(define-syntax define-assertion
-  (syntax-rules ()
-    ((_ (name arg ...) (options) body ...)
-     (with-module test.unit
-       (export name)
-       (define (name arg ... . options)
-         (assertion-body (body ...)))))
-    ((_ (name arg ...) body ...)
-     (with-module test.unit
-       (export name)
-       (define (name arg ...)
-         (assertion-body (body ...)))))))
-
-(define-assertion (fail) (message)
+(define-assertion (fail . message)
   (raise (make <assertion-failure>
            :failure-message (get-optional message " Failure!"))))
 
-(define-assertion (assert pred expected actual) (message)
+(define-assertion (assert pred expected actual . message)
   (if (pred expected actual)
       #t
       (assertion-failure
@@ -92,10 +82,10 @@
                              expected actual))
        actual)))
 
-(define-assertion (assert-equal expected actual) (message)
+(define-assertion (assert-equal expected actual . message)
   (apply assert equal? expected actual message))
 
-(define-assertion (assert-null actual) (message)
+(define-assertion (assert-null actual . message)
   (if (null? actual)
       #t
       (assertion-failure
@@ -103,13 +93,13 @@
                      (format " expected:<null>\n  but was:<~s>" actual))
        actual)))
 
-(define-assertion (assert-true actual) (message)
+(define-assertion (assert-true actual . message)
   (apply assert eq? #t actual message))
 
-(define-assertion (assert-false actual) (message)
+(define-assertion (assert-false actual . message)
   (apply assert eq? #f actual message))
 
-(define-assertion (assert-instance-of expected-class object) (message)
+(define-assertion (assert-instance-of expected-class object . message)
   (if (is-a? object expected-class)
       #t
       (assertion-failure
@@ -119,7 +109,7 @@
                 object expected-class (class-of object)))
        object)))
 
-(define-assertion (assert-raise expected-class thunk) (message)
+(define-assertion (assert-raise expected-class thunk . message)
   (assert is-a? expected-class <class>
           " Should expect a class of exception")
   (call/cc
@@ -144,7 +134,7 @@
             (format " expected:<~s> class exception\n  but none was thrown"
                     expected-class)))))))))
 
-(define-assertion (assert-error thunk) (message)
+(define-assertion (assert-error thunk . message)
   (assert-true (procedure? thunk) " Must be procedure")
   (with-error-handler
    (lambda (err) #t)

@@ -3,5 +3,5 @@
 for test in test/test-*.scm
 do
   echo "Running test $test..."
-  gosh $test
+  gosh -I. $test
 done
