@@ -428,7 +428,7 @@ run-test.{sh,scm}を書くときはこのことに注意しましょう．
 設定はこれで終了です．
 
 topdir以下にいるときはC-cC-t(run-test)で
-topdir/test/run-test.shが実行できます．実行結果は*Compilation*
+topdir/test/run-test.shが実行できます．実行結果は*run-test*
 バッファに挿入されます．テストを実行して失敗/エラーがおきた
 らエラーが発生したassertionにC-x`でジャンプすることができます．
 

@@ -60,13 +60,16 @@
          (let ((test-file-info (car test-file-infos)))
            (let ((current-directory (cadr (split-string(pwd))))
                  (run-test-file (car test-file-info))
-                 (test-file (cdr test-file-info)))
+                 (test-file (cdr test-file-info))
+                 (name-of-mode "run-test"))
              (cd (car (split-string test-file run-test-file)))
-             (compile (concat
-                       (concat "./"
-                               (file-name-directory run-test-file))
-                       (file-name-nondirectory test-file)
-                       verbose-arg))
+             (compile-internal
+              (concat (concat "./"
+                              (file-name-directory run-test-file))
+                      (file-name-nondirectory test-file)
+                      verbose-arg)
+              "No more failures/errors"
+              "run-test")
              (cd current-directory))))
         (t (run-test-if-find (cdr test-file-infos) verbose-arg))))
 
