@@ -11,14 +11,15 @@
 
 (define-method test-errored ((self <test-ui-text>) test err)
   (display "E\n")
-  (report-error err))
+  (with-error-to-port (current-output-port)
+                      (lambda () (report-error err))))
 
 (define-method test-successed ((self <test-ui-text>) test)
   (display "."))
 
 (define-method test-failed ((self <test-ui-text>) test message stack-trace)
   (print "F\n" message #`" in ,(name-of test)")
-   (with-error-to-port (standard-output-port)
+   (with-error-to-port (current-output-port)
                        (with-module gauche.vm.debugger
                                     (lambda ()
                                       (debug-print-stack

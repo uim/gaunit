@@ -29,6 +29,11 @@
     (format "<~s> expected but got <~s>" expected actual))
   (equal? expected actual))
 
+(define-assertion (assert-null actual)
+  (lambda (result)
+    (format "<null> expected but got <~s>" actual))
+  (null? actual))
+
 (define-assertion (assert-true actual)
   (lambda (result)
     (format "<#t> expected but got <~s>" actual))
