@@ -1,11 +1,11 @@
 (define-module test.assertions
-  (export-all)
+  (export define-assertion)
   )
 
 (define-syntax define-assertion
   (syntax-rules ()
     ((_ (name arg ...) message-handler body ...)
-     (begin
+     (with-module test.assertions
        (export name)
        (define (name arg ...)
          (if (test-result)
@@ -22,27 +22,27 @@
 
 (define-assertion (assert actual)
   (lambda (result)
-    (format " expected:<not #f> but was:<~s>" result))
+    (format " expected:<not #f>\n  but was:<~s>" result))
   actual)
 
 (define-assertion (assert-equal expected actual)
   (lambda (result)
-    (format " expected:<~s> but was:<~s>" expected actual))
+    (format " expected:<~s>\n  but was:<~s>" expected actual))
   (equal? expected actual))
 
 (define-assertion (assert-null actual)
   (lambda (result)
-    (format " expected:<null> but was:<~s>" actual))
+    (format " expected:<null>\n  but was:<~s>" actual))
   (null? actual))
 
 (define-assertion (assert-true actual)
   (lambda (result)
-    (format " expected:<#t> but was:<~s>" actual))
+    (format " expected:<#t>\n  but was:<~s>" actual))
   (eq? #t actual))
 
 (define-assertion (assert-false actual)
   (lambda (result)
-    (format " expected:<#f> but was:<~s>" actual))
+    (format " expected:<#f>\n  but was:<~s>" actual))
   (not actual))
 
 (define-assertion (assert-instance-of expected-class object)
@@ -54,7 +54,7 @@
 (define-assertion (assert-raise expected-class thunk)
   (if (is-a? expected-class <class>)
       (lambda (result)
-        (format " expected:<~s> class exception but ~a"
+        (format " expected:<~s> class exception\n  but ~a"
                 expected-class result))
       (lambda (result)
         (format " Should expect a class of exception")))

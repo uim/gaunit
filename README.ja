@@ -16,7 +16,8 @@ GPL or BSD License
 
 == なにこれ？
 
-GaUnitはGaucheで実装されたUnit Testing Frameworkです．
+GaUnitはGaucheで実装されたUnit Testing Frameworkです．テスト
+の実行を支援するEmacs-Lispが付いています．
 
 同様のものに
 ((<SchemeUnit|URL:http://schematics.sourceforge.net/schemeunit.html>))
@@ -48,3 +49,60 @@ test.unitは一般的過ぎるので変更されるかもしれません．
   とか
 
   (run-all-test)
+
+=== run-test.el
+
+sample/site-lisp/run-test.elはEmacs上でのテストの実行を支援
+するEmacs-Lispです．
+
+使うには，まず，.emacsに以下を記述します．
+
+  (setq load-path (cons run-test.elがあるディレクトリ load-path))
+  (load "run-test")
+
+テストを実行するスクリプトrun-test.scmを書きます．例
+えば，こんな感じです．
+
+  #!/usr/bin/env gosh
+
+  (use file.util)
+  (use test.unit)
+
+  (define (main args)
+    (let ((dir (sys-dirname (car args))))
+      (for-each (lambda (test-script)
+                  (reset-test-suites)
+                  (print "loading " (string-join
+                                     (list dir test-script)
+                                     "/"))
+                  (eval `(load ,(string-join
+                                 (list dir test-script)
+                                 "/"))
+                        (current-module))
+                  (newline))
+                (directory-list dir
+                                :filter (lambda (x) (rxmatch #/^test-/ x)))
+                )))
+
+で，testというディレクトリを作って，このrun-test.scmに実行権
+を付けておいておきます．
+
+テストファイルはtestというディレクトリ以下にtest-hoge.scmと
+いう名前で作っていきます．つまり，ディレクトリ構成は以下の様
+になります．
+
+  topdir --- test --- run-test.scm
+                   |
+                   +- test-hoge.scm
+                   |
+                   .
+                   .
+                   .
+                   |
+                   +- test-fuga.scm
+
+テスト(run-test.scm)はtopdirで起動されます．つまり，
+
+  % test/run-test.scm
+
+というように起動されます．
