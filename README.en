@@ -251,18 +251,18 @@ Make some test files whose name is started in `test-' in the
                    |
                    +- test-fuga.scm
 
-A test (run-test.scm) is invoked in topdir. That is test is
-invoked following.
+A test (run-test.scm) is invoked in `topdir'. That is test
+is invoked following.
 
-  % test/run-test.sh
+  % test/run-test.scm
 
 Don't forget it when you write run-test.scm.
 
 Setup is finished.
 
-You can run test C-cC-t (run-test) in direcotry that is
-three deeper less than or equal topdir. You can jump
-to error assertion by C-x`.
+You can run test (topdir/test/run-test.scm) by C-cC-t
+(run-test) when you are in under `topdir' and jump to error
+assertion by C-x`.
 
 Happy testing!!
 
@@ -278,8 +278,3 @@ Happy testing!!
    ((|run-test-file|)). 
    
    default: (".scm" ".rb" ".sh")
-
-: run-test-search-directories
-   It is a list of search directory to find `run-test-file'.
-   
-   default: ("./" "../" "../../" "../../../")

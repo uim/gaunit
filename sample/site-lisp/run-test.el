@@ -6,9 +6,6 @@
 (defvar run-test-file "test/run-test"
   "Invoked file name by run-test.")
 
-(defvar run-test-search-directories '("./" "../" "../../" "../../../")
-  "Searched directories when searching run-test-file.")
-
 (defvar run-test-verbose-level-table '((0 . "-vs")
                                        (1 . "")
                                        (2 . "-vp")
@@ -23,23 +20,36 @@
                  (flatten (cdr lst))))
         (t (cons (car lst) (flatten (cdr lst))))))
 
-
 (defun get-verbose-level-arg (num)
   (let ((elem (assoc num run-test-verbose-level-table)))
     (concat " "
             (if elem (cdr elem) ""))))
 
+(defun find-run-test-file-in-directory (directory filenames)
+  (do ((fnames filenames (cdr fnames))
+       (fname (concat directory (car filenames))
+              (concat directory (car fnames))))
+      ((or (file-exists-p fname)
+           (null fnames))
+       (if (file-exists-p fname)
+           fname
+         nil))))
+
+(defun find-run-test-file (filenames)
+  (let ((init-dir "./"))
+    (do ((dir init-dir (concat dir "../"))
+         (run-test-file (find-run-test-file-in-directory init-dir filenames)
+                        (find-run-test-file-in-directory dir filenames)))
+        ((or run-test-file (string= "/" (expand-file-name dir)))
+         run-test-file))))
+
 (defun run-test (&optional arg)
   (interactive "P")
   (let ((verbose-arg (get-verbose-level-arg (prefix-numeric-value arg)))
-        (test-file
-         (find-if #'file-exists-p
-                  (flatten
-                   (mapcar (lambda (dir)
-                             (mapcar (lambda (suffix)
-                                       (concat dir run-test-file suffix))
-                                     run-test-suffixes))
-                           run-test-search-directories)))))
+        (test-file (find-run-test-file
+                    (mapcar (lambda (suffix)
+                              (concat run-test-file suffix))
+                            run-test-suffixes))))
     (if test-file
         (let ((current-directory (cadr (split-string(pwd)))))
           (cd (car (split-string test-file run-test-file)))

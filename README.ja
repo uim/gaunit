@@ -68,69 +68,71 @@ GaUnitは以下に示すテストをするための手続きを用意しています．
 
 --- assert(pred expected actual [message])
     
-    (pred expected actual)が#fでないならば成功します．
+    (({(pred expected actual)}))が#fでないならば成功します．
 
 --- assert-equal(expected actual [message])
     
-    (equal? expected actual)が#tを返せば成功します．
+    (({(equal? expected actual)}))が#tを返せば成功します．
 
 --- assert-true(actual [message])
     
-    actualが#tならば成功します．
+    ((|actual|))が#tならば成功します．
 
 --- assert-false(actual [message])
     
-    actualが#fならば成功します．
+    ((|actual|))が#fならば成功します．
 
 --- assert-instance-of(expected-class object [message])
     
-    objectがexpected-classのインスタンスであれば成功します．
+    ((|object|))が((|expected-class|))のインスタンスであれば
+    成功します．
 
 --- assert-raise(expected-class thunk [message])
     
-    thunk(引数無しの手続き)内で起こった例外がexpected-class
-    のインスタンスであれば成功します．
+    ((|thunk|))(引数無しの手続き)内で起こった例外が
+    ((|expected-class|))のインスタンスであれば成功します．
 
 --- assert-error(tunk [message])
     
-    thunk(引数無しの手続き)内で例外が発生すれば成功します．
+    ((|thunk|))(引数無しの手続き)内で例外が発生すれば成功します．
 
---- assert-each(assert-proc lst &keyword :run-assert :prepare)
+--- assert-each(assert-proc lst &keyword :apply-if-can :run-assert :prepare)
     
-    assert-procをlstの各要素に対して適用します．
+    ((|assert-proc|))を((|lst|))の各要素に対して適用します．
     
-    lstの各要素はprepareに適用され，run-assertによって
-    assert-procに適用されます．
+    ((|lst|))の各要素は((|prepare|))に適用され，
+    ((|run-assert|))によって((|assert-proc|))に適用されます．
+    
+    もし，((|prepare|))が返値がリストで((|apply-if-can|))が
+    #t(デフォルト)なら((|assert-proc|))に((|apply|))されます．
     
     イメージとしてはこんな感じです．
 
       (define (run-assert assert-proc args)
-        (apply assert-proc args))
+        (if (and (list? args) apply-if-can)
+            (apply assert-proc args)
+            (assert-proc args)))
       (for-each (lambda (item)
                   (run-assert assert-proc (prepare item)))
                 lst)
 
 --- assert-macro(expanded form [message])
     
-    (equal? expanded (macroexpand form))が真を返せば成功します．
+    (({(equal? expanded (macroexpand form))}))が真を返せば成功します．
     
 --- assert-macro1(expanded form [message])
     
-    (equal? expanded (macroexpand-1 form))が真を返せば成功します．
+    (({(equal? expanded (macroexpand-1 form))}))が真を返せば成功します．
     
 ==== 必要最小限
 
 GaUnitは以下の手続きを用意しています．
 
 --- run-all-test(&keyword :ui)
-
-    define-test-case, define-test-suiteで定義されたテストを
+    
+    ((|define-test-case|)), ((|define-test-suite|))で定義されたテストを
     実行します．
     
-    また，キーワード引数:uiを指定することによりテストを
-    実行するユーザインターフェイスを変更できます．が，現在は
-    テキストベースのものしか用意されていません．
-
 GaUnitは以下の構文を用意しています．
 
 --- define-test-case
@@ -166,7 +168,7 @@ GaUnitは以下の手続きを用意しています．
 
     テストを実行します．
     
-    キーワード引数:uiを指定することによりテストを実行するユー
+    キーワード引数((|:ui|))を指定することによりテストを実行するユー
     ザインターフェイスを変更できます．
 
 GaUnitは以下の構文を用意しています．
@@ -178,9 +180,9 @@ GaUnitは以下の構文を用意しています．
       (define-assertion (表明名 引数 ...)
         式の列:最後の式の値が成功か失敗か示す)
     
-    ((|式の列|))の値が<assertion-failure>クラスのオブジェク
+    ((|式の列|))の値が((|<assertion-failure>|))クラスのオブジェク
     トなら失敗，それ以外なら成功を示します．詳しくは
-    lib/test/assertions.scmのdefine-assertionを使って定義さ
+    lib/test/assertions.scmの((|define-assertion|))を使って定義さ
     れているassertionを見てください．
 
 --- make-test
@@ -272,7 +274,7 @@ run-test.{sh,scm}を書くときはこのことに注意しましょう．
 
 設定はこれで終了です．
 
-topdirから3階層まで深いディレクトリ内ではC-cC-t(run-test)で
+topdir以下にいるときはC-cC-t(run-test)で
 topdir/test/run-test.shが実行できます．実行結果は
 *Compilation*バッファに挿入されます．テストを実行して失敗/エ
 ラーがおきたらエラーが発生したassertionにC-x`でジャンプする
@@ -292,9 +294,3 @@ topdir/test/run-test.shが実行できます．実行結果は
    優先されます．
    
    デフォルト: (".scm" ".rb" ".sh")
-
-: run-test-search-directories
-   run-test-fileを探索するディレクトリのリストです．先頭の方
-   にあるディレクトリ程優先されます．
-   
-   デフォルト: ("./" "../" "../../" "../../../")
