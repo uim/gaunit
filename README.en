@@ -48,11 +48,70 @@ What about `go-ni-tto'?
 
 == Usage
 
+Make the program that define some tests.
+
   (use test.unit)
 
   (define-test-suite ...)
   or
   (define-test-case ...)
+
+Execute the program. GaUnit exports (({main})) procedure
+that run test. So, you don't need define (({main}))
+procedure.
+
+  % gosh test-program.scm
+
+=== Options
+
+(({main})) procedure exported by GaUnit accepts some options.
+
+: -uUI, --ui=UI
+   It specifies user interface that show test
+   results. ((|UI|)) is following.
+
+   : t[ext]
+      GaUnit uses text version user interface. It is default.
+
+   : g[tk]
+      GaUnit users GTK+ version user interface.
+
+
+: -vLEVEL, --vervose=LEVEL
+   Is specifies output level. It have its place in text
+   version user interface, now. ((|LEVEL|)) is follwing.
+
+   : s[ilent]
+      GaUnit shows the result only when a test is failure or
+      a error occur. GaUnit show nothing if a test is success.
+
+   : p[rogress]
+      GaUnit shows "." when a test is success. Otherwise, it
+      is same as silent.
+
+   : n[ormal]
+      GaUnit shows test suite name when it is
+      executed, and test number, assertion number, success
+      assertion number, failure asertion number, error
+      number and processing time when test is
+      finished. Otherwise, it is same as progress. It is
+      default.
+
+   : v[erbose]
+      GaUnit shows test case name when it is
+      executed. Otherwise, it is same as normal.
+
+: -h, --help
+   GaUnit shows usage and exit.
+
+For example, you can use GTK+ version user interface if you
+type following.
+
+  % gosh test-program.scm -ug
+
+You can get verbose log if you type following.
+
+  % gosh test-program.scm -vv
 
 === Reference
 
