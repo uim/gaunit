@@ -74,7 +74,19 @@ procedure.
       GaUnit uses text version user interface. It is default.
 
    : g[tk]
-      GaUnit users GTK+ version user interface.
+      GaUnit users GTK+ version user interface. It has
+      following key bindings. Those bindings ignore prefix
+      like Ctrl, Alt and so on. So you can use l, Ctrl + l
+      or Alt + l.
+      
+      : l
+         Push Load button.
+      
+      : r
+         Push Run button.
+      
+      : q, ESC
+         Quit.
 
 
 : -vLEVEL, --vervose=LEVEL
