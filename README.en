@@ -113,6 +113,18 @@ procedure.
       GaUnit shows test case name when it is
       executed. Otherwise, it is same as normal.
 
+: -sREGEXP, --test-suite=REGEXP
+
+   Run only test suites that those name are matched by REGEXP.
+
+: -cREGEXP, --test-case=REGEXP
+
+   Run only test cases that those name are matched by REGEXP.
+
+: -tREGEXP, --test=REGEXP
+
+   Run only tests that those name are matched by REGEXP.
+
 : -h, --help
    GaUnit shows usage and exit.
 
