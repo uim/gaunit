@@ -171,36 +171,39 @@
 
 (define-method run ((self <test-suite>) . options)
   (let-keywords* options ((test-ui *default-test-ui*))
-    (test-suite-start test-ui self)
-    (for-each (lambda (test-case) (run test-case :test-ui test-ui))
-              (test-cases-of self))
-    (test-suite-finish test-ui self)))
+    (test-suite-run
+     test-ui
+     self
+     (lambda ()
+       (for-each (lambda (test-case) (run test-case :test-ui test-ui))
+                 (test-cases-of self))))))
 
 (define-method run ((self <test-case>) . options)
   (let-keywords* options ((test-ui *default-test-ui*))
     (let ((setup-proc (lambda () (setup self)))
           (teardown-proc (lambda () (teardown self))))
-      (test-case-start test-ui self)
-      (for-each (lambda (test)
-                  (with-error-handler
-                   (lambda (err)
-                     (add-error! (result-of test) test-ui test err))
-                   (lambda ()
-                     (dynamic-wind
-                         setup-proc
-                         (lambda () (run test :test-ui test-ui))
-                         teardown-proc))))
-                (tests-of self))
-      (test-case-finish test-ui self))))
+      (test-case-run
+       test-ui
+       self
+       (lambda ()
+         (for-each (lambda (test)
+                     (with-error-handler
+                      (lambda (err)
+                        (add-error! (result-of test) test-ui test err))
+                      (lambda ()
+                        (dynamic-wind
+                            setup-proc
+                            (lambda () (run test :test-ui test-ui))
+                            teardown-proc))))
+                   (tests-of self)))))))
 
 (define-method run ((self <test>) . options)
   (let-keywords* options ((tu *default-test-ui*))
     (parameterize ((test-result (result-of self))
                    (test-ui tu)
                    (current-test self))
-      (test-start tu self)
-      ((asserts-of self))
-      (test-finish tu self))))
+      (test-run tu self
+                (lambda () ((asserts-of self)))))))
 
 (define-method add-success! ((self <result>) test-ui test)
   (inc! (success-of self))

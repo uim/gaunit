@@ -1,6 +1,7 @@
 (select-module test.unit)
 
 (use gauche.vm.debugger)
+(use gauche.time)
 
 (define-class <test-ui-text> ()
   ())
@@ -10,7 +11,7 @@
                  (name-of test-suite))))
 
 (define-method test-errored ((self <test-ui-text>) test err)
-  (display "E\n")
+  (print "E\n" #`"Error occured in ,(name-of test)")
   (with-error-to-port (current-output-port)
                       (lambda () (report-error err))))
 
@@ -26,29 +27,25 @@
                                        stack-trace
                                        *stack-show-depth*)))))
 
-(define-method test-start ((self <test-ui-text>) test)
-  #f)
-;  (print #`"--- Start test ,(name-of test)"))
+(define-method test-run ((self <test-ui-text>) test test-thunk)
+  (test-thunk))
 
-(define-method test-finish ((self <test-ui-text>) test)
-  #f)
-;  (newline))
-
-(define-method test-case-start ((self <test-ui-text>) test-case)
-  (print #`"-- Start test case ,(name-of test-case)"))
-
-(define-method test-case-finish ((self <test-ui-text>) test-case)
+(define-method test-case-run ((self <test-ui-text>) test-case test-thunk)
+  (print #`"-- Start test case ,(name-of test-case)")
+  (test-thunk)
   (newline))
 
-(define-method test-suite-start ((self <test-ui-text>) test-suite)
-  (print #`"- Start test suite ,(name-of test-suite)"))
-
-(define-method test-suite-finish ((self <test-ui-text>) test-suite)
-  (print (format "~s tests, ~s assertions, ~s successes, ~s failures, ~s errors"
-                 (test-number-of test-suite)
-                 (assertion-number-of test-suite)
-                 (success-number-of test-suite)
-                 (failure-number-of test-suite)
-                 (error-number-of test-suite))))
+(define-method test-suite-run ((self <test-ui-text>) test-suite test-thunk)
+  (let ((counter (make <real-time-counter>)))
+    (print #`"- Start test suite ,(name-of test-suite)")
+    (with-time-counter counter (test-thunk))
+    (print
+     (format "~s tests, ~s assertions, ~s successes, ~s failures, ~s errors"
+             (test-number-of test-suite)
+             (assertion-number-of test-suite)
+             (success-number-of test-suite)
+             (failure-number-of test-suite)
+             (error-number-of test-suite)))
+    (print (format "Testing time: ~s" (time-counter-value counter)))))
 
 (set-default-test-ui! (make <test-ui-text>))
