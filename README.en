@@ -46,7 +46,7 @@ What about `go-ni-tto'?
 
   # gosh install/install.scm
 
-== Use
+== Usage
 
   (use test.unit)
 
