@@ -127,6 +127,17 @@
                        :prepare (lambda (test-case)
                                   (values (car test-case)
                                           ((cadr test-case)))))
+          (assert-each (lambda args
+                         (if (null? (cdr args))
+                             (apply assert-true args)
+                             (assert-each assert-true args)))
+                       '(#t #t (#t #t) #t))
+          (assert-each (lambda (args)
+                         (if (list? args)
+                             (assert-each assert-true args)
+                             (assert-true args)))
+                       '(#t #t (#t #t) #t)
+                       :apply-if-can #f)
           )
          ("assert-each fail-1"
           (assert-each assert-true
@@ -139,7 +150,7 @@
   ;; (run test)
   (define-test-case "Test assert-each"
     ("Test assert-each"
-     (assert-test-case-result test 3 3 1 1))))
+     (assert-test-case-result test 3 5 1 1))))
 
 (define-macro (die message)
   `(error ,(x->string message)))

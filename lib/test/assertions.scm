@@ -172,10 +172,13 @@
         (thunk) #t)))))
 
 (define-assertion (assert-each assert-proc lst . keywords)
-  (let-keywords* keywords ((run-assert (lambda (assert-proc prepared-item)
-                                         (apply assert-proc prepared-item)))
-                           (prepare (lambda (x)
-                                      (if (list? x) x (list x)))))
+  (let-keywords* keywords ((apply-if-can #t)
+                           (run-assert (lambda (assert-proc prepared-item)
+                                         (if (and (list? prepared-item)
+                                                  apply-if-can)
+                                             (apply assert-proc prepared-item)
+                                             (assert-proc prepared-item))))
+                           (prepare (lambda (x) x)))
     (for-each (lambda (args)
                 (call-with-values (lambda () (prepare args))
                   (lambda args
