@@ -70,11 +70,11 @@
     (gaunit-delete-default-setup-proc! proc))
   (gaunit-add-default-setup-proc! (lambda () (set! setuped '())))
 
-  (gaunit-add-default-teardown-proc! (lambda () (push! teardowned 'd)))
+  (gaunit-add-default-teardown-proc! (lambda () (push! teardowned 'f)))
   (let ((proc (lambda () (push! teardowned 'e))))
     (gaunit-add-default-teardown-proc! proc)
     (gaunit-delete-default-teardown-proc! proc))
-  (gaunit-add-default-teardown-proc! (lambda () (push! teardowned 'f)))
+  (gaunit-add-default-teardown-proc! (lambda () (push! teardowned 'd)))
   
   (define-test-case
     "more Test default setup and teardown"
