@@ -210,7 +210,9 @@ lib/symdiff.scmにderivを定義しましょう．
 
   .
 
-成功しましたね．
+成功しましたね．.（ドット）はテストがパスしたことを表してい
+ます．ちなみに，これからでてくるFはテストが失敗（Failure）し
+たことを，Eはエラー（Error）が発生したことを示しています．
 
 もし，もっと詳細なテスト結果を表示したい場合はC-uC-cC-tとし
 てテストを起動してみてください．run-test.elを使っていない場
@@ -728,16 +730,16 @@ multiplierが未定義のためエラーになりました．
 
 これは，"base test"に加えておきましょう．
 
-(define-test-case "Symbolic Differentiation"
-  ("base test"
-   ...
-   (assert-equal (make-sum (make-product 1 (deriv 'x 'x))
-                           (make-product (deriv 1 'x) 'x))
-                 (deriv (make-product 1 'x) 'x)))
-  ("sum test"
-   ...)
-  ("product test"
-   ...))
+  (define-test-case "Symbolic Differentiation"
+    ("base test"
+     ...
+     (assert-equal (make-sum (make-product 1 (deriv 'x 'x))
+                             (make-product (deriv 1 'x) 'x))
+                   (deriv (make-product 1 'x) 'x)))
+    ("sum test"
+     ...)
+    ("product test"
+     ...))
 
 C-cC-tでテストを実行しましょう．
 
@@ -1526,8 +1528,8 @@ C-cC-tでテストを実行します．
 条件にあうproductを見付けるために順列(permutations)を生成し
 てマッチしているからですが，他に方法が思い付かなかったのです．
 
-不吉な匂いがしてリファクタリングをしたくなりますが，これ以上
-思い浮かばないのでこのままにしておきます（みなさんの宿題
+不吉な匂いがしてリファクタリングをしたくなりますが，今はこれ
+以上思い浮かばないのでこのままにしておきます（みなさんの宿題
 に．．．）．
 
 C-cC-tでテストしてみましょう．
