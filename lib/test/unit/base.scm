@@ -31,7 +31,7 @@
 
 (autoload test.unit.ui.text <test-ui-text>)
 
-(define *gaunit-version* "0.0.7")
+(define *gaunit-version* "0.0.8")
 
 (define *default-test-ui* #f)
 (define (set-default-test-ui! ui)
