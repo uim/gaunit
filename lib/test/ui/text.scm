@@ -44,7 +44,7 @@
                         (report-error err))))
 
 (define-method test-successed ((self <test-ui-text>) test)
-  (display-when self :progress "."))
+  #f)
 
 (define-method test-failed ((self <test-ui-text>) test message stack-trace)
   (display-when self :progress "F\n")
@@ -58,7 +58,8 @@
                                       *stack-show-depth*)))))
 
 (define-method test-run ((self <test-ui-text>) test test-thunk)
-  (test-thunk))
+  (test-thunk)
+  (display-when self :progress "."))
 
 (define-method test-case-run ((self <test-ui-text>) test-case test-thunk)
   (display-when self :verbose #`"-- Start test case ,(name-of test-case)\n")

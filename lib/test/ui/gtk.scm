@@ -33,7 +33,8 @@
 
 (define (make-main-window ui)
   (let ((window (gtk-window-new GTK_WINDOW_TOPLEVEL)))
-    (g-signal-connect window "destroy" (lambda _ (gtk-main-quit)))
+    (g-signal-connect window "destroy"
+                      (lambda _ (gtk-main-quit)))
     (gtk-widget-set-usize window 800 600)
     (gtk-window-set-policy window 1 1 0)
     (gtk-container-add window (make-main-panel ui))
@@ -60,7 +61,7 @@
 
 (define (make-load-library-name-entry ui)
   (let ((entry (gtk-entry-new)))
-    (gtk-entry-set-text entry "test/test-result.scm")
+    ;; (gtk-entry-set-text entry "test/test-result.scm")
     (slot-set! ui 'load-library-name-entry entry)
     entry))
 
@@ -76,6 +77,7 @@
                          ui
                          #`"Loaded ,(gtk-entry-get-text
                                       (load-library-name-entry-of ui))")
+                        (gtk-widget-destroy (main-window-of ui))
                         (run-all-test :ui (make <test-ui-gtk>))))
     button))
 
@@ -239,8 +241,11 @@
     (number->string (+ inc-value (string->number string)))))
 
 (define (count-up-label label)
-  (gtk-label-set-text label (string-inc-as-number 
-                             (gtk-label-get-text label))))
+  (gtk-timeout-add 0
+                   (lambda _
+                     (gtk-label-set-text label (string-inc-as-number 
+                                                (gtk-label-get-text label)))
+                     #f)))
   
 
 (define-method test-successed ((self <test-ui-gtk>) test)
@@ -285,14 +290,18 @@
       (lambda () (output-status self #`"Running ,(name-of test)..."))
       test-thunk
       (lambda ()
-        (let ((bar (progress-bar-of self)))
-          (gtk-progress-set-value bar
-                                  (+ 1 (gtk-progress-get-value bar))))
         (count-up-label (test-count-label-of self))
-        (let ((label (assertion-count-label-of self)))
-          (gtk-label-set-text label (string-inc-as-number
-                                     (gtk-label-get-text label)
-                                     (assertion-number-of test)))))))
+        (gtk-timeout-add
+         0
+         (lambda _
+           (let ((bar (progress-bar-of self)))
+             (gtk-progress-set-value bar
+                                     (+ 1 (gtk-progress-get-value bar))))
+           (let ((label (assertion-count-label-of self)))
+             (gtk-label-set-text label (string-inc-as-number
+                                        (gtk-label-get-text label)
+                                        (assertion-number-of test))))
+           #f)))))
 
 (define-method test-case-run ((self <test-ui-gtk>) test-case test-thunk)
   (test-thunk))
@@ -305,23 +314,25 @@
      (g-signal-connect (run-button-of self) "clicked"
                        (lambda _ (rerun self test-suite test-thunk)))
      (gtk-widget-show-all window))
-  (run-test self test-thunk)
+  (gtk-timeout-add 100 (lambda _ (run-test self test-thunk) #f))
   (gtk-main))
 
 (define (rerun ui test-suite test-thunk)
   (soft-reset-test-suites (list test-suite))
   (reset-ui ui test-suite)
-  (run-test ui test-thunk))
+  (gtk-timeout-add 10 (lambda _ (run-test ui test-thunk) #f)))
 
 (define (run-test ui test-thunk)
   (output-status ui "Started.")
   (let ((counter (make <real-time-counter>)))
     (with-time-counter counter (test-thunk))
     (output-status ui #`"Finished in ,(time-counter-value counter) seconds.")))
-                     
+
 (define (output-status ui message)
-  (let ((entry (status-entry-of ui)))
-    (gtk-entry-set-text entry message)))
+  (gtk-timeout-add 0
+                   (lambda _
+                     (gtk-entry-set-text (status-entry-of ui) message)
+                     #f)))
 
 (define (reset-ui ui suite)
   (gtk-entry-set-text (suite-name-entry-of ui) (name-of suite))
