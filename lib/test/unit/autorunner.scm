@@ -49,8 +49,7 @@
        (lambda (operand ui verbose) ; operand
          (values ui verbose))
        (car default-ui)
-       (car default-verbose)
-       )
+       (car default-verbose))
      (run-all-test :ui (make ui :verbose verbose)))
   0)
 

@@ -57,33 +57,36 @@
 ;;                                       stack-trace
 ;;                                       *stack-show-depth*)))))
 
-(define-method test-run ((self <test-ui-text>) test test-thunk)
-  (test-thunk)
+(define-method test-start ((self <test-ui-text>) test)
+  #f)
+
+(define-method test-finish ((self <test-ui-text>) test)
   (display-when self :progress "."))
 
-(define-method test-case-run ((self <test-ui-text>) test-case test-thunk)
-  (display-when self :verbose #`"-- Start test case ,(name-of test-case)\n")
-  (test-thunk)
+(define-method test-case-start ((self <test-ui-text>) test-case)
+  (display-when self :verbose #`"-- Start test case ,(name-of test-case)\n"))
+
+(define-method test-case-finish ((self <test-ui-text>) test-case)
   (display-when self :verbose #\newline))
 
-(define-method test-suite-run ((self <test-ui-text>) test-suite test-thunk)
-  (let ((counter (make <real-time-counter>)))
-    (display-when self :normal #`"- Start test suite ,(name-of test-suite)\n")
-    (with-time-counter counter (test-thunk))
-    (display-when self :normal "\n")
-    (display-when
-     self :normal
-     (format "~s tests, ~s assertions, ~s successes, ~s failures, ~s errors"
-             (test-number-of test-suite)
-             (assertion-number-of test-suite)
-             (success-number-of test-suite)
-             (failure-number-of test-suite)
-             (error-number-of test-suite))
-     print)
-    (display-when
-     self :normal
-     (format "Testing time: ~s" (time-counter-value counter)))
-    (display-when self :progress "\n")))
+(define-method test-suite-start ((self <test-ui-text>) test-suite)
+  (display-when self :normal #`"- Start test suite ,(name-of test-suite)\n"))
+
+(define-method test-suite-finish ((self <test-ui-text>) test-suite)
+  (display-when self :normal "\n")
+  (display-when
+   self :normal
+   (format "~s tests, ~s assertions, ~s successes, ~s failures, ~s errors"
+           (test-number-of test-suite)
+           (assertion-number-of test-suite)
+           (success-number-of test-suite)
+           (failure-number-of test-suite)
+           (error-number-of test-suite))
+   print)
+  (display-when
+   self :normal
+   (format "Testing time: ~s" (operating-time-of test-suite)))
+  (display-when self :progress "\n"))
 
 (set-default-test-ui! (make <test-ui-text>))
 

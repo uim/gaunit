@@ -3,9 +3,13 @@
   (use srfi-1)
   (use gauche.collection)
   (use gauche.parameter)
+  (use gauche.time)
   (use test.unit.result)
   (use test.unit.ui)
   (export *gaunit-version*
+          gaunit-default-test-suite
+          gaunit-all-test-suite
+          
           make-test make-test-case make-test-suite
           define-test-suite define-test-case
           run run-all-test
@@ -14,6 +18,7 @@
           tests-of success-of failure-of error-of
           name-of test-number-of assertion-number-of
           success-number-of failure-number-of error-number-of
+          operating-time-of
 
           gaunit-add-default-setup-proc!
           gaunit-delete-default-setup-proc!
@@ -26,7 +31,7 @@
 
 (autoload test.unit.ui.text <test-ui-text>)
 
-(define *gaunit-version* "0.0.6")
+(define *gaunit-version* "0.0.7")
 
 (define *default-test-ui* #f)
 (define (set-default-test-ui! ui)
@@ -39,7 +44,7 @@
   ((name :accessor name-of :init-keyword :name)
    (result :accessor result-of :init-thunk (lambda () (make <result>)))
    (asserts :accessor asserts-of :init-keyword :asserts :init-value '())
-   ))
+   (operating-time :accessor operating-time-of :init-value 0)))
 
 (define-method call-with-iterator ((coll <test>) proc . args)
   (apply call-with-iterator (asserts-of coll) proc args))
@@ -50,8 +55,7 @@
    (setup :accessor setup-of :init-keyword :setup
           :init-value (lambda () #f))
    (teardown :accessor teardown-of :init-keyword :teardown
-             :init-value (lambda () #f))
-   ))
+             :init-value (lambda () #f))))
 
 (define-method call-with-iterator ((coll <test-case>) proc . args)
   (apply call-with-iterator (tests-of coll) proc args))
@@ -97,8 +101,7 @@
           :init-value (lambda () #f))
    (teardown :accessor teardown-of :init-keyword :teardown
              :init-value (lambda () #f))
-   (ran :accessor ran-of :init-value #f)
-   ))
+   (ran :accessor ran-of :init-value #f)))
 
 (define-method ran? ((self <test-suite>))
   (ran-of self))
@@ -111,6 +114,8 @@
 
 (define *default-test-suite* #f)
 (define *test-suites* '())
+(define (gaunit-default-test-suite) *default-test-suite*)
+(define (gaunit-all-test-suite) *test-suites*)
 (define (reset-default-test-suite)
   (set! *default-test-suite* (make <test-suite> :name "Default test suite")))
 (define (reset-test-suites)
@@ -232,15 +237,21 @@
 (define-method teardown ((self <test-case>))
   ((teardown-of self)))
 
+(use gauche.interactive)
 (define-method run ((self <test-suite>) . options)
   (let-keywords* options ((ui (default-test-ui)))
-    (test-suite-run
-     ui
-     self
-     (lambda ()
-       (for-each (lambda (test-case) (run test-case :ui ui))
-                 (test-cases-of self))
-       (set-ran! self #t)))))
+    (dynamic-wind
+        (lambda ()
+          (test-suite-start ui self))
+        (lambda ()
+          (let ((counter (make <real-time-counter>)))
+            (with-time-counter counter
+                               (for-each (lambda (test-case)
+                                           (run test-case :ui ui))
+                                         (test-cases-of self))))
+          (set-ran! self #t))
+        (lambda ()
+          (test-suite-finish ui self)))))
 
 (define-method run ((self <test-case>) . options)
   (let-keywords* options ((ui (default-test-ui)))
@@ -248,36 +259,65 @@
           (teardown-proc (lambda () (teardown self)))
           (output (current-output-port))
           (buffering-mode #f))
-      (test-case-run
-       ui
-       self
-       (lambda ()
-         (for-each (lambda (test)
-                     (with-error-handler
-                      (lambda (err)
-                        (add-error! (result-of test) ui test err))
-                      (lambda ()
-                        (dynamic-wind
-                            (lambda ()
-                              (set! buffering-mode (port-buffering output))
-                              (if buffering-mode
-                                (set! (port-buffering output) :none))
-                              (setup-proc))
-                            (lambda () (run test :ui ui))
-                            (lambda ()
-                              (teardown-proc)
-                              (if buffering-mode
-                                (set! (port-buffering output)
-                                      buffering-mode)))))))
-                   (tests-of self)))))))
+      (dynamic-wind
+          (lambda ()
+            (test-case-start ui self))
+          (lambda ()
+            (for-each (lambda (test)
+                        (with-error-handler
+                            (lambda (err)
+                              (add-error! (result-of test) ui test err))
+                          (lambda ()
+                            (dynamic-wind
+                                (lambda ()
+                                  (test-case-setup
+                                   ui self
+                                   (lambda ()
+                                     (set! buffering-mode (port-buffering output))
+                                     (if buffering-mode
+                                       (set! (port-buffering output) :none))
+                                     (setup-proc))))
+                                (lambda () (run test :ui ui))
+                                (lambda ()
+                                  (test-case-teardown
+                                   ui self
+                                   (lambda ()
+                                     (teardown-proc)
+                                     (if buffering-mode
+                                       (set! (port-buffering output)
+                                             buffering-mode)))))))))
+                      (tests-of self)))
+          (lambda ()
+            (test-case-finish ui self))))))
 
 (define-method run ((self <test>) . options)
   (let-keywords* options ((ui (default-test-ui)))
-    (parameterize ((test-result (result-of self))
-                   (test-ui ui)
-                   (current-test self))
-      (test-run ui self
-                (lambda () ((asserts-of self)))))))
+    (dynamic-wind
+        (lambda ()
+          (test-start ui self))
+        (lambda ()
+          (let ((counter (make <real-time-counter>)))
+            (test-run ui self
+                      (lambda ()
+                        (parameterize ((test-result (result-of self))
+                                       (test-ui ui)
+                                       (current-test self))
+                          (with-time-counter counter
+                                             ((asserts-of self))))
+                        (set! (operating-time-of self)
+                              (time-counter-value counter))))))
+        (lambda ()
+          (test-finish ui self)))))
+
+
+(define-method operating-time-of ((self <test-suite>))
+  (fold + 0
+        (map operating-time-of (test-cases-of self))))
+
+(define-method operating-time-of ((self <test-case>))
+  (fold + 0
+        (map operating-time-of (tests-of self))))
+
 
 (define-macro (define-assertion-number-of type)
   `(define-method assertion-number-of ((self ,type))

@@ -3,7 +3,7 @@
 (use test.unit)
 
 (let ((setuped #f)
-      (teardowned #f))
+      (teardowned '()))
   (define-test-case
     "Test setup and teardown"
     (setup
@@ -13,7 +13,7 @@
     ("test1"
      (set! setuped (append setuped '(#t)))
      (assert-equal '(#t) setuped)
-     (assert-false teardowned))
+     (assert-null teardowned))
     ("test2"
      (set! setuped (append setuped '(#t #t)))
      (set! teardowned (append teardowned '(#t)))
