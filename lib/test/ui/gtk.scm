@@ -12,37 +12,36 @@
 
 (define-class <test-ui-gtk> ()
   ((main-window :accessor main-window-of)
+   (load-library-name-entry :accessor load-library-name-entry-of)
+   (load-button :accessor load-button-of)
    (suite-name-entry :accessor suite-name-entry-of)
    (run-button :accessor run-button-of)
    (progress-bar :accessor progress-bar-of)
-   (run-count-label :accessor run-count-label-of)
+   (test-count-label :accessor test-count-label-of)
    (assertion-count-label :accessor assertion-count-label-of)
    (success-count-label :accessor success-count-label-of)
    (failure-count-label :accessor failure-count-label-of)
    (error-count-label :accessor error-count-label-of)
    (list-window :accessor list-window-of)
    (fault-list :accessor fault-list-of)
+   (fault-detail-list :accessor fault-detail-list-of)
    (detail-window :accessor detail-window-of)
+   (outer-detail-sub-panel :accessor outer-detail-sub-panel-of)
    (fault-detail-label :accessor fault-detail-label-of)
    (status-entry :accessor status-entry-of))
   )
 
-(define-method display-when ((self <test-ui-gtk>) level message . options)
-  (let-optionals* options ((print-proc display))
-                  (print-proc message)))
-
-(define-method initialize ((self <test-ui-gtk>) . args)
-  (next-method)
-  (slot-set! self 'main-window (make-main-window self)))
-
 (define (make-main-window ui)
   (let ((window (gtk-window-new GTK_WINDOW_TOPLEVEL)))
     (g-signal-connect window "destroy" (lambda _ (gtk-main-quit)))
+    (gtk-widget-set-usize window 800 600)
+    (gtk-window-set-policy window 1 1 0)
     (gtk-container-add window (make-main-panel ui))
     window))
 
 (define (make-main-panel ui)
   (let ((panel (gtk-vbox-new #f 0)))
+    (gtk-box-pack-start panel (make-load-panel ui) #f #f 0)
     (gtk-box-pack-start panel (make-suite-panel ui) #f #f 0)
     (gtk-box-pack-start panel (make-progress-panel ui) #f #f 0)
     (gtk-box-pack-start panel (make-info-panel ui) #f #f 0)
@@ -50,6 +49,35 @@
     (gtk-box-pack-start panel (make-detail-panel ui) #t #t 0)
     (gtk-box-pack-start panel (make-status-panel ui) #f #f 0)
     panel))
+
+(define (make-load-panel ui)
+  (let ((panel (gtk-hbox-new #f 10)))
+    (gtk-container-set-border-width panel 10)
+    (gtk-box-pack-start panel (gtk-label-new "Load:") #f #f 0)
+    (gtk-box-pack-start panel (make-load-library-name-entry ui) #t #t 0)
+    (gtk-box-pack-start panel (make-load-button ui) #f #f 0)
+    panel))
+
+(define (make-load-library-name-entry ui)
+  (let ((entry (gtk-entry-new)))
+    (gtk-entry-set-text entry "test/test-result.scm")
+    (slot-set! ui 'load-library-name-entry entry)
+    entry))
+
+(define (make-load-button ui)
+  (let ((button (gtk-button-new-with-label "Load")))
+    (slot-set! ui 'load-button button)
+    (g-signal-connect button "clicked"
+                      (lambda _
+                        (reset-test-suites)
+                        (load (gtk-entry-get-text
+                               (load-library-name-entry-of ui)))
+                        (output-status
+                         ui
+                         #`"Loaded ,(gtk-entry-get-text
+                                      (load-library-name-entry-of ui))")
+                        (run-all-test :ui (make <test-ui-gtk>))))
+    button))
 
 (define (make-suite-panel ui)
   (let ((panel (gtk-hbox-new #f 10)))
@@ -95,8 +123,8 @@
 (define (make-info-panel ui)
   (let ((panel (gtk-hbox-new #f 0)))
     (gtk-container-set-border-width panel 10)
-    (gtk-box-pack-start panel (gtk-label-new "Runs:") #f #f 0)
-    (gtk-box-pack-start panel (make-count-label ui "run") #t #f 0)
+    (gtk-box-pack-start panel (gtk-label-new "Tests:") #f #f 0)
+    (gtk-box-pack-start panel (make-count-label ui "test") #t #f 0)
     (gtk-box-pack-start panel (gtk-label-new "Assertions:") #f #f 0)
     (gtk-box-pack-start panel (make-count-label ui "assertion") #t #f 0)
     (gtk-box-pack-start panel (gtk-label-new "Successes:") #f #f 0)
@@ -124,12 +152,22 @@
     (gtk-scrolled-window-set-policy window
                                     GTK_POLICY_AUTOMATIC
                                     GTK_POLICY_AUTOMATIC)
+    (gtk-widget-set-usize window -1 150)
     (gtk-scrolled-window-add-with-viewport window (make-fault-list ui))
     window))
 
 (define (make-fault-list ui)
   (let ((list (gtk-list-new)))
     (slot-set! ui 'fault-list list)
+    (slot-set! ui 'fault-detail-list '())
+    (g-signal-connect list "select-child"
+                      (lambda (lst item)
+                        (show-fault ui
+                                    (list-ref (fault-detail-list-of ui)
+                                              (gtk-list-child-position lst item)))))
+    (g-signal-connect list "unselect-child"
+                      (lambda _
+                        (clear-fault ui)))
     list))
 
 (define (make-detail-panel ui)
@@ -143,12 +181,14 @@
     (gtk-scrolled-window-set-policy window
                                     GTK_POLICY_AUTOMATIC
                                     GTK_POLICY_AUTOMATIC)
+    (gtk-widget-set-usize window 400 -1)
     (gtk-scrolled-window-add-with-viewport window
                                            (make-outer-detail-sub-panel ui))
     window))
 
 (define (make-outer-detail-sub-panel ui)
   (let ((panel (gtk-hbox-new #f 0)))
+    (slot-set! ui 'outer-detail-sub-panel panel)
     (gtk-box-pack-start panel (make-inner-detail-sub-panel ui) #f #f 0)
     panel))
 
@@ -163,6 +203,18 @@
     (gtk-label-set-line-wrap label #f)
     label))
 
+(define (show-fault ui message)
+  (raw-show-fault ui message))
+
+(define (clear-fault ui)
+  (raw-show-fault ui ""))
+
+(define (raw-show-fault ui message)
+  (let ((label (fault-detail-label-of ui)))
+    (gtk-label-set-text label message))
+  (let ((panel (outer-detail-sub-panel-of ui)))
+    panel))
+
 (define (make-status-panel ui)
   (let ((panel (gtk-hbox-new #f 0)))
     (gtk-box-pack-start panel (make-status-entry ui) #t #t 0)
@@ -174,74 +226,115 @@
     (gtk-entry-set-editable entry #f)
     entry))
 
-(define (print-error-line stack)
+(define (error-line stack)
   (and-let* ((code (car stack))
              ((pair? code))
              (info (pair-attribute-get code 'source-info #f))
              ((pair? info))
              ((pair? (cdr info))))
-            (print (format "~a:~a: ~s" (car info) (cadr info) code))))
+            (format "~a:~a: ~s" (car info) (cadr info) code)))
   
-(define-method test-errored ((self <test-ui-gtk>) test err)
-  (display-when self :progress "E\n")
-  (print-error-line (cadddr (vm-get-stack-trace)))
-  (print #`"Error occured in ,(name-of test)")
-  (with-error-to-port (current-output-port)
-                      (lambda ()
-                        (report-error err))))
+(define (string-inc-as-number string . options)
+  (let-optionals* options ((inc-value 1))
+    (number->string (+ inc-value (string->number string)))))
+
+(define (count-up-label label)
+  (gtk-label-set-text label (string-inc-as-number 
+                             (gtk-label-get-text label))))
+  
 
 (define-method test-successed ((self <test-ui-gtk>) test)
-  (let ((bar (progress-bar-of self)))
-    (gtk-progress-set-value bar
-                            (+ 1 (gtk-progress-get-value bar))))
-  (display-when self :progress "."))
+  (count-up-label (success-count-label-of self)))
 
 (define-method test-failed ((self <test-ui-gtk>) test message stack-trace)
-  (display-when self :progress "F\n")
-  (print-error-line (car stack-trace))
-  (print message #`" in ,(name-of test)")
-  (with-error-to-port (current-output-port)
-                      (lambda ()
-                        (with-module gauche.vm.debugger
-                                     (debug-print-stack
-                                      stack-trace
-                                      *stack-show-depth*)))))
+  (count-up-label (failure-count-label-of self))
+  (let ((bar (progress-bar-of self)))
+    (gtk-widget-set-style bar (make-red-style self)))
+  (let ((fault-list (fault-list-of self))
+        (fault-item (gtk-list-item-new-with-label
+                     #`",(error-line (car stack-trace))\n,message in ,(name-of test)")))
+    (gtk-widget-show fault-item)
+    (append-fault-detail-list! self stack-trace)
+    (gtk-list-append-items fault-list (list fault-item))))
+
+(define-method test-errored ((self <test-ui-gtk>) test err)
+  (count-up-label (error-count-label-of self))
+  (let ((stack-trace (cdr (vm-get-stack-trace))))
+    (let ((fault-list (fault-list-of self))
+          (fault-item (gtk-list-item-new-with-label
+                       #`",(error-line (car stack-trace))\nError occured in ,(name-of test)")))
+      (gtk-widget-show fault-item)
+      (append-fault-detail-list! self stack-trace)
+      (gtk-list-append-items fault-list (list fault-item)))))
+
+(define (append-fault-detail-list! ui stack-trace)
+  (slot-set! ui 'fault-detail-list
+             (append (fault-detail-list-of ui)
+                     (list
+                      (call-with-output-string
+                       (cut with-error-to-port <>
+                            (lambda ()
+                              (with-module gauche.vm.debugger
+                                           (debug-print-stack
+                                            stack-trace
+                                            *stack-show-depth*)))))))))
+  
 
 (define-method test-run ((self <test-ui-gtk>) test test-thunk)
-  (test-thunk))
+  (dynamic-wind
+      (lambda () (output-status self #`"Running ,(name-of test)..."))
+      test-thunk
+      (lambda ()
+        (let ((bar (progress-bar-of self)))
+          (gtk-progress-set-value bar
+                                  (+ 1 (gtk-progress-get-value bar))))
+        (count-up-label (test-count-label-of self))
+        (let ((label (assertion-count-label-of self)))
+          (gtk-label-set-text label (string-inc-as-number
+                                     (gtk-label-get-text label)
+                                     (assertion-number-of test)))))))
 
 (define-method test-case-run ((self <test-ui-gtk>) test-case test-thunk)
-  (display-when self :verbose #`"-- Start test case ,(name-of test-case)\n")
-  (test-thunk)
-  (display-when self :verbose #\newline)
-  )
+  (test-thunk))
 
 (define-method test-suite-run ((self <test-ui-gtk>) test-suite test-thunk)
-  (let ((window (main-window-of self)))
-    (gtk-window-set-title window (name-of test-suite))
-    (gtk-widget-show-all window)
-    (let ((gtk-thread (make-thread gtk-main)))
-      (thread-start! gtk-thread)
-      (let ((counter (make <real-time-counter>)))
-        (display-when self :normal #`"- Start test suite ,(name-of test-suite)\n")
-        (with-time-counter counter (test-thunk))
-        (display-when self :normal "\n")
-        (display-when
-         self :normal
-         (format "~s tests, ~s assertions, ~s successes, ~s failures, ~s errors"
-                 (test-number-of test-suite)
-                 (assertion-number-of test-suite)
-                 (success-number-of test-suite)
-                 (failure-number-of test-suite)
-                 (error-number-of test-suite))
-         print)
-        (display-when
-         self :normal
-         (format "Testing time: ~s" (time-counter-value counter)))
-        (display-when self :progress "\n"))
-      (let ((bar (progress-bar-of self)))
-        (gtk-progress-bar-set-fraction bar 1))
-      (thread-join! gtk-thread))))
+  (let ((window (make-main-window self)))
+    (slot-set! self 'main-window window)
+     (gtk-window-set-title window (name-of test-suite))
+     (reset-ui self test-suite)
+     (g-signal-connect (run-button-of self) "clicked"
+                       (lambda _ (rerun self test-suite test-thunk)))
+     (gtk-widget-show-all window))
+  (run-test self test-thunk)
+  (gtk-main))
+
+(define (rerun ui test-suite test-thunk)
+  (soft-reset-test-suites (list test-suite))
+  (reset-ui ui test-suite)
+  (run-test ui test-thunk))
+
+(define (run-test ui test-thunk)
+  (output-status ui "Started.")
+  (let ((counter (make <real-time-counter>)))
+    (with-time-counter counter (test-thunk))
+    (output-status ui #`"Finished in ,(time-counter-value counter) seconds.")))
+                     
+(define (output-status ui message)
+  (let ((entry (status-entry-of ui)))
+    (gtk-entry-set-text entry message)))
+
+(define (reset-ui ui suite)
+  (gtk-entry-set-text (suite-name-entry-of ui) (name-of suite))
+  (gtk-progress-configure (progress-bar-of ui) 0 0 (test-number-of suite))
+  (slot-set! ui 'fault-detail-list '())
+  (gtk-list-clear-items (fault-list-of ui) 0 -1)
+  (for-each (lambda (label-accessor)
+              (gtk-label-set-text (label-accessor ui) "0"))
+            (list test-count-label-of
+                  assertion-count-label-of
+                  success-count-label-of
+                  failure-count-label-of
+                  error-count-label-of)))
 
 (set-default-test-ui! (make <test-ui-gtk>))
 

@@ -9,7 +9,7 @@
           make-test make-test-case make-test-suite
           define-test-suite define-test-case
           run run-all-test
-          reset-test-suites
+          reset-test-suites soft-reset-test-suites
           set-default-test-ui!
           success-of failure-of error-of
           name-of test-number-of assertion-number-of
@@ -85,7 +85,27 @@
   (set! *default-test-suite* (make <test-suite> :name "Default test suite")))
 (define (reset-test-suites)
   (reset-default-test-suite)
-  (set! *test-suites* (list *default-test-suite*)))
+  (set! *test-suites* (list *default-test-suite*))
+  (soft-reset-test-suites))
+(define (soft-reset-test-suites . options)
+  (let-optionals* options ((suites *test-suites*))
+    (for-each
+     (lambda (suite)
+       (set-ran! suite #f)
+       (for-each
+        (lambda (test-case)
+          (for-each
+           (lambda (test)
+             (let ((result (result-of test)))
+               (for-each
+                (lambda (slot)
+                  (slot-set! result slot 0))
+                '(success
+                  failure
+                  error))))
+           (tests-of test-case)))
+        (test-cases-of suite)))
+     suites)))
 
 (reset-test-suites)
 
@@ -233,6 +253,13 @@
   (inc! (error-of self))
   (test-errored test-ui test err))
 
+(define-macro (define-assertion-number-of type)
+  `(define-method assertion-number-of ((self ,type))
+     (fold (lambda (get-number-proc prev)
+             (+ prev (get-number-proc self)))
+           0
+           (list success-of failure-of error-of))))
+
 (define-method x-of ((self <test>) get-x-proc)
   (get-x-proc (result-of self)))
 
@@ -244,6 +271,8 @@
 
 (define-method error-of ((self <test>))
   (x-of self error-of))
+
+(define-assertion-number-of <test>)
 
 (define-method x-of ((self <test-case>) get-x-proc)
   (fold (lambda (test prev) (+ prev (get-x-proc test)))
@@ -258,7 +287,9 @@
 
 (define-method error-of ((self <test-case>))
   (x-of self error-of))
-  
+ 
+(define-assertion-number-of <test-case>)
+
 (define-method x-of ((self <test-suite>) get-x-proc)
   (fold (lambda (test prev) (+ prev (get-x-proc test)))
         0
@@ -268,20 +299,19 @@
   (x-of self
         (lambda (test-case)
           (length (tests-of test-case)))))
-  
-(define-method success-number-of ((self <test-suite>))
+
+(define-method success-of ((self <test-suite>))
   (x-of self success-of))
+(define success-number-of success-of)
   
-(define-method failure-number-of ((self <test-suite>))
+(define-method failure-of ((self <test-suite>))
   (x-of self failure-of))
+(define failure-number-of failure-of)
   
-(define-method error-number-of ((self <test-suite>))
+(define-method error-of ((self <test-suite>))
   (x-of self error-of))
+(define error-number-of error-of)
   
-(define-method assertion-number-of ((self <test-suite>))
-  (fold (lambda (get-number-proc prev)
-          (+ prev (get-number-proc self)))
-        0
-        (list success-number-of failure-number-of error-number-of)))
-  
+(define-assertion-number-of <test-suite>)
+
 (provide "test/unit")

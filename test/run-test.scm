@@ -22,5 +22,5 @@
                               :filter (lambda (x) (rxmatch #/^test-/ x)))
               )
     (if (symbol-bound? '_main)
-        (_main `(,(car args) "-vp" "-ug" ,@(cdr args)))
+        (_main `(,(car args) "-vp" ,@(cdr args)))
         (run-all-test))))
