@@ -1,11 +1,11 @@
-(define-module test.ui.text
-  (extend test.ui)
+(define-module test.unit.ui.text
+  (extend test.unit.ui)
   (use test.unit)
   (use gauche.vm.debugger)
   (use gauche.time)
   (use srfi-2)
   (export <test-ui-text>))
-(select-module test.ui.text)
+(select-module test.unit.ui.text)
 
 (define-class <test-ui-text> ()
   ((verbose :accessor verbose-of :init-keyword :verbose
@@ -64,8 +64,7 @@
 (define-method test-case-run ((self <test-ui-text>) test-case test-thunk)
   (display-when self :verbose #`"-- Start test case ,(name-of test-case)\n")
   (test-thunk)
-  (display-when self :verbose #\newline)
-  )
+  (display-when self :verbose #\newline))
 
 (define-method test-suite-run ((self <test-ui-text>) test-suite test-thunk)
   (let ((counter (make <real-time-counter>)))
@@ -88,4 +87,4 @@
 
 (set-default-test-ui! (make <test-ui-text>))
 
-(provide "test/ui/text")
+(provide "test/unit/ui/text")

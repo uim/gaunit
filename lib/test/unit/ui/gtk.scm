@@ -1,5 +1,5 @@
-(define-module test.ui.gtk
-  (extend test.ui)
+(define-module test.unit.ui.gtk
+  (extend test.unit.ui)
   (use test.unit)
   (use gauche.threads)
   (use gtk)
@@ -7,7 +7,7 @@
   (use gauche.time)
   (use srfi-2)
   (export <test-ui-gtk>))
-(select-module test.ui.gtk)
+(select-module test.unit.ui.gtk)
 (gtk-init (with-module user *argv*))
 
 (define *timeout-time* 100)
@@ -365,4 +365,4 @@
 
 (set-default-test-ui! (make <test-ui-gtk>))
 
-(provide "test/ui/gtk")
+(provide "test/unit/ui/gtk")

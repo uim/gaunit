@@ -1,5 +1,7 @@
-(select-module test.unit)
-(export define-assertion)
+(define-module test.unit.assertions
+  (use test.unit.base)
+  (export define-assertion))
+(select-module test.unit.assertions)
 
 (define-class <assertion-failure> ()
   ((failure-message :accessor failure-message-of
@@ -20,7 +22,7 @@
   (let ((failure (make <assertion-failure>
                    :failure-message
                    (apply handle-failure-message message actual))))
-    (when (get-optional actual #f) 
+    (when (get-optional actual #f)
       (slot-set! failure 'actual (get-optional actual #f)))
     failure))
 
@@ -58,7 +60,7 @@
           (body-thunk)))))))
   
 (define-macro (define-assertion name&args . body)
-  `(with-module test.unit
+  `(with-module test.unit.assertions
      (export ,(car name&args))
      (define ,name&args
        (if (test-result)
@@ -190,3 +192,5 @@
 
 (define-assertion (assert-macro expanded form . message)
   (apply assert-equal expanded (macroexpand form) message))
+
+(provide "test/unit/assertions")

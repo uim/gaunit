@@ -1,10 +1,8 @@
-(define-module test.unit
+(define-module test.unit.base
   (use srfi-1)
   (use gauche.collection)
   (use gauche.parameter)
-  (use test.ui)
-  (require "test/assertions")
-  (require "test/autorunner")
+  (use test.unit.ui)
   (export *gaunit-version*
           make-test make-test-case make-test-suite
           define-test-suite define-test-case
@@ -22,11 +20,11 @@
           gaunit-delete-default-teardown-proc!
           gaunit-clear-default-teardown-procs!
           ))
-(select-module test.unit)
+(select-module test.unit.base)
 
-(autoload test.ui.text <test-ui-text>)
+(autoload test.unit.ui.text <test-ui-text>)
 
-(define *gaunit-version* "0.0.5")
+(define *gaunit-version* "0.0.6")
 
 (define test-result (make-parameter #f))
 (define test-ui (make-parameter #f))
@@ -148,7 +146,8 @@
 (reset-test-suites)
 
 (define (run-all-test . options)
-  (unless *default-test-suite* (eval '(use test.ui.text) (current-module)))
+  (unless *default-test-suite*
+    (eval '(use test.unit.ui.text) (current-module)))
   (let-keywords* options ((ui (default-test-ui)))
     (for-each (lambda (suite)
                 (if (and (not (null? (test-cases-of suite)))
@@ -254,7 +253,9 @@
 (define-method run ((self <test-case>) . options)
   (let-keywords* options ((ui (default-test-ui)))
     (let ((setup-proc (lambda () (setup self)))
-          (teardown-proc (lambda () (teardown self))))
+          (teardown-proc (lambda () (teardown self)))
+          (output (current-output-port))
+          (buffering-mode #f))
       (test-case-run
        ui
        self
@@ -265,9 +266,17 @@
                         (add-error! (result-of test) ui test err))
                       (lambda ()
                         (dynamic-wind
-                            setup-proc
+                            (lambda ()
+                              (set! buffering-mode (port-buffering output))
+                              (if buffering-mode
+                                (set! (port-buffering output) :none))
+                              (setup-proc))
                             (lambda () (run test :ui ui))
-                            teardown-proc))))
+                            (lambda ()
+                              (teardown-proc)
+                              (if buffering-mode
+                                (set! (port-buffering output)
+                                      buffering-mode)))))))
                    (tests-of self)))))))
 
 (define-method run ((self <test>) . options)
@@ -351,4 +360,4 @@
 
 (define-assertion-number-of <test-suite>)
 
-(provide "test/unit")
+(provide "test/unit/base")

@@ -1,11 +1,12 @@
-(select-module test.unit)
-(use srfi-13)
-(use srfi-37)
+(define-module test.unit.autorunner
+  (use srfi-13)
+  (use srfi-37)
+  (use test.unit.base)
+  (export main))
+(select-module test.unit.autorunner)
 
-(export main)
-
-(autoload test.ui.text <test-ui-text>)
-(autoload test.ui.gtk <test-ui-gtk>)
+(autoload test.unit.ui.text <test-ui-text>)
+(autoload test.unit.ui.gtk <test-ui-gtk>)
 
 (define (main args)
   (define default-ui (cons <test-ui-text> "text"))
@@ -52,3 +53,5 @@
        )
      (run-all-test :ui (make ui :verbose verbose)))
   0)
+
+(provide "test/unit/autorunner")

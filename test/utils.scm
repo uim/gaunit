@@ -1,4 +1,4 @@
-(use test.ui.text)
+(use test.unit.ui.text)
 
 (define (run-test-with-no-output test)
   (call-with-output-string
