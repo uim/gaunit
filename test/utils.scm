@@ -6,11 +6,11 @@
         (lambda ()
           (run test :ui (make <test-ui-text> :verbose :silent))))))
 
-(select-module test.unit)
-
+(select-module test.unit.assertions)
 (define (make-number-of-message-handler expect type)
   (make-message-handler expect :after-expected
                         (format " number of ~a" type)))
+  
 
 (define-assertion (assert-test-case-result test-case test-num
                                            success-num failure-num

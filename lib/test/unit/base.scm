@@ -1,7 +1,9 @@
 (define-module test.unit.base
+  (extend test.unit.common)
   (use srfi-1)
   (use gauche.collection)
   (use gauche.parameter)
+  (use test.unit.result)
   (use test.unit.ui)
   (export *gaunit-version*
           make-test make-test-case make-test-suite
@@ -9,7 +11,7 @@
           run run-all-test
           reset-test-suites soft-reset-test-suites
           set-default-test-ui!
-          success-of failure-of error-of
+          tests-of success-of failure-of error-of
           name-of test-number-of assertion-number-of
           success-number-of failure-number-of error-number-of
 
@@ -26,23 +28,12 @@
 
 (define *gaunit-version* "0.0.6")
 
-(define test-result (make-parameter #f))
-(define test-ui (make-parameter #f))
-(define current-test (make-parameter #f))
-(define count-assertion (make-parameter #t))
-
 (define *default-test-ui* #f)
 (define (set-default-test-ui! ui)
   (set! *default-test-ui* ui))
 (define (default-test-ui)
   (unless *default-test-ui* <test-ui-text>)
   *default-test-ui*)
-
-(define-class <result> ()
-  ((success :accessor success-of :init-value 0)
-   (failure :accessor failure-of :init-value 0)
-   (error :accessor error-of :init-value 0)
-   ))
 
 (define-class <test> (<collection>)
   ((name :accessor name-of :init-keyword :name)
@@ -286,18 +277,6 @@
                    (current-test self))
       (test-run ui self
                 (lambda () ((asserts-of self)))))))
-
-(define-method add-success! ((self <result>) test-ui test)
-  (inc! (success-of self))
-  (test-successed test-ui test))
-
-(define-method add-failure! ((self <result>) test-ui test message stack-trace)
-  (inc! (failure-of self))
-  (test-failed test-ui test message stack-trace))
-
-(define-method add-error! ((self <result>) test-ui test err)
-  (inc! (error-of self))
-  (test-errored test-ui test err))
 
 (define-macro (define-assertion-number-of type)
   `(define-method assertion-number-of ((self ,type))

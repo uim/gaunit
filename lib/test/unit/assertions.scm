@@ -1,5 +1,8 @@
 (define-module test.unit.assertions
+  (extend test.unit.common)
   (use test.unit.base)
+  (use test.unit.result)
+  (use gauche.parameter)
   (export define-assertion))
 (select-module test.unit.assertions)
 
@@ -64,22 +67,22 @@
      (export ,(car name&args))
      (define ,name&args
        (if (test-result)
-           (let ((result (eval-body (lambda () ,@body))))
-             (if (count-assertion)
-                 (cond ((assertion-failure? result)
-                        (add-failure!
-                         (test-result) (test-ui) (current-test)
-                         (failure-message-of result)
-                         (get-stack-trace)))
-                       ((is-a? result <error>)
-                        (add-error! (test-result) (test-ui)
-                                    (current-test) result))
-                       (else
-                        (add-success! (test-result) (test-ui)
-                                      (current-test))))
-                 (if (or (assertion-failure? result)
-                         (is-a? result <error>))
-                     (raise result))))))))
+         (let ((result (eval-body (lambda () ,@body))))
+           (if (count-assertion)
+             (cond ((assertion-failure? result)
+                    (add-failure!
+                     (test-result) (test-ui) (current-test)
+                     (failure-message-of result)
+                     (get-stack-trace)))
+                   ((is-a? result <error>)
+                    (add-error! (test-result) (test-ui)
+                                (current-test) result))
+                   (else
+                    (add-success! (test-result) (test-ui)
+                                  (current-test))))
+             (if (or (assertion-failure? result)
+                     (is-a? result <error>))
+               (raise result))))))))
 
 (define-assertion (fail . message)
   (raise (make <assertion-failure>

@@ -40,8 +40,8 @@
   (print-error-line (cadddr (vm-get-stack-trace)))
   (print #`"Error occured in ,(name-of test)")
   (with-error-to-port (current-output-port)
-                      (lambda ()
-                        (report-error err))))
+    (lambda ()
+      (report-error err))))
 
 (define-method test-successed ((self <test-ui-text>) test)
   #f)
@@ -50,12 +50,12 @@
   (display-when self :progress "F\n")
   (print-error-line (car stack-trace))
   (print message #`" in ,(name-of test)"))
-;   (with-error-to-port (current-output-port)
-;                       (lambda ()
-;                         (with-module gauche.vm.debugger
-;                                      (debug-print-stack
-;                                       stack-trace
-;                                       *stack-show-depth*)))))
+;;   (with-error-to-port (current-output-port)
+;;                       (lambda ()
+;;                         (with-module gauche.vm.debugger
+;;                                      (debug-print-stack
+;;                                       stack-trace
+;;                                       *stack-show-depth*)))))
 
 (define-method test-run ((self <test-ui-text>) test test-thunk)
   (test-thunk)
