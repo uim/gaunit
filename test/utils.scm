@@ -38,3 +38,11 @@
                 (make-message-handler failure-num "failure"))
   (assert-equal error-num (error-number-of test-suite)
                 (make-message-handler error-num "error")))
+
+(define-assertion (assert-have-error-message str)
+  (if (rxmatch #/\*\*\* ERROR:/ str)
+      #t
+      (make <assertion-failure>
+        :failure-message
+        (format " It seems to <~s>\n has no error message"
+                str))))

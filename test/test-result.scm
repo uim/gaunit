@@ -32,3 +32,12 @@
       2 1 2 2))
     ("Test test-suite"
      (assert-test-suite-result test 3 8 2 4 2))))
+
+(let* ((test
+        (make-test-case "Error test"
+          ("Error occured"
+           (assert-equal (1)))))
+       (test-result (run-test-with-no-output test)))
+  (define-test-case "Error test"
+    ("Test test-case1"
+     (assert-have-error-message test-result))))
