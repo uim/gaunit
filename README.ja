@@ -89,10 +89,7 @@ sample/site-lisp/run-test.elはEmacs上でのテストの実行を支援
                   (print "loading " (string-join
                                      (list dir test-script)
                                      "/"))
-                  (eval `(load ,(string-join
-                                 (list dir test-script)
-                                 "/"))
-                        (current-module)))
+                  (load (string-join (list dir test-script) "/")))
                 (directory-list dir
                                 :filter (lambda (x) (rxmatch #/^test-/ x)))
                 )
