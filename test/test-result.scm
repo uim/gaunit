@@ -1,6 +1,7 @@
 #!/usr/bin/env gosh
 
 (use test.unit)
+(require "test/utils")
 
 (let ((test
        (make-test-suite
@@ -18,31 +19,16 @@
           (assert-equal #f #t)
           (assert-equal #f #t)
           (assert-equal (1)))))))
-  (call-with-output-string
-   (cut with-output-to-port <>
-        (lambda () (run test))))
+  (run-test-with-no-output test)
   (define-test-case "Test result"
     ("Test test-case1"
      (with-module test.unit
-                  (let ((test-case (car (test-cases-of test))))
-                    (assert-equal 1 (length (tests-of test-case)))
-                    (assert-equal 1 (success-of test-case))
-                    (assert-equal 2 (failure-of test-case))
-                    (assert-equal 0 (error-of test-case)))))
+                  (test-test-case-result (car (test-cases-of test)) 1 1 2 0)))
     ("Test test-case2"
      (with-module test.unit
-                  (let ((test-case (cadr (test-cases-of test))))
-                    (assert-equal 2 (length (tests-of test-case)))
-                    (assert-equal 1 (success-of test-case))
-                    (assert-equal 2 (failure-of test-case))
-                    (assert-equal 2 (error-of test-case)))))
+                  (test-test-case-result (cadr (test-cases-of test)) 2 1 2 2)))
     ("Test test-suite"
-     (with-module test.unit
-                  (assert-equal 3 (test-number-of test))
-                  (assert-equal 8 (assertion-number-of test))
-                  (assert-equal 2 (success-number-of test))
-                  (assert-equal 4 (failure-number-of test))
-                  (assert-equal 2 (error-number-of test))))))
+     (test-test-suite-result test 3 8 2 4 2))))
 
 (run-all-test)
      

@@ -7,6 +7,7 @@
           make-test make-test-case make-test-suite
           define-test-suite define-test-case
           run run-all-test
+          reset-test-suites
           ))
 (select-module test.unit)
 
@@ -64,8 +65,15 @@
 (define-method call-with-iterator ((coll <test-suite>) proc . args)
   (apply call-with-iterator (test-cases-of coll) proc args))
 
-(define *default-test-suite* (make <test-suite> :name "Default test suite"))
-(define *test-suites* (list *default-test-suite*))
+(define *default-test-suite* #f)
+(define *test-suites* '())
+(define (reset-default-test-suite)
+  (set! *default-test-suite* (make <test-suite> :name "Default test suite")))
+(define (reset-test-suites)
+  (reset-default-test-suite)
+  (set! *test-suites* (list *default-test-suite*)))
+
+(reset-test-suites)
 
 (define (run-all-test . options)
   (unless *default-test-suite* (require "test/ui/text"))
