@@ -31,7 +31,7 @@
 
 (autoload test.unit.ui.text <test-ui-text>)
 
-(define *gaunit-version* "0.0.9")
+(define *gaunit-version* "0.1.0")
 
 (define *default-test-ui* #f)
 (define (set-default-test-ui! ui)
@@ -145,11 +145,18 @@
 (define (run-all-test . options)
   (unless *default-test-suite*
     (eval '(use test.unit.ui.text) (current-module)))
-  (let-keywords* options ((ui (default-test-ui)))
+  (let-keywords* options ((ui (default-test-ui))
+                          (test-suite-regexp #//)
+                          (test-case-regexp #//)
+                          (test-regexp #//))
     (for-each (lambda (suite)
                 (if (and (not (null? (test-cases-of suite)))
                          (not (ran? suite)))
-                    (run suite :ui ui)))
+                    (run suite
+                         :ui ui
+                         :test-suite-regexp test-suite-regexp
+                         :test-case-regexp test-case-regexp
+                         :test-regexp test-regexp)))
               (reverse *test-suites*))))
 
 (define-syntax define-test-suite
@@ -239,75 +246,92 @@
 
 (use gauche.interactive)
 (define-method run ((self <test-suite>) . options)
-  (let-keywords* options ((ui (default-test-ui)))
-    (dynamic-wind
-        (lambda ()
-          (test-suite-start ui self))
-        (lambda ()
-          (let ((counter (make <real-time-counter>)))
-            (with-time-counter counter
-                               (for-each (lambda (test-case)
-                                           (run test-case :ui ui))
-                                         (test-cases-of self))))
-          (set-ran! self #t))
-        (lambda ()
-          (test-suite-finish ui self)))))
-
-(define-method run ((self <test-case>) . options)
-  (let-keywords* options ((ui (default-test-ui)))
-    (let ((setup-proc (lambda () (setup self)))
-          (teardown-proc (lambda () (teardown self)))
-          (output (current-output-port))
-          (buffering-mode #f))
+  (let-keywords* options ((ui (default-test-ui))
+                          (test-suite-regexp #//)
+                          (test-case-regexp #//)
+                          (test-regexp #//))
+    (when (rxmatch test-suite-regexp (name-of self))
       (dynamic-wind
           (lambda ()
-            (test-case-start ui self))
+            (test-suite-start ui self))
           (lambda ()
-            (for-each (lambda (test)
-                        (with-error-handler
-                            (lambda (err)
-                              (add-error! (result-of test) ui test err))
-                          (lambda ()
-                            (dynamic-wind
-                                (lambda ()
-                                  (test-case-setup
-                                   ui self
-                                   (lambda ()
-                                     (set! buffering-mode (port-buffering output))
-                                     (if buffering-mode
-                                       (set! (port-buffering output) :none))
-                                     (setup-proc))))
-                                (lambda () (run test :ui ui))
-                                (lambda ()
-                                  (test-case-teardown
-                                   ui self
-                                   (lambda ()
-                                     (teardown-proc)
-                                     (if buffering-mode
-                                       (set! (port-buffering output)
-                                             buffering-mode)))))))))
-                      (tests-of self)))
+            (let ((counter (make <real-time-counter>)))
+              (with-time-counter counter
+                                 (for-each
+                                  (lambda (test-case)
+                                    (run test-case
+                                         :ui ui
+                                         :test-case-regexp test-case-regexp
+                                         :test-regexp test-regexp))
+                                  (test-cases-of self))))
+            (set-ran! self #t))
           (lambda ()
-            (test-case-finish ui self))))))
+            (test-suite-finish ui self))))))
+
+(define-method run ((self <test-case>) . options)
+  (let-keywords* options ((ui (default-test-ui))
+                          (test-case-regexp #//)
+                          (test-regexp #//))
+    (when (rxmatch test-case-regexp (name-of self))
+      (let ((setup-proc (lambda () (setup self)))
+            (teardown-proc (lambda () (teardown self)))
+            (output (current-output-port))
+            (buffering-mode #f))
+        (dynamic-wind
+            (lambda ()
+              (test-case-start ui self))
+            (lambda ()
+              (for-each (lambda (test)
+                          (with-error-handler
+                              (lambda (err)
+                                (add-error! (result-of test) ui test err))
+                            (lambda ()
+                              (dynamic-wind
+                                  (lambda ()
+                                    (test-case-setup
+                                     ui self
+                                     (lambda ()
+                                       (set! buffering-mode
+                                             (port-buffering output))
+                                       (if buffering-mode
+                                         (set! (port-buffering output) :none))
+                                       (setup-proc))))
+                                  (lambda ()
+                                    (run test
+                                         :ui ui
+                                         :test-regexp test-regexp))
+                                  (lambda ()
+                                    (test-case-teardown
+                                     ui self
+                                     (lambda ()
+                                       (teardown-proc)
+                                       (if buffering-mode
+                                         (set! (port-buffering output)
+                                               buffering-mode)))))))))
+                        (tests-of self)))
+            (lambda ()
+              (test-case-finish ui self)))))))
 
 (define-method run ((self <test>) . options)
-  (let-keywords* options ((ui (default-test-ui)))
-    (dynamic-wind
-        (lambda ()
-          (test-start ui self))
-        (lambda ()
-          (let ((counter (make <real-time-counter>)))
-            (test-run ui self
-                      (lambda ()
-                        (parameterize ((test-result (result-of self))
-                                       (test-ui ui)
-                                       (current-test self))
-                          (with-time-counter counter
-                                             ((asserts-of self))))
-                        (set! (operating-time-of self)
-                              (time-counter-value counter))))))
-        (lambda ()
-          (test-finish ui self)))))
+  (let-keywords* options ((ui (default-test-ui))
+                          (test-regexp #//))
+    (when (rxmatch test-regexp (name-of self))
+      (dynamic-wind
+          (lambda ()
+            (test-start ui self))
+          (lambda ()
+            (let ((counter (make <real-time-counter>)))
+              (test-run ui self
+                        (lambda ()
+                          (parameterize ((test-result (result-of self))
+                                         (test-ui ui)
+                                         (current-test self))
+                            (with-time-counter counter
+                                               ((asserts-of self))))
+                          (set! (operating-time-of self)
+                                (time-counter-value counter))))))
+          (lambda ()
+            (test-finish ui self))))))
 
 
 (define-method operating-time-of ((self <test-suite>))

@@ -1,10 +1,11 @@
 (use test.unit.ui.text)
 
-(define (run-test-with-no-output test)
+(define (run-test-with-no-output test . options)
   (call-with-output-string
    (cut with-output-to-port <>
         (lambda ()
-          (run test :ui (make <test-ui-text> :verbose :silent))))))
+          (apply run test :ui (make <test-ui-text> :verbose :silent)
+                 options)))))
 
 (select-module test.unit.assertions)
 (define (make-number-of-message-handler expect type)
