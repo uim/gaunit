@@ -14,6 +14,13 @@
           success-of failure-of error-of
           name-of test-number-of assertion-number-of
           success-number-of failure-number-of error-number-of
+
+          gaunit-add-default-setup-proc!
+          gaunit-delete-default-setup-proc!
+          gaunit-clear-default-setup-procs!
+          gaunit-add-default-teardown-proc!
+          gaunit-delete-default-teardown-proc!
+          gaunit-clear-default-teardown-procs!
           ))
 (select-module test.unit)
 
@@ -59,6 +66,38 @@
 
 (define-method call-with-iterator ((coll <test-case>) proc . args)
   (apply call-with-iterator (tests-of coll) proc args))
+
+(define *default-setup-procs* '())
+(define *default-teardown-procs* '())
+
+(define (gaunit-add-default-setup-proc! proc)
+  (push! *default-setup-procs* proc))
+(define (gaunit-delete-default-setup-proc! proc)
+  (set! *default-setup-procs*
+        (remove (cut eq? proc <>) *default-setup-procs*)))
+(define (gaunit-clear-default-setup-procs!)
+  (set! *default-setup-procs* '()))
+
+(define (gaunit-add-default-teardown-proc! proc)
+  (push! *default-teardown-procs* proc))
+(define (gaunit-delete-default-teardown-proc! proc)
+  (set! *default-teardown-procs*
+        (remove (cut eq? proc <>) *default-teardown-procs*)))
+(define (gaunit-clear-default-teardown-procs!)
+  (set! *default-teardown-procs* '()))
+
+(define-method initialize ((self <test-case>) args)
+  (next-method)
+  (let ((setup-procs (cons (setup-of self) *default-setup-procs*)))
+    (set! (setup-of self)
+          (lambda ()
+            (for-each (lambda (proc) (proc))
+                      setup-procs))))
+  (let ((teardown-procs (cons (teardown-of self) *default-teardown-procs*)))
+    (set! (teardown-of self)
+          (lambda ()
+            (for-each (lambda (proc) (proc))
+                      teardown-procs)))))
 
 (define-class <test-suite> (<collection>)
   ((name :accessor name-of :init-keyword :name)
@@ -146,8 +185,7 @@
     ((_ name) #f)
     ((_ name rest ...)
      (add-test-case! *default-test-suite*
-                     (make-test-case name rest ...)))
-    ))
+                     (make-test-case name rest ...)))))
 
 (define-syntax make-test-cases
   (syntax-rules ()

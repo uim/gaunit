@@ -6,10 +6,6 @@ $Id$
 
 ((*I'm not good in English. Please fix.*))
 
-Kimura ((<set
-up|URL:http://lists.sourceforge.jp/mailman/archives/gauche-devel-jp/2003-November/000437.html>))
-ports for FreeBSD. Thank you.
-
 == Author
 
 Kouhei Sutou <kou@cozmixng.org>
@@ -151,7 +147,7 @@ GaUnit has following syntaxes.
 
 --- define-test-suite
     
-    It defined test suite.
+    It makes test suite.
     
       (define-test-suite "name of test suite"
         ("name of test case"
@@ -188,15 +184,89 @@ GaUnit has following syntaxes.
 
 --- make-test
     
-    It defined test.
+    It makes test.
 
 --- make-test-case
     
-    It defined test case.
+    It makes test case.
 
 --- make-test-suite
     
-    It defined test suite.
+    It makes test suite.
+
+GaUnit has some procedures that add/delete a procedure that
+is invoked at before/after each test. A procedure that is
+added/deleted is used when
+(({define-test-case}))/(({make-test-case})) is invoked.
+
+--- gaunit-add-default-setup-proc!(proc)
+    
+    It adds non-arity procedure ((|proc|)) as set up
+    procedure.
+
+--- gaunit-delete-default-setup-proc!(proc)
+    
+    It deletes ((|proc|)) added by
+    (({gaunit-add-default-setup-proc!})).
+
+--- gaunit-clear-default-setup-procs!
+    
+    It deletes all ((|proc|)) added by
+    (({gaunit-add-default-setup-proc!})).
+
+--- gaunit-add-default-teardown-proc!(proc)
+    
+    It adds non-arity procedure ((|proc|)) as tear down
+    procedure.
+
+--- gaunit-delete-default-teardown-proc!(proc)
+    
+    It deletes ((|proc|)) added by
+    (({gaunit-add-default-teardown-proc!})).
+
+--- gaunit-clear-default-teardown-procs!
+    
+    It deletes all ((|proc|)) added by
+    (({gaunit-add-default-teardown-proc!})).
+
+You can added set up/tear down procedures by using
+(({gaunit-*-default-{setup,teardown}-*})) without specifing
+(({setup}))/(({teardown})) in (({define-test-case})) etc.
+For example, following (({define-test-case}))s work similar.
+
+  (define-test-case "test case"
+    (setup (lambda () (print "setup")))
+    (teardown (lambda () (print "teardown")))
+    ("test1" ...)
+    ("test2" ...)
+    ...)
+
+  (gaunit-add-deault-setup-proc! (lambda () (print "setup")))
+  (gaunit-add-deault-teardown-proc! (lambda () (print "teardown")))
+  (define-test-case "test case"
+    ("test1" ...)
+    ("test2" ...)
+    ...)
+  (gaunit-clear-deault-setup-procs!)
+  (gaunit-clear-deault-teardown-procs!)
+
+When some procedures added by
+(({gaunit-*-default-{setup,teardown}-*})) are not necessary,
+delete those procedures by
+(({gaunit-clear-default-{setup,teardown}-procs!})) etc. You
+can define new syntax that define test case like following.
+
+  (define (*setup-proc*) ...)
+  (define (*teardown-proc*) ...)
+  (define-syntax define-my-test-case
+    (syntax-rules ()
+      ((_ . arg ...)
+       (begin
+         (gaunit-add-default-setup-proc! *setup-proc*)
+         (gaunit-add-default-teardown-proc! *teardown-proc*)
+         (define-test-case arg ...)
+         (gaunit-delete-default-setup-proc! *setup-proc)
+         (gaunit-delete-default-teardown-proc! *teardown-proc*)))))
 
 == Accessory
 

@@ -4,8 +4,6 @@
 
 $Id$
 
-木村さんがFreeBSDのportsを((<用意|URL:http://lists.sourceforge.jp/mailman/archives/gauche-devel-jp/2003-November/000437.html>))してくれました．
-
 == 作者
 
 Kouhei Sutou <kou@cozmixng.org>
@@ -187,15 +185,89 @@ GaUnitは以下の構文を用意しています．
 
 --- make-test
     
-    テストを定義します．
+    テストを作成します．
 
 --- make-test-case
     
-    テストケースを定義します．
+    テストケースを作成します．
 
 --- make-test-suite
     
-    テストスイートを定義します．
+    テストスイートを作成します．
+
+
+また，(({define-test-case}))や(({make-test-case}))でテストケー
+スを作成する際，テストの前後に必ず実行される手続きを登録/削
+除する手続きがあります．
+
+--- gaunit-add-default-setup-proc!(proc)
+    
+    引数無しの手続き((|proc|))を各テストが始まる前に実行する
+    手続きとして登録します．
+
+--- gaunit-delete-default-setup-proc!(proc)
+    
+    (({gaunit-add-default-setup-proc!}))で登録した((|proc|))
+    を削除します．
+
+--- gaunit-clear-default-setup-procs!
+    
+    (({gaunit-add-default-setup-proc!}))で登録した((|proc|))
+    をすべて削除します．
+
+--- gaunit-add-default-teardown-proc!(proc)
+    
+    引数無しの手続き((|proc|))を各テストが終わった後に実行す
+    る手続きとして登録します．
+
+--- gaunit-delete-default-teardown-proc!(proc)
+    
+    (({gaunit-add-default-teardown-proc!}))で登録した((|proc|))
+    を削除します．
+
+--- gaunit-clear-default-teardown-procs!
+    
+    (({gaunit-add-default-teardown-proc!}))で登録した((|proc|))
+    をすべて削除します．
+
+(({gaunit-*-default-{setup,teardown}-*}))を使えば，
+(({define-test-case}))などで(({setup}))や(({teardown}))を指
+定せずに対応する手続きを登録することができます．例えば，以下
+のふたつの(({define-test-case}))は同じ動作をします．
+
+  (define-test-case "test case"
+    (setup (lambda () (print "setup")))
+    (teardown (lambda () (print "teardown")))
+    ("test1" ...)
+    ("test2" ...)
+    ...)
+
+  (gaunit-add-deault-setup-proc! (lambda () (print "setup")))
+  (gaunit-add-deault-teardown-proc! (lambda () (print "teardown")))
+  (define-test-case "test case"
+    ("test1" ...)
+    ("test2" ...)
+    ...)
+  (gaunit-clear-deault-setup-procs!)
+  (gaunit-clear-deault-teardown-procs!)
+
+(({gaunit-*-default-{setup,teardown}-*}))で登録した手続きが
+必要なくなった場合は，
+(({gaunit-clear-default-{setup,teardown}-procs!}))などで登録
+した手続きを削除することを忘れないでください．以下のように，
+独自のテストケース定義マクロを作成してもいいでしょう．
+
+  (define (*setup-proc*) ...)
+  (define (*teardown-proc*) ...)
+  (define-syntax define-my-test-case
+    (syntax-rules ()
+      ((_ . arg ...)
+       (begin
+         (gaunit-add-default-setup-proc! *setup-proc*)
+         (gaunit-add-default-teardown-proc! *teardown-proc*)
+         (define-test-case arg ...)
+         (gaunit-delete-default-setup-proc! *setup-proc)
+         (gaunit-delete-default-teardown-proc! *teardown-proc*)))))
 
 == 付属品
 
