@@ -1,0 +1,46 @@
+# -*- rd -*-
+
+= README.ja
+
+== 作者
+
+Kouhei Sutou <kou@cozmixng.org>
+
+== ライセンス
+
+GPL or BSD License
+
+== なにこれ？
+
+GaUnitはGaucheで実装されたUnit Testing Frameworkです．
+
+同様のものに
+((<SchemeUnit|URL:http://schematics.sourceforge.net/schemeunit.html>))
+があります．
+
+== 読めねぇよ
+
+「ごにっと」とかはどうでしょう？
+
+== 入手方法
+
+((<URL:http://www.cozmixng.org/~kou/download/gaunit.tar.gz>))
+
+  % svn co http://www.cozmixng.org/repos/gauche/gaunit/trunk gaunit
+
+== インストール
+
+  # gosh install.scm
+
+== 使い方
+
+test.unitは一般的過ぎるので変更されるかもしれません．
+
+  (use test.unit)
+
+  (define-test-suite ...)
+  とか
+  (define-test-case ...)
+  とか
+
+  (run-all-test)

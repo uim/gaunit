@@ -1,0 +1,125 @@
+# -*- rd -*-
+
+= Tutorial.ja
+
+テストファーストってなかなかできないよねぇ．
+
+== 基本
+
+GaUnitを使ったユニットテストでは
+
+最初に
+
+  (use test.unit)
+
+最後に
+
+  (run-all-test)
+
+を書きます．
+
+テストは
+
+  (use test.unit)
+
+と
+
+  (run-all-test)
+
+の間に書きます．
+
+== 例1: 有理数演算
+
+未稿
+
+== リファレンス
+
+=== 表明(?)
+
+GaUnitは以下に示すテストをするための手続きを用意しています．
+
+--- assert(actual)
+    
+    actualが#fでないならば成功します．
+
+--- assert-equal(expected actual)
+    
+    (equal? expected actual)が#tを返せば成功します．
+
+--- assert-true(actual)
+    
+    actualが#tならば成功します．
+
+--- assert-false(actual)
+    
+    actualが#fならば成功します．
+
+=== 必要最小限
+
+GaUnitは以下の手続きを用意しています．
+
+--- run-all-test(&keyword :test-ui)
+
+    define-test-case, define-test-suiteで定義されたテストを
+    実行します．
+    
+    :test-uiを指定することによりテストを実行するユーザインター
+    フェイスを変更できます．が，現在はテキストベースのものし
+    か用意されていません．
+
+GaUnitは以下の構文を用意しています．
+
+--- define-test-case
+    
+    テストケースを定義します．
+    
+      (define-test-case "テストケース名"
+        (setup テストが実行される前に実行される引数無しの手続き) ; 必要なら
+        (teardown テストが実行された後に実行される引数無しの手続き) ; 必要なら
+        ("テスト名"
+          (assertなんとか ...))
+        ...)
+
+--- define-test-suite
+    
+    テストスイートを定義します．
+    
+      (define-test-suite "テストスイート名"
+        ("テストケース名"
+          (setup テストが実行される前に実行される引数無しの手続き) ; 必要なら
+          (teardown テストが実行された後に実行される引数無しの手続き) ; 必要なら
+          ("テスト名"
+            (assertなんとか)
+            ...)
+          ...)
+        ...)
+
+=== 必要なら
+
+GaUnitは以下の手続きを用意しています．
+
+--- run(<test-suite> or <test-case> or <test>)
+
+    テストを実行します．
+
+GaUnitは以下の構文を用意しています．
+
+--- define-assertion
+    
+    assertion(表明?)を定義します．
+    
+      (define-assertion (表明名 引数 ...)
+        "失敗したときに表示されるメッセージ"
+        式の列:最後の式の値が成功(#t)か失敗(#f)か示す)
+
+--- make-test
+    
+    テストを定義します．
+
+--- make-test-case
+    
+    テストケースを定義します．
+
+--- make-test-suite
+    
+    テストスイートを定義します．
