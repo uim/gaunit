@@ -69,6 +69,7 @@
                  (test-file (cdr test-file-info))
                  (name-of-mode "run-test"))
              (cd (car (split-string test-file run-test-file)))
+             (save-some-buffers)
              (compile-internal
               (concat (concat "./"
                               (file-name-directory run-test-file))
