@@ -2,6 +2,7 @@
   (use srfi-1)
   (use gauche.collection)
   (use gauche.parameter)
+  (use test.ui)
   (require "test/assertions")
   (require "test/autorunner")
   (export *gaunit-version*
@@ -9,6 +10,10 @@
           define-test-suite define-test-case
           run run-all-test
           reset-test-suites
+          set-default-test-ui!
+          success-of failure-of error-of
+          name-of test-number-of assertion-number-of
+          success-number-of failure-number-of error-number-of
           ))
 (select-module test.unit)
 

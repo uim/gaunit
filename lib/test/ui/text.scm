@@ -1,12 +1,10 @@
 (define-module test.ui.text
-  (extend test.unit)
+  (extend test.ui)
+  (use test.unit)
   (use gauche.vm.debugger)
   (use gauche.time)
   (use srfi-2)
-  (export <test-ui-text>
-          test-run test-case-run test-suite-run
-          test-successed test-failed test-errored)
-  )
+  (export <test-ui-text>))
 (select-module test.ui.text)
 
 (define-class <test-ui-text> ()
@@ -88,6 +86,5 @@
     (display-when self :progress "\n")))
 
 (set-default-test-ui! (make <test-ui-text>))
-(with-module test.unit (import test.ui.text))
 
 (provide "test/ui/text")
