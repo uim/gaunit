@@ -68,13 +68,13 @@
     (display-when self :progress ".")))
 
 (define-method test-case-start ((self <test-ui-text>) test-case)
-  (display-when self :verbose #`"-- Start test case ,(name-of test-case)\n"))
+  (display-when self :verbose #`"-- (test case) ,(name-of test-case): "))
 
 (define-method test-case-finish ((self <test-ui-text>) test-case)
   (display-when self :verbose #\newline))
 
 (define-method test-suite-start ((self <test-ui-text>) test-suite)
-  (display-when self :normal #`"- Start test suite ,(name-of test-suite)\n"))
+  (display-when self :normal #`"- (test suite) ,(name-of test-suite)\n"))
 
 (define-method test-suite-finish ((self <test-ui-text>) test-suite)
   (display-when self :normal "\n")
