@@ -60,8 +60,18 @@ sample/site-lisp/run-test.elはEmacs上でのテストの実行を支援
   (setq load-path (cons run-test.elがあるディレクトリ load-path))
   (load "run-test")
 
-テストを実行するスクリプトrun-test.scmを書きます．例
-えば，こんな感じです．
+テストを実行するスクリプトrun-test.shを書きます．例えば，こ
+んな感じです．
+
+  #!/bin/sh
+
+  for test in test/test-*.scm
+  do
+    echo "Running test $test..."
+    gosh $test
+  done
+
+あるいは，run-test.scmとしてこんな感じでもいいです．
 
   #!/usr/bin/env gosh
 
@@ -84,14 +94,15 @@ sample/site-lisp/run-test.elはEmacs上でのテストの実行を支援
                                 :filter (lambda (x) (rxmatch #/^test-/ x)))
                 )))
 
-で，testというディレクトリを作って，このrun-test.scmに実行権
-を付けておいておきます．
+
+で，testというディレクトリを作って，このrun-test.shあるいは
+run-test.scmに実行権を付けておいておきます．
 
 テストファイルはtestというディレクトリ以下にtest-hoge.scmと
 いう名前で作っていきます．つまり，ディレクトリ構成は以下の様
 になります．
 
-  topdir --- test --- run-test.scm
+  topdir --- test --- run-test.sh or run-test.scm
                    |
                    +- test-hoge.scm
                    |
@@ -103,6 +114,37 @@ sample/site-lisp/run-test.elはEmacs上でのテストの実行を支援
 
 テスト(run-test.scm)はtopdirで起動されます．つまり，
 
-  % test/run-test.scm
+  % test/run-test.sh
 
 というように起動されます．
+
+run-test.{sh,scm}を書くときはこのことに注意しましょう．
+
+設定はこれで終了です．
+
+topdirから3階層まで深いディレクトリ内ではC-cC-t(run-test)で
+topdir/test/run-test.shが実行できます．実行結果は
+*Compilation*バッファに挿入されます．テストを実行して失敗/エ
+ラーがおきたらエラーが発生したassertionにC-x`でジャンプする
+ことができます．
+
+これで手軽に頻繁にテストを実行できますね．Happy testing!!
+
+==== カスタマイズ変数
+
+: run-test-file
+   テストを実行するスクリプトの拡張子を除いたファイル名です．
+   
+   デフォルト: "test/run-test"
+
+: run-test-suffixes
+   run-test-fileに付加する拡張子のリストです．先頭の方にある拡張子程
+   優先されます．
+   
+   デフォルト: (".scm" ".rb" ".sh")
+
+: run-test-search-directories
+   run-test-fileを探索するディレクトリのリストです．先頭の方
+   にあるでぃれくとり程優先されます．
+   
+   デフォルト: ("./" "../" "../../" "../../../")

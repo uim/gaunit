@@ -1,8 +1,13 @@
+(require 'cl)
+
 (defvar run-test-suffixes '(".scm" ".rb" ".sh")
   "List of test file suffix.")
 
 (defvar run-test-file "test/run-test"
   "Invoked file name by run-test.")
+
+(defvar run-test-search-directories '("./" "../" "../../" "../../../")
+  "Searched directories when searching run-test-file.")
 
 (defun flatten (lst)
   (cond ((null lst) '())
@@ -20,11 +25,14 @@
                              (mapcar (lambda (suffix)
                                        (concat dir run-test-file suffix))
                                      run-test-suffixes))
-                           (list "./" "../" "../../" "../../../"))))))
+                           run-test-search-directories)))))
     (if test-file
         (let ((current-directory (cadr (split-string(pwd)))))
-          (cd (car (split-string test-file "\\/test\\/")))
-          (compile (concat "test/" (file-name-nondirectory test-file)))
+          (cd (car (split-string test-file run-test-file)))
+          (compile (concat
+                    (concat "./"
+                            (file-name-directory run-test-file))
+                    (file-name-nondirectory test-file)))
           (cd current-directory)))))
 
 (define-key global-map "\C-c\C-t" 'run-test)
