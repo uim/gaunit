@@ -78,7 +78,8 @@
                         verbose-arg)
                 "No more failures/errors"
                 "run-test")
-               (cd current-directory)))))
+               (cd current-directory))
+             t)))
         (t (run-test-if-find (cdr test-file-infos) verbose-arg))))
 
 (defun run-test (&optional arg)
@@ -91,10 +92,13 @@
   (if (member (run-test-buffer-name)
               (mapcar 'buffer-name (buffer-list)))
       (kill-buffer (run-test-buffer-name)))
-  (make-frame-command)
-  (other-frame -1)
-  (run-test arg)
-  (delete-window)
-  (other-frame -1))
+  (let ((current-frame (car (frame-list)))
+        (frame (make-frame)))
+    (select-frame frame)
+    (if (null (run-test arg))
+        (delete-frame frame)
+      (delete-window)
+      (other-frame -1)
+      (select-frame current-frame))))
 
 (provide 'run-test)
