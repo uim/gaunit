@@ -19,9 +19,9 @@
        (make-test-case
         "Test assert-equal"
         ("assert-equal"
-         (assert-equal 1 (+ 1 2))
-         (assert-equal 3 (+ 1 2))
-         (assert-equal 1 (+ 1 2 -2))))))
+         (assert-equal 3 3)
+         (assert-equal 5 5)
+         (assert-equal 1 -1)))))
   (run-test-with-no-output test)
   (define-test-case "Test assert-equal"
     ("Test assert-equal"

@@ -2,30 +2,40 @@
 
 (use gauche.vm.debugger)
 (use gauche.time)
+(use srfi-2)
 
 (define-class <test-ui-text> ()
   ())
 
-(define-method display-result ((self <test-ui-text>) test-suite)
-  (print (format "Test suite ~s was run."
-                 (name-of test-suite))))
+(define (print-error-line stack)
+  (and-let* ((code (car stack))
+             ((pair? code))
+             (info (pair-attribute-get code 'source-info #f))
+             ((pair? info))
+             ((pair? (cdr info))))
+            (print (format "~a:~a: ~s" (car info) (cadr info) code))))
 
 (define-method test-errored ((self <test-ui-text>) test err)
-  (print "E\n" #`"Error occured in ,(name-of test)")
+  (print "E")
+  (print-error-line (cadddr (vm-get-stack-trace)))
+  (print #`"Error occured in ,(name-of test)")
   (with-error-to-port (current-output-port)
-                      (lambda () (report-error err))))
+                      (lambda ()
+                        (report-error err))))
 
 (define-method test-successed ((self <test-ui-text>) test)
   (display "."))
 
 (define-method test-failed ((self <test-ui-text>) test message stack-trace)
-  (print "F\n" message #`" in ,(name-of test)")
-   (with-error-to-port (current-output-port)
-                       (with-module gauche.vm.debugger
-                                    (lambda ()
-                                      (debug-print-stack
-                                       stack-trace
-                                       *stack-show-depth*)))))
+  (print "F")
+  (print-error-line (car stack-trace))
+  (print message #`" in ,(name-of test)")
+  (with-error-to-port (current-output-port)
+                      (lambda ()
+                        (with-module gauche.vm.debugger
+                                     (debug-print-stack
+                                      stack-trace
+                                      *stack-show-depth*)))))
 
 (define-method test-run ((self <test-ui-text>) test test-thunk)
   (test-thunk))

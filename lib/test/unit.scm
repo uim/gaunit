@@ -1,8 +1,7 @@
 (define-module test.unit
+  (extend test.assertions)
   (use gauche.collection)
   (use gauche.parameter)
-  (require "test/assertions")
-  (require "test/utils")
   (export *gaunit-version*
           make-test make-test-case make-test-suite
           define-test-suite define-test-case
