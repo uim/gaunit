@@ -415,6 +415,10 @@ You can run test (topdir/test/run-test.scm) by C-cC-t
 (run-test) when you are in under `topdir' and jump to error
 assertion by C-x`.
 
+You can run test by C-cT(run-test-in-new-frame), too. It
+runs test in new frame. I advice you it is good when you run
+test at the first.
+
 Happy testing!!
 
 ==== Customize variables

@@ -432,6 +432,10 @@ topdir/test/run-test.shが実行できます．実行結果は*run-test*
 バッファに挿入されます．テストを実行して失敗/エラーがおきた
 らエラーが発生したassertionにC-x`でジャンプすることができます．
 
+C-cT(run-test-in-new-frame)とやると，新しくフレームを作成し
+てtopdir/test/run-test.shを実行します．最初にテストを走らせ
+る時に使うとよいでしょう．
+
 これで手軽に頻繁にテストを実行できますね．Happy testing!!
 
 ==== カスタマイズ変数

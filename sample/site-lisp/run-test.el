@@ -13,6 +13,12 @@
                                        (4 . "-vv"))
   "Passed argumets to run-test-file-names for set verbose level.")
 
+(defvar run-test-mode-name "run-test"
+  "Mode name of running test.")
+
+(defun run-test-buffer-name ()
+  (concat "*" run-test-mode-name "*"))
+
 (defun flatten (lst)
   (cond ((null lst) '())
         ((listp (car lst))
@@ -78,4 +84,13 @@
   (run-test-if-find (find-test-files)
                     (get-verbose-level-arg (prefix-numeric-value arg))))
 
+(defun run-test-in-new-frame (&optional arg)
+  (interactive "P")
+  (kill-buffer (run-test-buffer-name))
+  (make-frame-command)
+  (other-frame -1)
+  (run-test arg)
+  (delete-window))
+
 (define-key global-map "\C-c\C-t" 'run-test)
+(define-key global-map "\C-cT" 'run-test-in-new-frame)
