@@ -179,8 +179,8 @@
                                              (apply assert-proc prepared-item)
                                              (assert-proc prepared-item))))
                            (prepare (lambda (x) x)))
-    (for-each (lambda (args)
-                (call-with-values (lambda () (prepare args))
+    (for-each (lambda (item)
+                (call-with-values (lambda () (prepare item))
                   (lambda args
                     (apply run-assert assert-proc args))))
               lst)))
