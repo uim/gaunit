@@ -4,6 +4,8 @@
 
 $Id$
 
+木村さんがFreeBSDのportsを((<用意|URL:http://lists.sourceforge.jp/mailman/archives/gauche-devel-jp/2003-November/000437.html>))してくれました．
+
 == 作者
 
 Kouhei Sutou <kou@cozmixng.org>
@@ -50,8 +52,6 @@ test.unitは一般的過ぎるので変更されるかもしれません．
   (define-test-case ...)
   とか
 
-  (run-all-test)
-
 === run-test.el
 
 sample/site-lisp/run-test.elはEmacs上でのテストの実行を支援
@@ -80,21 +80,25 @@ sample/site-lisp/run-test.elはEmacs上でのテストの実行を支援
   (use file.util)
   (use test.unit)
 
+  (if (symbol-bound? 'main)
+      (define _main main))
+
   (define (main args)
     (let ((dir (sys-dirname (car args))))
       (for-each (lambda (test-script)
-                  (reset-test-suites)
                   (print "loading " (string-join
                                      (list dir test-script)
                                      "/"))
                   (eval `(load ,(string-join
                                  (list dir test-script)
                                  "/"))
-                        (current-module))
-                  (newline))
+                        (current-module)))
                 (directory-list dir
                                 :filter (lambda (x) (rxmatch #/^test-/ x)))
-                )))
+                )
+      (if (symbol-bound? '_main)
+          (_main args)
+          (run-all-test))))
 
 
 で，testというディレクトリを作って，このrun-test.shあるいは

@@ -1,5 +1,6 @@
 #!/usr/bin/env gosh
 
+(add-load-path ".")
 (use test.unit)
 (require "test/utils")
 
@@ -31,6 +32,3 @@
       2 1 2 2))
     ("Test test-suite"
      (assert-test-suite-result test 3 8 2 4 2))))
-
-(run-all-test)
-     

@@ -1,5 +1,7 @@
 #!/usr/bin/env gosh
 
+(add-load-path ".")
+
 (use test.unit)
 (require "test/utils")
 
@@ -100,5 +102,3 @@
   (define-test-case "Test assert-error"
     ("Test assert-error"
      (assert-test-case-result test 1 1 2 0))))
-     
-(run-all-test)

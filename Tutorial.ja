@@ -14,21 +14,13 @@ GaUnitを使ったユニットテストでは
 
   (use test.unit)
 
-最後に
-
-  (run-all-test)
-
 を書きます．
 
 テストは
 
   (use test.unit)
 
-と
-
-  (run-all-test)
-
-の間に書きます．
+の後に書きます．
 
 == 例1: 記号微分((-記号微分というネタはSICPの2.3.2から頂きました．-))
 
@@ -45,8 +37,6 @@ GaUnitを使ったユニットテストでは
   
   (use test.unit)
   (require "symdiff")
-  
-  (run-all-test)
 
 実行してみましょう．
 
@@ -97,11 +87,7 @@ GaUnitを使ったユニットテストでは
 
   (use test.unit)
 
-のあと，
-
-  (run-all-test)
-
-の前に書きます．  
+の後に書きます．  
 
 つまり，テストファイル全体は以下のようになります．
 
@@ -113,8 +99,6 @@ GaUnitを使ったユニットテストでは
   (define-test-case "Symbolic Differentiation"
     ("base test"
      (assert-equal 0 (deriv 1 'x))))
-  
-  (run-all-test)
 
 実行してみましょう．
 
@@ -1717,12 +1701,12 @@ GaUnitは以下に示すテストをするための手続きを用意しています．
 
 GaUnitは以下の手続きを用意しています．
 
---- run-all-test(&keyword :test-ui)
+--- run-all-test(&keyword :ui)
 
     define-test-case, define-test-suiteで定義されたテストを
     実行します．
     
-    また，キーワード引数:test-uiを指定することによりテストを
+    また，キーワード引数:uiを指定することによりテストを
     実行するユーザインターフェイスを変更できます．が，現在は
     テキストベースのものしか用意されていません．
 
@@ -1757,9 +1741,12 @@ GaUnitは以下の構文を用意しています．
 
 GaUnitは以下の手続きを用意しています．
 
---- run(<test-suite> or <test-case> or <test>)
+--- run(<test-suite> or <test-case> or <test> &keyword :ui)
 
     テストを実行します．
+    
+    キーワード引数:uiを指定することによりテストを実行するユー
+    ザインターフェイスを変更できます．
 
 GaUnitは以下の構文を用意しています．
 

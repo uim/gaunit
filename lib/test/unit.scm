@@ -3,6 +3,7 @@
   (use gauche.collection)
   (use gauche.parameter)
   (require "test/assertions")
+  (require "test/autorunner")
   (export *gaunit-version*
           make-test make-test-case make-test-suite
           define-test-suite define-test-case
@@ -11,7 +12,7 @@
           ))
 (select-module test.unit)
 
-(define *gaunit-version* "0.0.1")
+(define *gaunit-version* "0.0.2")
 
 (define test-result (make-parameter #f))
 (define test-ui (make-parameter #f))
@@ -61,7 +62,14 @@
           :init-value (lambda () #f))
    (teardown :accessor teardown-of :init-keyword :teardown
              :init-value (lambda () #f))
+   (ran :accessor ran-of :init-value #f)
    ))
+
+(define-method ran? ((self <test-suite>))
+  (ran-of self))
+
+(define-method set-ran! ((self <test-suite>) new-value)
+  (slot-set! self 'ran new-value))
 
 (define-method call-with-iterator ((coll <test-suite>) proc . args)
   (apply call-with-iterator (test-cases-of coll) proc args))
@@ -78,10 +86,11 @@
 
 (define (run-all-test . options)
   (unless *default-test-suite* (require "test/ui/text"))
-  (let-keywords* options ((test-ui *default-test-ui*))
+  (let-keywords* options ((ui *default-test-ui*))
     (for-each (lambda (suite)
-                (if (not (null? (test-cases-of suite)))
-                    (run suite :test-ui test-ui)))
+                (if (and (not (null? (test-cases-of suite)))
+                         (not (ran? suite)))
+                    (run suite :ui ui)))
               (reverse *test-suites*))))
 
 (define-syntax define-test-suite
@@ -171,39 +180,40 @@
   ((teardown-of self)))
 
 (define-method run ((self <test-suite>) . options)
-  (let-keywords* options ((test-ui *default-test-ui*))
+  (let-keywords* options ((ui *default-test-ui*))
     (test-suite-run
-     test-ui
+     ui
      self
      (lambda ()
-       (for-each (lambda (test-case) (run test-case :test-ui test-ui))
-                 (test-cases-of self))))))
+       (for-each (lambda (test-case) (run test-case :ui ui))
+                 (test-cases-of self))
+       (set-ran! self #t)))))
 
 (define-method run ((self <test-case>) . options)
-  (let-keywords* options ((test-ui *default-test-ui*))
+  (let-keywords* options ((ui *default-test-ui*))
     (let ((setup-proc (lambda () (setup self)))
           (teardown-proc (lambda () (teardown self))))
       (test-case-run
-       test-ui
+       ui
        self
        (lambda ()
          (for-each (lambda (test)
                      (with-error-handler
                       (lambda (err)
-                        (add-error! (result-of test) test-ui test err))
+                        (add-error! (result-of test) ui test err))
                       (lambda ()
                         (dynamic-wind
                             setup-proc
-                            (lambda () (run test :test-ui test-ui))
+                            (lambda () (run test :ui ui))
                             teardown-proc))))
                    (tests-of self)))))))
 
 (define-method run ((self <test>) . options)
-  (let-keywords* options ((tu *default-test-ui*))
+  (let-keywords* options ((ui *default-test-ui*))
     (parameterize ((test-result (result-of self))
-                   (test-ui tu)
+                   (test-ui ui)
                    (current-test self))
-      (test-run tu self
+      (test-run ui self
                 (lambda () ((asserts-of self)))))))
 
 (define-method add-success! ((self <result>) test-ui test)
