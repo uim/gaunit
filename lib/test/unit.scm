@@ -17,6 +17,8 @@
           ))
 (select-module test.unit)
 
+(autoload test.ui.text <test-ui-text>)
+
 (define *gaunit-version* "0.0.2")
 
 (define test-result (make-parameter #f))
@@ -27,6 +29,9 @@
 (define *default-test-ui* #f)
 (define (set-default-test-ui! ui)
   (set! *default-test-ui* ui))
+(define (default-test-ui)
+  (unless *default-test-ui* <test-ui-text>)
+  *default-test-ui*)
 
 (define-class <result> ()
   ((success :accessor success-of :init-value 0)
@@ -111,7 +116,7 @@
 
 (define (run-all-test . options)
   (unless *default-test-suite* (eval '(use test.ui.text) (current-module)))
-  (let-keywords* options ((ui *default-test-ui*))
+  (let-keywords* options ((ui (default-test-ui)))
     (for-each (lambda (suite)
                 (if (and (not (null? (test-cases-of suite)))
                          (not (ran? suite)))
@@ -205,7 +210,7 @@
   ((teardown-of self)))
 
 (define-method run ((self <test-suite>) . options)
-  (let-keywords* options ((ui *default-test-ui*))
+  (let-keywords* options ((ui (default-test-ui)))
     (test-suite-run
      ui
      self
@@ -215,7 +220,7 @@
        (set-ran! self #t)))))
 
 (define-method run ((self <test-case>) . options)
-  (let-keywords* options ((ui *default-test-ui*))
+  (let-keywords* options ((ui (default-test-ui)))
     (let ((setup-proc (lambda () (setup self)))
           (teardown-proc (lambda () (teardown self))))
       (test-case-run
@@ -234,7 +239,7 @@
                    (tests-of self)))))))
 
 (define-method run ((self <test>) . options)
-  (let-keywords* options ((ui *default-test-ui*))
+  (let-keywords* options ((ui (default-test-ui)))
     (parameterize ((test-result (result-of self))
                    (test-ui ui)
                    (current-test self))

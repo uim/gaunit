@@ -8,13 +8,15 @@
 (autoload test.ui.gtk <test-ui-gtk>)
 
 (define (main args)
+  (define default-ui (cons <test-ui-text> "text"))
+  (define default-verbose (cons :normal "normal"))
   (define (usage)
-    (print "\t-u, --ui=UI\t\tUse the given UI. (default text)")
+    (print #`"\t-u, --ui=UI\t\tUse the given UI. (default ,(cdr default-ui))")
     (print "\t\t\t\t(t[ext], g[tk]).")
-    (print "\t-v, --verbose=LEVEL\tSet the output LEVEL. (default normal)")
+    (print #`"\t-v, --verbose=LEVEL\tSet the output LEVEL. (default ,(cdr default-verbose))")
     (print "\t\t\t\t(s[ilent], p[rogress], n[ormal], v[erbose]).")
     (print "\t-h, --help\t\tDisplay this help.")
-    (exit 0))
+    (exit -1))
   (define options
     (list (option '(#\u "ui") #f #t
                   (lambda (option name arg ui verbose . others)
@@ -45,8 +47,8 @@
          (usage))
        (lambda (operand ui verbose) ; operand
          (values ui verbose))
-       <test-ui-text> ; default value of ui
-       :normal      ; default value of verbose
+       (car default-ui)
+       (car default-verbose)
        )
      (run-all-test :ui (make ui :verbose verbose)))
   0)
