@@ -261,7 +261,7 @@ GaUnitは以下の構文を用意しています．
   (define (*teardown-proc*) ...)
   (define-syntax define-my-test-case
     (syntax-rules ()
-      ((_ . arg ...)
+      ((_ arg ...)
        (begin
          (gaunit-add-default-setup-proc! *setup-proc*)
          (gaunit-add-default-teardown-proc! *teardown-proc*)

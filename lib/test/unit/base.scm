@@ -77,7 +77,7 @@
 
 (define-method initialize ((self <test-case>) args)
   (next-method)
-  (let ((setup-procs (cons (setup-of self) *default-setup-procs*)))
+  (let ((setup-procs `(,@*default-setup-procs* ,(setup-of self))))
     (set! (setup-of self)
           (lambda ()
             (for-each (lambda (proc) (proc))

@@ -27,7 +27,7 @@
 
 (let ((setuped #f)
       (teardowned '(c)))
-  (gaunit-add-default-setup-proc! (lambda () (push! setuped 'a)))
+  (gaunit-add-default-setup-proc! (lambda () (set! setuped '())))
   (let ((proc (lambda () (push! setuped 'b))))
     (gaunit-add-default-setup-proc! proc)
     (gaunit-delete-default-setup-proc! proc))
@@ -40,7 +40,7 @@
   (define-test-case
     "Test default setup and teardown"
     (setup
-     (lambda () (set! setuped '())))
+     (lambda () (push! setuped 'a)))
     (teardown
      (lambda () (set! teardowned '())))
     ("test1"
@@ -64,11 +64,11 @@
 
 (let ((setuped #f)
       (teardowned '(d f)))
-  (gaunit-add-default-setup-proc! (lambda () (push! setuped 'a)))
+  (gaunit-add-default-setup-proc! (lambda () (push! setuped 'c)))
   (let ((proc (lambda () (push! setuped 'b))))
     (gaunit-add-default-setup-proc! proc)
     (gaunit-delete-default-setup-proc! proc))
-  (gaunit-add-default-setup-proc! (lambda () (push! setuped 'c)))
+  (gaunit-add-default-setup-proc! (lambda () (set! setuped '())))
 
   (gaunit-add-default-teardown-proc! (lambda () (push! teardowned 'd)))
   (let ((proc (lambda () (push! teardowned 'e))))
@@ -79,7 +79,7 @@
   (define-test-case
     "more Test default setup and teardown"
     (setup
-     (lambda () (set! setuped '())))
+     (lambda () (push! setuped 'a)))
     (teardown
      (lambda () (set! teardowned '())))
     ("test1"
