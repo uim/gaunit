@@ -88,10 +88,13 @@
 
 (defun run-test-in-new-frame (&optional arg)
   (interactive "P")
-  (kill-buffer (run-test-buffer-name))
+  (if (member (run-test-buffer-name)
+              (mapcar 'buffer-name (buffer-list)))
+      (kill-buffer (run-test-buffer-name)))
   (make-frame-command)
   (other-frame -1)
   (run-test arg)
-  (delete-window))
+  (delete-window)
+  (other-frame -1))
 
 (provide 'run-test)

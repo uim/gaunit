@@ -8,7 +8,8 @@
 (select-module test.unit.ui.text)
 
 (define-class <test-ui-text> ()
-  ((verbose :accessor verbose-of :init-keyword :verbose
+  ((successed :accessor successed-of)
+   (verbose :accessor verbose-of :init-keyword :verbose
             :init-value :normal)))
 
 (define *verbose-level* (make-hash-table 'eq?))
@@ -36,6 +37,7 @@
             (print (format "~a:~a: ~s" (car info) (cadr info) code))))
   
 (define-method test-errored ((self <test-ui-text>) test err)
+  (set! (successed-of self) #f)
   (display-when self :progress "E\n")
   (print-error-line (cadddr (vm-get-stack-trace)))
   (print #`"Error occured in ,(name-of test)")
@@ -47,6 +49,7 @@
   #f)
 
 (define-method test-failed ((self <test-ui-text>) test message stack-trace)
+  (set! (successed-of self) #f)
   (display-when self :progress "F\n")
   (print-error-line (car stack-trace))
   (print message #`" in ,(name-of test)"))
@@ -58,10 +61,11 @@
 ;;                                       *stack-show-depth*)))))
 
 (define-method test-start ((self <test-ui-text>) test)
-  #f)
+  (set! (successed-of self) #t))
 
 (define-method test-finish ((self <test-ui-text>) test)
-  (display-when self :progress "."))
+  (if (successed-of self)
+    (display-when self :progress ".")))
 
 (define-method test-case-start ((self <test-ui-text>) test-case)
   (display-when self :verbose #`"-- Start test case ,(name-of test-case)\n"))

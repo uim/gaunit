@@ -1,3 +1,4 @@
+(use srfi-1)
 (use util.combinations)
 (use gauche.collection)
 
@@ -13,27 +14,21 @@
         ((same-variable? exp var) 1)
         (else 0)))
 
-(define (=number? exp1 exp2)
-  (and (number? exp1)
-       (number? exp2)
-       (= exp1 exp2)))
-
 (define (make-sum exp1 exp2)
   (define (can-reduce?)
     (and (product? exp1) (product? exp2)
          (find (lambda (target)
-                 (equal?
-                  '(#t #t #t #t)
-                  (map (lambda (pred arg) (pred arg))
-                       (list number? number? variable? variable?)
-                       target)))
+                 (every (lambda (x) (eq? #t x))
+                        (map (lambda (pred arg) (pred arg))
+                             (list number? number? variable? variable?)
+                             target)))
                (permutations*
                 (list (multiplier exp1)
                       (multiplicand exp1)
                       (multiplier exp2)
                       (multiplicand exp2))
                 equal?))))
-         
+
   (cond ((=number? exp1 0) exp2)
         ((=number? exp2 0) exp1)
         ((and (number? exp1) (number? exp2))
@@ -43,16 +38,17 @@
         (else
          (let ((ret (can-reduce?)))
            (if ret
-               (let-optionals* ret ((first-number #f)
-                                    (second-number #f)
-                                    (first-variable #f)
-                                    (second-variable #f))
-                 (if (and first-number
-                          (same-variable? first-variable second-variable))
-                     (make-product (make-sum first-number second-number)
-                                   first-variable)
-                     (list '+ exp1 exp2)))
-               (list '+ exp1 exp2))))))
+             (let-optionals* ret ((first-number #f)
+                                  (second-number #f)
+                                  (first-variable #f)
+                                  (second-variable #f))
+               (if (and first-number
+                        (same-variable? first-variable second-variable))
+                 (make-product (make-sum first-number second-number)
+                               first-variable)
+                 (list '+ exp1 exp2)))
+             (list '+ exp1 exp2))))))
+
 
 (define (sum? exp)
   (and (pair? exp) (eq? '+ (car exp))))
@@ -83,17 +79,17 @@
                      (permutations (list exp1 exp2)))))
            (if (and ret (or (number? (multiplier (cadr ret)))
                             (number? (multiplicand (cadr ret)))))
-               (let ((num (car ret))
-                     (mulier (multiplier (cadr ret)))
-                     (mulcand (multiplicand (cadr ret))))
-                 (if (and (number? mulier)
-                          (number? mulcand))
-                     (* num mulier mulcand)
-                     (apply make-product
-                            (if (number? mulier)
-                                (list (* num mulier) mulcand)
-                                (list (* num mulcand mulier))))))
-               (list '* exp1 exp2))))))
+             (let ((num (car ret))
+                   (mulier (multiplier (cadr ret)))
+                   (mulcand (multiplicand (cadr ret))))
+               (if (and (number? mulier)
+                        (number? mulcand))
+                 (* num mulier mulcand)
+                 (apply make-product
+                        (if (number? mulier)
+                          (list (* num mulier) mulcand)
+                          (list (* num mulcand mulier))))))
+             (list '* exp1 exp2))))))
 
 (define (product? exp)
   (and (pair? exp) (eq? '* (car exp))))
@@ -111,3 +107,8 @@
 
 (define (variable? exp)
   (symbol? exp))
+
+(define (=number? exp1 exp2)
+  (and (number? exp1)
+       (number? exp2)
+       (= exp1 exp2)))
