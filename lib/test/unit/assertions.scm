@@ -142,7 +142,8 @@
                message
                (format #f
                        " expected:<~s> class exception\n  but was:<~s>"
-                       expected-class (class-of exn)))
+                       expected-class
+                       (class-of exn)))
               exn))))
       (lambda ()
         (thunk)

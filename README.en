@@ -356,12 +356,13 @@ It is included in the package.
 === run-test.el
 
 sample/site-lisp/run-test.el is Emacs-Lisp for support
-running test in Emacs.
+running test in Emacs. sample/site-lisp/run-test-setting.el
+is Emacs-Lisp for setting run-test.el
 
 Write following code in your .emacs.
 
-  (setq load-path (cons directory-which-has-run-test.el load-path))
-  (load "run-test")
+  (setq load-path (cons directory-which-has-run-test{,-setting}.el load-path))
+  (load "run-test-setting")
 
 Write run-test.scm which run test like below. 
 
@@ -378,8 +379,8 @@ Write run-test.scm which run test like below.
       (for-each (lambda (test-script)
                   (load (string-join (list dir test-script) "/")))
                 (directory-list dir
-                                :filter (lambda (x) (rxmatch #/^test-/ x)))
-                )
+                                :filter (lambda (x)
+                                          (rxmatch #/^test-.+\.scm/ x))))
       (if (symbol-bound? '_main)
           (_main args)
           (run-all-test))))

@@ -357,12 +357,13 @@ GaUnitは以下の構文を用意しています．
 === run-test.el
 
 sample/site-lisp/run-test.elはEmacs上でのテストの実行を支援
-するEmacs-Lispです．
+するEmacs-Lispです．sample/site-lisp/run-test-setting.elは
+run-test.elを使うための設定例です．
 
 使うには，まず，.emacsに以下を記述します．
 
-  (setq load-path (cons run-test.elがあるディレクトリ load-path))
-  (load "run-test")
+  (setq load-path (cons run-test{,-setting}.elがあるディレクトリ load-path))
+  (load "run-test-setting")
 
 テストを実行するスクリプトrun-test.shを書きます．例えば，こ
 んな感じです．
@@ -393,8 +394,8 @@ sample/site-lisp/run-test.elはEmacs上でのテストの実行を支援
                                      "/"))
                   (load (string-join (list dir test-script) "/")))
                 (directory-list dir
-                                :filter (lambda (x) (rxmatch #/^test-/ x)))
-                )
+                                :filter (lambda (x)
+                                          (rxmatch #/^test-.+\.scm/ x))))
       (if (symbol-bound? '_main)
           (_main args)
           (run-all-test))))

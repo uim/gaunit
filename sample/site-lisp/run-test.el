@@ -93,5 +93,4 @@
   (run-test arg)
   (delete-window))
 
-(define-key global-map "\C-c\C-t" 'run-test)
-(define-key global-map "\C-cT" 'run-test-in-new-frame)
+(provide 'run-test)
