@@ -194,9 +194,14 @@ GaUnitは以下に示すテストをするための手続きを用意しています．
     
     (({(equal? expanded (macroexpand-1 form))}))が真を返せば成功します．
     
---- assert-lset-equal(expanded actual [message])
+--- assert-lset-equal(expected actual [message])
     
-    (({(lset= equal? expanded actual)}))が真を返せば成功します．
+    (({(lset= equal? expected actual)}))が真を返せば成功します．
+    
+--- assert-values-equal(expected productor [message])
+    
+    (({(receive actual (productor) (equal? expected
+    actual))}))が真を返せば成功します．
     
 ==== 必要最小限
 

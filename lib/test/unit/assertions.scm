@@ -218,4 +218,8 @@
                               (lset-difference equal? actual expected))))
        actual))))
 
+(define-assertion (assert-values-equal expected productor . message)
+  (receive actual (productor)
+    (apply assert equal? expected actual message)))
+
 (provide "test/unit/assertions")

@@ -194,10 +194,15 @@ is a procedure test result is passed to the procedure.
     It succeeds when (({(equal? expanded (macroexpand-1
     form))})) is #t.
     
---- assert-lset-equal(expanded actual [message])
+--- assert-lset-equal(expected actual [message])
     
-    It succeeds when (({(lset= equal? expanded actual)})) is
+    It succeeds when (({(lset= equal? expected actual)})) is
     #t.
+    
+--- assert-values-equal(expected productor [message])
+    
+    It succeeds when (({(receive actual (productor) (equal?
+    expected actual))})) is #t.
     
 ====  Requisite minimum
 

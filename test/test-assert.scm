@@ -234,3 +234,26 @@
   (define-test-case "Test assert-lset-equal"
     ("Test assert-lset-euqal"
      (assert-test-case-result test 3 3 1 1))))
+
+(let ((test
+       (make-test-case "Test assert-values-equal"
+         ("assert-values-equal success3"
+          (assert-values-equal '(1 2 3)
+                               (lambda ()
+                                 (values 1 2 3)))
+          (assert-values-equal '(1 (2) 3)
+                               (lambda ()
+                                 (apply values '(1 (2) 3))))
+          (let ((productor (lambda () (values '(1) '(2 3) '(1)))))
+            (assert-values-equal '((1) (2 3) (1)) productor)))
+         ("assert-values-equal fail-1"
+          (assert-values-equal '(a b c)
+                               (lambda ()
+                                 '(a b c))))
+         ("assert-values-equal error-1"
+          (assert-values-equal '(1) 1)))))
+  (run-test-with-no-output test)
+  ;; (run test)
+  (define-test-case "Test assert-values-equal"
+    ("Test assert-values-euqal"
+     (assert-test-case-result test 3 3 1 1))))
