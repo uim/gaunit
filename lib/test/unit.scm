@@ -45,7 +45,7 @@
    (asserts :accessor asserts-of :init-keyword :asserts :init-value '())
    ))
 
-(define-method initialize ((self <test>) . args)
+(define-method initialize ((self <test>) args)
   (next-method)
   (set! (result-of self) (make <result>)))
 

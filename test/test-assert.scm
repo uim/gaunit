@@ -129,3 +129,66 @@
   (define-test-case "Test assert-each"
     ("Test assert-each"
      (assert-test-case-result test 3 3 1 1))))
+
+(define-macro (die message)
+  `(error ,(x->string message)))
+
+(let ((test
+       (make-test-case "Test assert-macro1"
+         ("assert-macro1 success3"
+          (assert-macro1 '(error "error string!")
+                         '(die "error string!"))
+          (assert-macro1 '(error "error-symbol!")
+                         '(die error-symbol!))
+          (assert-macro1 '(error "1")
+                         '(die 1))
+          )
+         ("assert-macro1 fail-1"
+          (assert-macro1 '(error 1)
+                         '(die 1)))
+         ("assert-marcro1 error"
+          (assert-macro1 '(error "syntax error")
+                         '(die)))
+         )))
+  (run-test-with-no-output test)
+  ;; (run test)
+  (define-test-case "Test assert-macro1"
+    ("Test assert-macro1"
+     (assert-test-case-result test 3 3 1 1))))
+
+(define-macro (or-die0 body message)
+  `(or ,body
+       (die ,message)))
+
+(define-macro (or-die body message)
+  `(or-die0 ,body ,message))
+
+(let ((test
+       (make-test-case "Test assert-macro"
+         ("assert-macro success3"
+          (assert-macro '(or #t
+                             (die "shuld not be here!"))
+                        '(or-die #t "shuld not be here!"))
+          (assert-macro '(or #f
+                             (die "always error!"))
+                        '(or-die #f "always error!"))
+          (assert-macro '(or (begin
+                               #t
+                               #f)
+                             (die "always error too!"))
+                        '(or-die (begin #t #f) "always error too!"))
+          )
+         ("assert-macro fail-1"
+          (assert-macro '(and #t
+                              (die "must be fail!"))
+                        '(or-die #t "must be fail!")))
+         ("assert-marcro error"
+          (assert-macro '(or #t
+                             (die "syntax error"))
+                        '(or-die)))
+         )))
+  (run-test-with-no-output test)
+  ;; (run test)
+  (define-test-case "Test assert-macro"
+    ("Test assert-macro"
+     (assert-test-case-result test 3 3 1 1))))

@@ -162,3 +162,9 @@
                   (lambda args
                     (apply run-assert assert-proc args))))
               lst)))
+
+(define-assertion (assert-macro1 expanded form . message)
+  (apply assert-equal expanded (macroexpand-1 form) message))
+
+(define-assertion (assert-macro expanded form . message)
+  (apply assert-equal expanded (macroexpand form) message))
