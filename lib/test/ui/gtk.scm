@@ -343,10 +343,11 @@
     (output-status ui #`"Finished in ,(time-counter-value counter) seconds.")))
 
 (define (output-status ui message)
-  (gtk-timeout-add *timeout-time*
-                   (lambda _
+;  (gtk-timeout-add *timeout-time*
+;                   (lambda _
                      (gtk-entry-set-text (status-entry-of ui) message)
-                     #f)))
+;                     #f))
+                     )
 
 (define (reset-ui ui suite)
   (gtk-entry-set-text (suite-name-entry-of ui) (name-of suite))
