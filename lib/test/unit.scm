@@ -85,7 +85,7 @@
 (reset-test-suites)
 
 (define (run-all-test . options)
-  (unless *default-test-suite* (require "test/ui/text"))
+  (unless *default-test-suite* (eval '(use test.ui.text) (current-module)))
   (let-keywords* options ((ui *default-test-ui*))
     (for-each (lambda (suite)
                 (if (and (not (null? (test-cases-of suite)))

@@ -1,8 +1,13 @@
-(select-module test.unit)
-
-(use gauche.vm.debugger)
-(use gauche.time)
-(use srfi-2)
+(define-module test.ui.text
+  (extend test.unit)
+  (use gauche.vm.debugger)
+  (use gauche.time)
+  (use srfi-2)
+  (export <test-ui-text>
+          test-run test-case-run test-suite-run
+          test-successed test-failed test-errored)
+  )
+(select-module test.ui.text)
 
 (define-class <test-ui-text> ()
   ((verbose :accessor verbose-of :init-keyword :verbose
@@ -11,8 +16,9 @@
 (define *verbose-level* (make-hash-table 'eq?))
 
 (hash-table-put! *verbose-level* :silent 0)
-(hash-table-put! *verbose-level* :normal 1)
-(hash-table-put! *verbose-level* :verbose 2)
+(hash-table-put! *verbose-level* :progress 1)
+(hash-table-put! *verbose-level* :normal 2)
+(hash-table-put! *verbose-level* :verbose 3)
 
 (define (level>=? l1 l2)
   (>= (hash-table-get *verbose-level* l1)
@@ -32,7 +38,7 @@
             (print (format "~a:~a: ~s" (car info) (cadr info) code))))
   
 (define-method test-errored ((self <test-ui-text>) test err)
-  (display-when self :normal "E\n")
+  (display-when self :progress "E\n")
   (print-error-line (cadddr (vm-get-stack-trace)))
   (print #`"Error occured in ,(name-of test)")
   (with-error-to-port (current-output-port)
@@ -40,10 +46,10 @@
                         (report-error err))))
 
 (define-method test-successed ((self <test-ui-text>) test)
-  (display-when self :normal "."))
+  (display-when self :progress "."))
 
 (define-method test-failed ((self <test-ui-text>) test message stack-trace)
-  (display-when self :normal "F\n")
+  (display-when self :progress "F\n")
   (print-error-line (car stack-trace))
   (print message #`" in ,(name-of test)")
   (with-error-to-port (current-output-port)
@@ -64,7 +70,7 @@
 
 (define-method test-suite-run ((self <test-ui-text>) test-suite test-thunk)
   (let ((counter (make <real-time-counter>)))
-    (display-when self :verbose #`"- Start test suite ,(name-of test-suite)\n")
+    (display-when self :normal #`"- Start test suite ,(name-of test-suite)\n")
     (with-time-counter counter (test-thunk))
     (display-when self :normal "\n")
     (display-when
@@ -78,7 +84,10 @@
      print)
     (display-when
      self :normal
-     (format "Testing time: ~s" (time-counter-value counter))
-     print)))
+     (format "Testing time: ~s" (time-counter-value counter)))
+    (display-when self :progress "\n")))
 
 (set-default-test-ui! (make <test-ui-text>))
+(with-module test.unit (import test.ui.text))
+
+(provide "test/ui/text")

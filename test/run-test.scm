@@ -10,10 +10,10 @@
 (define (main args)
   (let ((dir (sys-dirname (car args))))
     (for-each (lambda (test-script)
-                ;; (reset-test-suites)
-                (print "loading " (string-join
-                                   (list dir test-script)
-                                   "/"))
+;                 (reset-test-suites)
+;                 (print "loading " (string-join
+;                                    (list dir test-script)
+;                                    "/"))
                 (eval `(load ,(string-join
                                (list dir test-script)
                                "/"))
@@ -22,5 +22,5 @@
                               :filter (lambda (x) (rxmatch #/^test-/ x)))
               )
     (if (symbol-bound? '_main)
-        (_main `(,(car args) "-vn" ,@(cdr args)))
+        (_main `(,(car args) "-vp" ,@(cdr args)))
         (run-all-test))))

@@ -1,7 +1,10 @@
+(use test.ui.text)
+
 (define (run-test-with-no-output test)
   (call-with-output-string
    (cut with-output-to-port <>
-        (lambda () (run test)))))
+        (lambda ()
+          (run test :ui (make <test-ui-text> :verbose :silent))))))
 
 (select-module test.unit)
 
