@@ -377,7 +377,9 @@
   (unless (ran-of self)
     (set! (ran-of self) #t)
     (rerun self test-suite)
-    (gtk-main)))
+    (gtk-main)
+    (exit 0) ; DIRTY!!
+    ))
 
 (define (update-loaded-file! ui)
   (unless (loaded-file-of ui)

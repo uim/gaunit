@@ -164,6 +164,31 @@
      (assertion-failure
       (get-optional message " None expection was thrown")))))
 
+(define-assertion (assert-error-message expected thunk . message)
+  (assert-true (procedure? thunk)
+               (format #f " <~s> must be procedure" thunk))
+  (with-error-handler
+   (lambda (err)
+     (let* ((msg (ref err 'message))
+            (ok? (if (regexp? expected)
+                   (and (rxmatch expected msg) #t)
+                   (string=? expected msg))))
+       (or ok?
+           (make-assertion-failure
+            (get-optional message
+                          (format #f
+                                  " expected:<~s>~a\n  but was:<~s>"
+                                  expected
+                                  (if (regexp? expected)
+                                    " is match"
+                                    "")
+                                  msg))
+            msg))))
+   (lambda ()
+     (thunk)
+     (assertion-failure
+      (get-optional message " None expection was thrown")))))
+
 (define-assertion (assert-not-raise thunk . message)
   (assert-true (procedure? thunk)
                (format #f " <~s> must be procedure" thunk))
