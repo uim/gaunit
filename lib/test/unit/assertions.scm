@@ -39,7 +39,8 @@
   (let-keywords* keywords ((after-expected "")
                            (after-actual ""))
     (lambda (actual)
-      (format " expected:<~s>~a\n  but was:<~s>~a"
+      (format #f
+              " expected:<~s>~a\n  but was:<~s>~a"
               expected after-expected
               actual after-actual))))
 
@@ -119,13 +120,14 @@
       (assertion-failure
        (get-optional
         message
-        (format " expaceted:<~s> is an instance of <~s>\n  but was:<~s>"
+        (format #f
+                " expaceted:<~s> is an instance of <~s>\n  but was:<~s>"
                 object expected-class (class-of object)))
        object)))
 
 (define-assertion (assert-raise expected-class thunk . message)
   (assert-true (procedure? thunk)
-               (format " <~s> must be procedure" thunk))
+               (format #f " <~s> must be procedure" thunk))
   (assert is-a? expected-class <class>
           " Should expect a class of exception")
   (call/cc
@@ -138,7 +140,8 @@
              (make-assertion-failure
               (get-optional
                message
-               (format " expected:<~s> class exception\n  but was:<~s>"
+               (format #f
+                       " expected:<~s> class exception\n  but was:<~s>"
                        expected-class (class-of exn)))
               exn))))
       (lambda ()
@@ -146,12 +149,13 @@
         (make-assertion-failure
          (get-optional
           message
-          (format " expected:<~s> class exception\n  but none was thrown"
+          (format #f
+                  " expected:<~s> class exception\n  but none was thrown"
                   expected-class))))))))
 
 (define-assertion (assert-error thunk . message)
   (assert-true (procedure? thunk)
-               (format " <~s> must be procedure" thunk))
+               (format #f " <~s> must be procedure" thunk))
   (with-error-handler
    (lambda (err) #t)
    (lambda ()
@@ -161,7 +165,7 @@
 
 (define-assertion (assert-not-raise thunk . message)
   (assert-true (procedure? thunk)
-               (format " <~s> must be procedure" thunk))
+               (format #f " <~s> must be procedure" thunk))
   (call/cc
    (lambda (cont)
      (with-exception-handler
@@ -169,7 +173,8 @@
         (cont (make-assertion-failure
                (get-optional
                 message
-                (format (string-append " expected no exception was thrown\n"
+                (format #f
+                        (string-append " expected no exception was thrown\n"
                                        "  but <~s> class exception was thrown")
                         (class-of exn)))
                exn)))
@@ -197,6 +202,20 @@
   (apply assert-equal expanded (macroexpand form) message))
 
 (define-assertion (assert-lset-equal expected actual . message)
-  (apply assert (cut lset= equal? <> <>) expected actual message))
+  (let ((result (lset= equal? expected actual)))
+    (if result
+      #t
+      (assertion-failure
+       (get-optional message
+                     (make-message-handler
+                      expected
+                      :after-actual
+                      (format #f
+                              (string-append
+                               "\n diff for expected<->actual:<~s>"
+                               "\n diff for actual<->expected:<~s>")
+                              (lset-difference equal? expected actual)
+                              (lset-difference equal? actual expected))))
+       actual))))
 
 (provide "test/unit/assertions")
