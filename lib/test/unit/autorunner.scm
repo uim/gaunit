@@ -29,7 +29,7 @@
                                     ((string-index arg #\g) <test-ui-gtk>)
                                     (else (usage)))
                               ui)
-                            suite case test verbose)))
+                            verbose suite case test)))
           (option '(#\v "verbose") #t #f
                   (lambda (option name arg ui verbose suite case test . others)
                     (values ui

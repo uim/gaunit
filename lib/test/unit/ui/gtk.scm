@@ -4,7 +4,6 @@
   (use srfi-2)
   (use file.util)
   (use util.queue)
-  (use gauche.vm.debugger)
   (use gauche.time)
   (use test.unit)
   (export <test-ui-gtk>))
@@ -273,14 +272,6 @@
     (gtk-entry-set-editable entry #f)
     entry))
 
-(define (error-line stack)
-  (and-let* ((code (car stack))
-             ((pair? code))
-             (info (pair-attribute-get code 'source-info #f))
-             ((pair? info))
-             ((pair? (cdr info))))
-            (format "~a:~a: ~s" (car info) (cadr info) code)))
-  
 (define (string-inc-as-number string . options)
   (let-optionals* options ((inc-value 1))
     (number->string (+ inc-value (string->number string)))))
@@ -296,38 +287,31 @@
 (define-method test-failed ((self <test-ui-gtk>) test message stack-trace)
   (let ((fault-list (fault-list-of self))
         (fault-item (gtk-list-item-new-with-label
-                     (string-append #`",(error-line (car stack-trace))\n"
+                     (string-append #`",(error-line stack-trace)\n"
                                     #`",message in ,(name-of test)"))))
     (set-progress-bar-color! self (make-red-color))
     (count-up-label (failure-count-label-of self))
     (gtk-widget-show fault-item)
-    (append-fault-detail-list! self stack-trace)
+    (append-fault-detail-list! self #f (list stack-trace))
     (gtk-list-append-items fault-list (list fault-item))))
 
 (define-method test-errored ((self <test-ui-gtk>) test err)
-  (let* ((stack-trace (cdr (vm-get-stack-trace)))
+  (let* ((stack-trace (cdr (vm-get-stack-trace-lite)))
          (fault-list (fault-list-of self))
          (fault-item (gtk-list-item-new-with-label
-                      (string-append #`",(error-line (car stack-trace))\n"
-                                     #`"Error occured in ,(name-of test)"))))
-    (append-fault-detail-list! self stack-trace)
+                      (string-append #`",(error-line stack-trace)\n"
+                                     #`"Error occurred in ,(name-of test)"))))
+    (append-fault-detail-list! self err stack-trace)
     (set-progress-bar-color! self (make-red-color))
     (count-up-label (error-count-label-of self))
     (gtk-widget-show fault-item)
     (gtk-list-append-items fault-list (list fault-item))))
 
-(define (append-fault-detail-list! ui stack-trace)
+(define (append-fault-detail-list! ui err stack-trace)
   (set! (fault-detail-list-of ui)
         (append (fault-detail-list-of ui)
                 (list
-                 (call-with-output-string
-                   (cut with-error-to-port <>
-                        (lambda ()
-                          (with-module gauche.vm.debugger
-                            (debug-print-stack
-                             stack-trace
-                             *stack-show-depth*)))))))))
-
+                 (error-message err stack-trace :max-depth 5)))))
 
 (define-method test-run ((self <test-ui-gtk>) test test-thunk)
   (update! self (test-thunk)))

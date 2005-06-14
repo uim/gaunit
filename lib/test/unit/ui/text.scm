@@ -1,11 +1,12 @@
 (define-module test.unit.ui.text
   (extend test.unit.ui)
   (use test.unit)
-  (use gauche.vm.debugger)
   (use gauche.time)
   (use srfi-2)
   (export <test-ui-text>))
 (select-module test.unit.ui.text)
+
+(define pair-attribute-get (with-module gauche.internal pair-attribute-get))
 
 (define-class <test-ui-text> ()
   ((successed :accessor successed-of)
@@ -29,21 +30,16 @@
         (print-proc message))))
 
 (define (print-error-line stack)
-  (and-let* ((code (car stack))
-             ((pair? code))
-             (info (pair-attribute-get code 'source-info #f))
-             ((pair? info))
-             ((pair? (cdr info))))
-            (print (format "~a:~a: ~s" (car info) (cadr info) code))))
+  (and-let* ((line (error-line stack)))
+    (print line)))
   
 (define-method test-errored ((self <test-ui-text>) test err)
-  (set! (successed-of self) #f)
-  (display-when self :progress "E\n")
-  (print-error-line (cadddr (vm-get-stack-trace)))
-  (print #`"Error occured in ,(name-of test)")
-  (with-error-to-port (current-output-port)
-    (lambda ()
-      (report-error err))))
+  (let ((stack-trace (cdddr (vm-get-stack-trace-lite))))
+    (set! (successed-of self) #f)
+    (display-when self :progress "E\n")
+    (print-error-line (car stack-trace))
+    (print #`"Error occurred in ,(name-of test)")
+    (print (error-message err stack-trace :max-depth 5))))
 
 (define-method test-successed ((self <test-ui-text>) test)
   #f)
@@ -51,14 +47,9 @@
 (define-method test-failed ((self <test-ui-text>) test message stack-trace)
   (set! (successed-of self) #f)
   (display-when self :progress "F\n")
-  (print-error-line (car stack-trace))
+  (print-error-line stack-trace)
   (print message #`" in ,(name-of test)"))
-;;   (with-error-to-port (current-output-port)
-;;                       (lambda ()
-;;                         (with-module gauche.vm.debugger
-;;                                      (debug-print-stack
-;;                                       stack-trace
-;;                                       *stack-show-depth*)))))
+  ;; (print (error-message err (list stack-trace) :max-depth 5)))
 
 (define-method test-start ((self <test-ui-text>) test)
   (set! (successed-of self) #t))

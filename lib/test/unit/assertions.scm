@@ -45,14 +45,15 @@
               actual after-actual))))
 
 (define (get-stack-trace . options)
-  (let-optionals* options ((stack-trace (cddr (vm-get-stack-trace))))
+  (let-optionals* options ((stack-trace (cdddr (vm-get-stack-trace-lite))))
     (do ((s stack-trace (cdr s)))
         ((or (null? s)
-             (rxmatch #/test\.unit::with-exception-handler/
-                      (x->string (caar s))))
-         (list (if (null? s)
-                   (car stack-trace)
-                   (cadr s)))))))
+             (and (pair? (car s))
+                  (rxmatch #/test\.unit::with-exception-handler/
+                           (x->string (caar s)))))
+         (if (null? s)
+           (car stack-trace)
+           (cadr s))))))
 
 (define (eval-body body-thunk)
   (call/cc
