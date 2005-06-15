@@ -268,6 +268,16 @@
           (lambda ()
             (test-suite-finish ui self))))))
 
+(define (wrap-thunk-with-error-handling test ui thunk)
+  (lambda ()
+    (with-error-handler
+        (lambda (err)
+          (add-error! (result-of test) ui test err)
+          #f)
+      (lambda ()
+        (thunk)
+        #t))))
+
 (define-method run ((self <test-case>) . options)
   (let-keywords* options ((ui (default-test-ui))
                           (test-case-regexp #//)
@@ -282,32 +292,34 @@
               (test-case-start ui self))
             (lambda ()
               (for-each (lambda (test)
-                          (with-error-handler
-                              (lambda (err)
-                                (add-error! (result-of test) ui test err))
-                            (lambda ()
-                              (dynamic-wind
+                          (dynamic-wind
+                              (lambda ()
+                                (test-case-setup
+                                 ui self
+                                 (wrap-thunk-with-error-handling
+                                  test
+                                  ui
                                   (lambda ()
-                                    (test-case-setup
-                                     ui self
-                                     (lambda ()
-                                       (set! buffering-mode
-                                             (port-buffering output))
-                                       (if buffering-mode
-                                         (set! (port-buffering output) :none))
-                                       (setup-proc))))
+                                    (set! buffering-mode
+                                          (port-buffering output))
+                                    (if buffering-mode
+                                      (set! (port-buffering output) :none))
+                                    (setup-proc)))))
+                              (lambda ()
+                                (run test
+                                     :ui ui
+                                     :test-regexp test-regexp))
+                              (lambda ()
+                                (test-case-teardown
+                                 ui self
+                                 (wrap-thunk-with-error-handling
+                                  test
+                                  ui
                                   (lambda ()
-                                    (run test
-                                         :ui ui
-                                         :test-regexp test-regexp))
-                                  (lambda ()
-                                    (test-case-teardown
-                                     ui self
-                                     (lambda ()
-                                       (teardown-proc)
-                                       (if buffering-mode
-                                         (set! (port-buffering output)
-                                               buffering-mode)))))))))
+                                    (teardown-proc)
+                                    (if buffering-mode
+                                      (set! (port-buffering output)
+                                            buffering-mode))))))))
                         (tests-of self)))
             (lambda ()
               (test-case-finish ui self)))))))
@@ -322,14 +334,17 @@
           (lambda ()
             (let ((counter (make <real-time-counter>)))
               (test-run ui self
-                        (lambda ()
-                          (parameterize ((test-result (result-of self))
-                                         (test-ui ui)
-                                         (current-test self))
-                            (with-time-counter counter
-                                               ((asserts-of self))))
-                          (set! (operating-time-of self)
-                                (time-counter-value counter))))))
+                        (wrap-thunk-with-error-handling
+                         self
+                         ui
+                         (lambda ()
+                           (parameterize ((test-result (result-of self))
+                                          (test-ui ui)
+                                          (current-test self))
+                             (with-time-counter counter
+                                                ((asserts-of self))))
+                           (set! (operating-time-of self)
+                                 (time-counter-value counter)))))))
           (lambda ()
             (test-finish ui self))))))
 

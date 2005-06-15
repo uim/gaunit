@@ -8,7 +8,7 @@
 
 (define pair-attribute-get (with-module gauche.internal pair-attribute-get))
 
-(define-class <test-ui-text> ()
+(define-class <test-ui-text> (<test-ui-base>)
   ((successed :accessor successed-of)
    (verbose :accessor verbose-of :init-keyword :verbose
             :init-value :normal)))

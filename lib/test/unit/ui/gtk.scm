@@ -12,7 +12,7 @@
 
 (define *timeout-time* 10)
 
-(define-class <test-ui-gtk> ()
+(define-class <test-ui-gtk> (<test-ui-base>)
   ((main-window :accessor main-window-of)
    (load-library-name-entry :accessor load-library-name-entry-of)
    (load-button :accessor load-button-of)
@@ -296,10 +296,13 @@
     (gtk-list-append-items fault-list (list fault-item))))
 
 (define-method test-errored ((self <test-ui-gtk>) test err)
-  (let* ((stack-trace (cdr (vm-get-stack-trace-lite)))
+  (let* ((stack-trace (cdddr (vm-get-stack-trace-lite)))
          (fault-list (fault-list-of self))
+         (line (error-line (car stack-trace)))
          (fault-item (gtk-list-item-new-with-label
-                      (string-append #`",(error-line stack-trace)\n"
+                      (string-append (if line
+                                       #`",|line|\n"
+                                       "")
                                      #`"Error occurred in ,(name-of test)"))))
     (append-fault-detail-list! self err stack-trace)
     (set-progress-bar-color! self (make-red-color))

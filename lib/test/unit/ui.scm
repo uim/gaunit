@@ -8,6 +8,9 @@
           test-finish test-case-finish test-suite-finish))
 (select-module test.unit.ui)
 
+(define-class <test-ui-base> ()
+  ((setup-success? :accessor setup-success?)))
+
 (define-method test-errored (ui test err)
   (error "Not implimented"))
 
@@ -18,7 +21,11 @@
   (error "Not implimented"))
 
 (define-method test-run (ui test test-thunk)
-  (test-thunk))
+  (error "Not implimented"))
+
+(define-method test-run ((ui <test-ui-base>) test test-thunk)
+  (if (setup-success? ui)
+    (test-thunk)))
 
 (define-method test-start (ui test)
   (error "Not implimented"))
@@ -27,9 +34,15 @@
   (error "Not implimented"))
 
 (define-method test-case-setup (ui test setup-thunk)
-  (setup-thunk))
+  (error "Not implimented"))
+
+(define-method test-case-setup ((ui <test-ui-base>) test setup-thunk)
+  (set! (setup-success? ui) (setup-thunk)))
 
 (define-method test-case-teardown (ui test teardown-thunk)
+  (error "Not implimented"))
+
+(define-method test-case-teardown ((ui <test-ui-base>) test teardown-thunk)
   (teardown-thunk))
 
 (define-method test-case-start (ui test-case)
