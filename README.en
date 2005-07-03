@@ -220,6 +220,11 @@ is a procedure test result is passed to the procedure.
     It succeeds when (({(receive actual (productor) (equal?
     expected actual))})) is #t.
     
+--- assert-in-delta(expected delta actual [message])
+    
+    It succeeds when (({(<= (- expected delta) actual (+
+    expected delta))})) is #t.
+    
 ====  Requisite minimum
 
 GaUnit has following procedure.

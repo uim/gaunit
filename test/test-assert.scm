@@ -232,7 +232,7 @@
   (run-test-with-no-output test)
   ;; (run test)
   (define-test-case "Test assert-lset-equal"
-    ("Test assert-lset-euqal"
+    ("Test assert-lset-equal"
      (assert-test-case-result test 3 3 1 1))))
 
 (let ((test
@@ -255,5 +255,21 @@
   (run-test-with-no-output test)
   ;; (run test)
   (define-test-case "Test assert-values-equal"
-    ("Test assert-values-euqal"
+    ("Test assert-values-equal"
+     (assert-test-case-result test 3 3 1 1))))
+
+(let ((test
+       (make-test-case "Test assert-in-delta"
+         ("assert-in-delta success3"
+          (assert-in-delta 0.9 0.1 1)
+          (assert-in-delta 0.9 0.01 0.899999)
+          (assert-in-delta -0.1 0.0001 -0.1000000009))
+         ("assert-in-delta fail-1"
+          (assert-in-delta 1 0.5 2))
+         ("assert-in-delta error-1"
+          (assert-in-delta 1 1)))))
+  (run-test-with-no-output test)
+  ;; (run test)
+  (define-test-case "Test assert-in-delta"
+    ("Test assert-in-delta"
      (assert-test-case-result test 3 3 1 1))))

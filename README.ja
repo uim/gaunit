@@ -222,6 +222,11 @@ GaUnitは以下に示すテストをするための手続きを用意しています．
     (({(receive actual (productor) (equal? expected
     actual))}))が真を返せば成功します．
     
+--- assert-in-delta(expected delta actual [message])
+    
+    (({(<= (- expected delta) actual (+ expected delta))}))
+    が真を返せば成功します．
+    
 ==== 必要最小限
 
 GaUnitは以下の手続きを用意しています．

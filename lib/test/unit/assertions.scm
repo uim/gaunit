@@ -121,8 +121,9 @@
       (assertion-failure
        (get-optional
         message
+        
         (format #f
-                " expaceted:<~s> is an instance of <~s>\n  but was:<~s>"
+                " expected:<~s> is an instance of <~s>\n  but was:<~s>"
                 object expected-class (class-of object)))
        object)))
 
@@ -248,5 +249,15 @@
 (define-assertion (assert-values-equal expected productor . message)
   (receive actual (productor)
     (apply assert equal? expected actual message)))
+
+(define-assertion (assert-in-delta expected delta actual . message)
+  (if (<= (- expected delta) actual (+ expected delta))
+      #t
+      (assertion-failure
+       (get-optional
+        message
+        (make-message-handler expected
+                              :after-expected (format #f " +/- <~s>" delta)))
+       actual)))
 
 (provide "test/unit/assertions")
