@@ -31,6 +31,17 @@
      (assert-test-case-result test 1 2 1 0))))
 
 (let ((test
+       (make-test-case "Test assert-not-equal"
+         ("assert-not-equal"
+          (assert-not-equal 3 3)
+          (assert-not-equal 5 5)
+          (assert-not-equal 1 -1)))))
+  (run-test-with-no-output test)
+  (define-test-case "Test assert-not-equal"
+    ("Test assert-not-equal"
+     (assert-test-case-result test 1 1 2 0))))
+
+(let ((test
        (make-test-case "Test assert-null"
          ("assert-null"
           (assert-null 1)
@@ -40,6 +51,17 @@
   (define-test-case "Test assert-null"
     ("Test assert-null"
      (assert-test-case-result test 1 1 2 0))))
+
+(let ((test
+       (make-test-case "Test assert-not-null"
+         ("assert-not-null"
+          (assert-not-null 1)
+          (assert-not-null '())
+          (assert-not-null '(1 1 2 -2))))))
+  (run-test-with-no-output test)
+  (define-test-case "Test assert-not-null"
+    ("Test assert-null"
+     (assert-test-case-result test 1 2 1 0))))
 
 (let ((test
        (make-test-case "Test assert-true"

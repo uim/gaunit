@@ -101,6 +101,16 @@
 (define-assertion (assert-equal expected actual . message)
   (apply assert equal? expected actual message))
 
+(define-assertion (assert-not-equal expected actual . message)
+  (assert (lambda (x y)
+            (not (equal? x y)))
+          expected
+          actual
+          (get-optional message
+                        (make-message-handler
+                         expected
+                         :after-expected " to not be equal?"))))
+
 (define-assertion (assert-null actual . message)
   (if (null? actual)
       #t
@@ -108,6 +118,16 @@
        (get-optional message
                      (make-message-handler '()))
        actual)))
+
+(define-assertion (assert-not-null actual . message)
+  (if (not (null? actual))
+    #t
+    (assertion-failure
+     (get-optional message
+                   (make-message-handler
+                    '()
+                    :after-expected " to not be ()"))
+     actual)))
 
 (define-assertion (assert-true actual . message)
   (apply assert eq? #t actual message))

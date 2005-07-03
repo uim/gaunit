@@ -163,6 +163,18 @@ GaUnitは以下に示すテストをするための手続きを用意しています．
     
     (({(equal? expected actual)}))が#tを返せば成功します．
 
+--- assert-not-equal(expected actual [message])
+    
+    (({(not (equal? expected actual))}))が#tを返せば成功します．
+
+--- assert-null(actual [message])
+    
+    (({(null? actual)}))が#tを返せば成功します．
+
+--- assert-not-null(actual [message])
+    
+    (({(not (null? actual))}))が#tを返せば成功します．
+
 --- assert-true(actual [message])
     
     ((|actual|))が#tならば成功します．

@@ -163,6 +163,18 @@ is a procedure test result is passed to the procedure.
     
     It succeeds when (({(equal? expected actual)})) is #t.
 
+--- assert-not-equal(expected actual [message])
+    
+    It succeeds when (({(not (equal? expected actual))})) is #t.
+
+--- assert-null(actual [message])
+    
+    It succeeds when (({(null? actual)})) is #t.
+
+--- assert-not-null(actual [message])
+    
+    It succeeds when (({(not (null? actual))})) is #t.
+
 --- assert-true(actual [message])
     
     It succeeds when ((|actual|)) is #t.
