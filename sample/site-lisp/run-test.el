@@ -1,3 +1,4 @@
+(require 'compile)
 (require 'cl)
 
 (defvar run-test-suffixes '(".scm" ".rb" ".sh")
