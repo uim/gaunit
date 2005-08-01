@@ -179,7 +179,7 @@
 
 (let ((test
        (make-test-case "Test assert-macro1"
-         ("assert-macro1 success3"
+         ("assert-macro1 success-3"
           (assert-macro1 '(error "error string!")
                          '(die "error string!"))
           (assert-macro1 '(error "error-symbol!")
@@ -209,7 +209,7 @@
 
 (let ((test
        (make-test-case "Test assert-macro"
-         ("assert-macro success3"
+         ("assert-macro success-3"
           (assert-macro '(or #t
                              (die "shuld not be here!"))
                         '(or-die #t "shuld not be here!"))
@@ -239,7 +239,7 @@
 
 (let ((test
        (make-test-case "Test assert-lset-equal"
-         ("assert-lset-equal success3"
+         ("assert-lset-equal success-3"
           (assert-lset-equal '(1 2 3)
                              '(3 2 1))
           (assert-lset-equal '(1 (2) 3)
@@ -259,7 +259,7 @@
 
 (let ((test
        (make-test-case "Test assert-values-equal"
-         ("assert-values-equal success3"
+         ("assert-values-equal success-3"
           (assert-values-equal '(1 2 3)
                                (lambda ()
                                  (values 1 2 3)))
@@ -282,7 +282,7 @@
 
 (let ((test
        (make-test-case "Test assert-in-delta"
-         ("assert-in-delta success3"
+         ("assert-in-delta success-3"
           (assert-in-delta 0.9 0.1 1)
           (assert-in-delta 0.9 0.01 0.899999)
           (assert-in-delta -0.1 0.0001 -0.1000000009))
@@ -295,3 +295,20 @@
   (define-test-case "Test assert-in-delta"
     ("Test assert-in-delta"
      (assert-test-case-result test 3 3 1 1))))
+
+(let ((test
+       (make-test-case "Test assert-output"
+         ("assert-output success-4"
+          (assert-output "***" (lambda () (display "***")))
+          (assert-output "***\n" (lambda () (print "***")))
+          (assert-output "\n" newline)
+          (assert-output "" (lambda () #f)))
+         ("assert-output fail-1"
+          (assert-output "***" (lambda () #f)))
+         ("assert-output error-1"
+          (assert-output "***" "***")))))
+  (run-test-with-no-output test)
+  ;; (run test)
+  (define-test-case "Test assert-output"
+    ("Test assert-output"
+     (assert-test-case-result test 3 4 1 1))))

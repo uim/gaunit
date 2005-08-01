@@ -239,6 +239,12 @@ GaUnitは以下に示すテストをするための手続きを用意しています．
     (({(<= (- expected delta) actual (+ expected delta))}))
     が真を返せば成功します．
     
+--- assert-output(expected thunk [message])
+    
+    (({(equal? expected (with-output-to-string thunk))}))が
+    真を返せば成功します．つまり，((|expected|))と
+    (({(thunk)}))の出力結果が等しければ成功します．
+    
 ==== 必要最小限
 
 GaUnitは以下の手続きを用意しています．

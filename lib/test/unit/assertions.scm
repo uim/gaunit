@@ -280,4 +280,7 @@
                               :after-expected (format #f " +/- <~s>" delta)))
        actual)))
 
+(define-assertion (assert-output expected thunk . message)
+  (apply assert-equal expected (with-output-to-string thunk) message))
+
 (provide "test/unit/assertions")
