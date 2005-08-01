@@ -244,6 +244,17 @@ is a procedure test result is passed to the procedure.
     it succeeds when ((|expected|)) equals the output of
     (({(thunk)})).
     
+    If ((|expected|)) is regular expression, it succeeds
+    when (({(rxmatch expected (with-output-to-string
+    thunk))})) is not #f. In other words, it succeeds when
+    the output of (({(tunk)})) is matched with
+    ((|expected|)).
+
+--- assert-match(expected actual [message])
+    
+    It succeeds when (({(rxmatch expected actual)})) is not
+    #f.
+    
 ====  Requisite minimum
 
 GaUnit has following procedure.

@@ -141,7 +141,6 @@
       (assertion-failure
        (get-optional
         message
-        
         (format #f
                 " expected:<~s> is an instance of <~s>\n  but was:<~s>"
                 object expected-class (class-of object)))
@@ -281,6 +280,21 @@
        actual)))
 
 (define-assertion (assert-output expected thunk . message)
-  (apply assert-equal expected (with-output-to-string thunk) message))
+  (let ((assert-proc (if (regexp? expected)
+                       assert-match
+                       assert-equal)))
+    (apply assert-proc expected (with-output-to-string thunk) message)))
+
+(define-assertion (assert-match expected actual . message)
+  (if (regexp? expected)
+    (if (rxmatch expected actual)
+      #t
+      (assertion-failure
+       (get-optional message
+                     (make-message-handler expected
+                                           :after-expected " is matched"))
+       actual))
+    (assertion-failure
+     (format #f "expected <~s> must be a regexp" expected))))
 
 (provide "test/unit/assertions")

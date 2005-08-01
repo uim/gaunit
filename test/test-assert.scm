@@ -299,7 +299,7 @@
 (let ((test
        (make-test-case "Test assert-output"
          ("assert-output success-4"
-          (assert-output "***" (lambda () (display "***")))
+          (assert-output #/\*+/ (lambda () (display "***")))
           (assert-output "***\n" (lambda () (print "***")))
           (assert-output "\n" newline)
           (assert-output "" (lambda () #f)))
@@ -312,3 +312,19 @@
   (define-test-case "Test assert-output"
     ("Test assert-output"
      (assert-test-case-result test 3 4 1 1))))
+
+(let ((test
+       (make-test-case "Test assert-match"
+         ("assert-match success-2"
+          (assert-match #/\*+/ "*****")
+          (assert-match #/.*/ ""))
+         ("assert-match fail-2"
+          (assert-match #/\*+/ "")
+          (assert-match "***" "***"))
+         ("assert-match error-1"
+          (assert-match "***" ("***"))))))
+  (run-test-with-no-output test)
+  ;; (run test)
+  (define-test-case "Test assert-match"
+    ("Test assert-match"
+     (assert-test-case-result test 3 2 2 1))))
