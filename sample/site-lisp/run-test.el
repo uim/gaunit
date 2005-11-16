@@ -61,7 +61,7 @@
                 test-file)))
           run-test-file-names))
 
-(defun run-test-if-find (test-file-infos verbose-arg)
+(defun run-test-if-find (test-file-infos verbose-arg runner)
   (cond ((null test-file-infos) nil)
         ((car test-file-infos)
          (let ((test-file-info (car test-file-infos)))
@@ -72,13 +72,11 @@
              (save-excursion
                (cd (car (split-string test-file run-test-file)))
                (save-some-buffers)
-               (compile-internal
-                (concat (concat "./"
-                                (file-name-directory run-test-file))
-                        (file-name-nondirectory test-file)
-                        verbose-arg)
-                "No more failures/errors"
-                "run-test")
+               (funcall runner
+                        (concat (concat "./"
+                                        (file-name-directory run-test-file))
+                                (file-name-nondirectory test-file)
+                                verbose-arg))
                (cd current-directory))
              t)))
         (t (run-test-if-find (cdr test-file-infos) verbose-arg))))
@@ -86,7 +84,11 @@
 (defun run-test (&optional arg)
   (interactive "P")
   (run-test-if-find (find-test-files)
-                    (get-verbose-level-arg (prefix-numeric-value arg))))
+                    (get-verbose-level-arg (prefix-numeric-value arg))
+                    (lambda (command)
+                      (compile-internal command
+                                        "No more failures/errors"
+                                        "run-test"))))
 
 (defun run-test-in-new-frame (&optional arg)
   (interactive "P")
@@ -101,5 +103,12 @@
       (delete-window)
       (other-frame -1)
       (select-frame current-frame))))
+
+(defun run-test-in-mini-buffer (&optional arg)
+  (interactive "P")
+  (run-test-if-find (find-test-files)
+                    (get-verbose-level-arg (prefix-numeric-value arg))
+                    (lambda (command)
+                      (shell-command command))))
 
 (provide 'run-test)
