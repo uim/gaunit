@@ -44,17 +44,6 @@
               expected after-expected
               actual after-actual))))
 
-(define (get-stack-trace . options)
-  (let-optionals* options ((stack-trace (cdddr (vm-get-stack-trace-lite))))
-    (do ((s stack-trace (cdr s)))
-        ((or (null? s)
-             (and (pair? (car s))
-                  (rxmatch #/test\.unit::with-exception-handler/
-                           (x->string (caar s)))))
-         (if (null? s)
-           (car stack-trace)
-           (cadr s))))))
-
 (define (eval-body body-thunk)
   (call/cc
    (lambda (cont)
@@ -63,7 +52,7 @@
       (lambda ()
         (parameterize ((count-assertion #f))
           (body-thunk)))))))
-  
+
 (define-macro (define-assertion name&args . body)
   `(with-module test.unit.assertions
      (export ,(car name&args))
@@ -75,7 +64,7 @@
                     (add-failure!
                      (test-result) (test-ui) (current-test)
                      (failure-message-of result)
-                     (get-stack-trace)))
+                     (car (retrieve-target-stack-trace))))
                    ((is-a? result <error>)
                     (add-error! (test-result) (test-ui)
                                 (current-test) result))

@@ -1,4 +1,5 @@
 (define-module test.unit.ui
+  (extend test.unit.common)
   (use srfi-1)
   (use srfi-2)
   (export test-successed test-failed test-errored
@@ -56,10 +57,6 @@
 
 (define-method test-suite-finish (ui test-suite)
   (error "Not implimented"))
-
-
-(define pair-attribute-get
-  (with-module gauche.internal pair-attribute-get))
 
 (define (error-line stack-trace)
   (and-let* (((pair? stack-trace))

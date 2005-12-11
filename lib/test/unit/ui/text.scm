@@ -32,9 +32,10 @@
 (define (print-error-line stack)
   (and-let* ((line (error-line stack)))
     (print line)))
-  
+
 (define-method test-errored ((self <test-ui-text>) test err)
-  (let ((stack-trace (cdddr (vm-get-stack-trace-lite))))
+  (let ((stack-trace (retrieve-target-stack-trace
+                      (cddddr (vm-get-stack-trace-lite)))))
     (set! (successed-of self) #f)
     (display-when self :progress "E\n")
     (print-error-line (car stack-trace))
