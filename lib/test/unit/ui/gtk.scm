@@ -296,7 +296,7 @@
     (gtk-list-append-items fault-list (list fault-item))))
 
 (define-method test-errored ((self <test-ui-gtk>) test err)
-  (let* ((stack-trace (cdddr (vm-get-stack-trace-lite)))
+  (let* ((stack-trace (cddr (vm-get-stack-trace-lite)))
          (fault-list (fault-list-of self))
          (line (error-line (car stack-trace)))
          (fault-item (gtk-list-item-new-with-label

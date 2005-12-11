@@ -45,7 +45,7 @@
               actual after-actual))))
 
 (define (get-stack-trace . options)
-  (let-optionals* options ((stack-trace (cdddr (vm-get-stack-trace-lite))))
+  (let-optionals* options ((stack-trace (cddr (vm-get-stack-trace-lite))))
     (do ((s stack-trace (cdr s)))
         ((or (null? s)
              (and (pair? (car s))
