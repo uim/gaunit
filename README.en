@@ -16,7 +16,7 @@ GPL or BSD License
 
 == Caution
 
-This doesn't work on Gauche <=0.8.3.
+This is for Gauche 0.8.6. This doesn't work on Gauche <= 0.8.3.
 
 == What's this?
 
