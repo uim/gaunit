@@ -24,24 +24,7 @@
     (or (not (pair? stack))
         (rxmatch #/\/test\/unit\//
                  (car (stack->source-info stack '("") 0)))))
-  (let-optionals* options ((stack-trace (cddddr (vm-get-stack-trace-lite))))
-    (car (fold (lambda (stack stack-info)
-                 (receive (stacks in? out?)
-                     (apply values stack-info)
-                   (cond (out? (list stacks in? out?))
-                         (in?
-                          (let* ((in? (in-library? stack))
-                                 (next-stacks (if in?
-                                                stacks
-                                                (list stack stacks))))
-                            (list next-stacks in? out?)))
-                         (else
-                          (let* ((out? (in-library? stack))
-                                 (next-stacks (if out?
-                                                stacks
-                                                (list stack stacks))))
-                            (list next-stacks in? out?))))))
-               '(() #t #f)
-               stack-trace))))
+  (let-optionals* options ((stack-trace (cddr (vm-get-stack-trace-lite))))
+    (unwrap-syntax stack-trace)))
 
 (provide "test/unit/common")

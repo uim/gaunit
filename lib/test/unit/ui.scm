@@ -75,7 +75,7 @@
     (do ((stack stack-trace (cdr stack))
          (skip skip (- skip 1))
          (depth offset (+ depth 1)))
-        ((or (null? stack)
+        ((or (null? (cdr stack))
              (> depth max-depth))
          (string-join (reverse! lines) "\n"))
       (and-let* (((<= skip 0))
