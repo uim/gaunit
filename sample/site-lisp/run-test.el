@@ -1,4 +1,3 @@
-(require 'compile)
 (require 'cl)
 
 (defvar run-test-suffixes '(".scm" ".rb" ".sh")
@@ -81,14 +80,17 @@
              t)))
         (t (run-test-if-find (cdr test-file-infos) verbose-arg runner))))
 
+(defun run-test-compilation-buffer-name-function (mode-name)
+  "*run-test*")
+
 (defun run-test (&optional arg)
   (interactive "P")
   (run-test-if-find (find-test-files)
                     (get-verbose-level-arg (prefix-numeric-value arg))
                     (lambda (command)
-                      (compile-internal command
-                                        "No more failures/errors"
-                                        "run-test"))))
+                      (let ((compilation-buffer-name-function
+                             'run-test-compilation-buffer-name-function))
+                        (compile command)))))
 
 (defun run-test-in-new-frame (&optional arg)
   (interactive "P")
