@@ -28,6 +28,9 @@
   (mapcar 'car run-test-error-regexp-alist-alist)
   "Alist that specifies how to match errors in compiler output.")
 
+(define-compilation-mode run-test-mode "run-test" "run-test-mode")
+
+
 (defun run-test-buffer-name ()
   (concat "*" run-test-mode-name "*"))
 
@@ -92,8 +95,6 @@
                                 verbose-arg)))
              t)))
         (t (run-test-if-find (cdr test-file-infos) verbose-arg runner))))
-
-(define-compilation-mode run-test-mode "run-test" "run-test-mode")
 
 (defun run-test (&optional arg)
   (interactive "P")
