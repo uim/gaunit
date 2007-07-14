@@ -16,6 +16,18 @@
 (defvar run-test-mode-name "run-test"
   "Mode name of running test.")
 
+(defconst run-test-error-regexp-alist-alist
+  `((ruby-test-unit-failure
+     "^test_.+(.+) \\(\\[\\(.+\\):\\([0-9]+\\)\\]\\):$" 2 3 nil nil 1)
+    (ruby-test-unit
+     "^ +\\[?\\(\\(.+\\):\\([0-9]+\\)\\(?::.+\\)?\\)\n" 2 3)
+    ,@compilation-error-regexp-alist-alist)
+  "Alist of values for `run-test-error-regexp-alist'.")
+
+(defvar run-test-error-regexp-alist
+  (mapcar 'car run-test-error-regexp-alist-alist)
+  "Alist that specifies how to match errors in compiler output.")
+
 (defun run-test-buffer-name ()
   (concat "*" run-test-mode-name "*"))
 
@@ -60,37 +72,35 @@
                 test-file)))
           run-test-file-names))
 
+
 (defun run-test-if-find (test-file-infos verbose-arg runner)
   (cond ((null test-file-infos) nil)
         ((car test-file-infos)
          (let ((test-file-info (car test-file-infos)))
-           (let ((current-directory (cadr (split-string (pwd))))
-                 (run-test-file (car test-file-info))
-                 (test-file (cdr test-file-info))
-                 (name-of-mode "run-test"))
+           (let* ((run-test-file (car test-file-info))
+                  (test-file (cdr test-file-info))
+                  (name-of-mode "run-test")
+                  (default-directory
+                    (expand-file-name
+                     (car (split-string test-file run-test-file)))))
              (save-excursion
-               (cd (car (split-string test-file run-test-file)))
                (save-some-buffers)
                (funcall runner
                         (concat (concat "./"
                                         (file-name-directory run-test-file))
                                 (file-name-nondirectory test-file)
-                                verbose-arg))
-               (cd current-directory))
+                                verbose-arg)))
              t)))
         (t (run-test-if-find (cdr test-file-infos) verbose-arg runner))))
 
-(defun run-test-compilation-buffer-name-function (mode-name)
-  "*run-test*")
+(define-compilation-mode run-test-mode "run-test" "run-test-mode")
 
 (defun run-test (&optional arg)
   (interactive "P")
   (run-test-if-find (find-test-files)
                     (get-verbose-level-arg (prefix-numeric-value arg))
                     (lambda (command)
-                      (let ((compilation-buffer-name-function
-                             'run-test-compilation-buffer-name-function))
-                        (compile command)))))
+                      (compilation-start command 'run-test-mode))))
 
 (defun run-test-in-new-frame (&optional arg)
   (interactive "P")
