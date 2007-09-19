@@ -1,4 +1,5 @@
 (require 'cl)
+(require 'compile)
 
 (defvar run-test-suffixes '(".scm" ".rb" ".sh")
   "List of test file suffix.")
