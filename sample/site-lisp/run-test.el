@@ -4,7 +4,7 @@
 (defvar run-test-suffixes '(".scm" ".rb" ".sh")
   "List of test file suffix.")
 
-(defvar run-test-file-names '("test/run-test" "test/runner")
+(defvar run-test-file-names '("test/run-test" "test/runner" "run-test")
   "List of invoked file name by run-test.")
 
 (defvar run-test-verbose-level-table '((0 . "-vs")
@@ -14,14 +14,12 @@
                                        (4 . "-vv"))
   "Passed argumets to run-test-file-names for set verbose level.")
 
-(defvar run-test-mode-name "run-test"
-  "Mode name of running test.")
-
 (defconst run-test-error-regexp-alist-alist
   `((ruby-test-unit-failure
-     "^test_.+(.+) \\(\\[\\(.+\\):\\([0-9]+\\)\\]\\):$" 2 3 nil nil 1)
-    (ruby-test-unit
-     "^ +\\[?\\(\\(.+\\):\\([0-9]+\\)\\(?::.+\\)?\\)\n" 2 3)
+     "^test_.+(.+) \\[\\(\\(.+\\):\\([0-9]+\\)\\)\\]:$" 2 3 nil nil 1)
+;;     (ruby-test-unit
+;;      "^ +\\[?\\(\\(.+\\.rb\\):\\([0-9]+\\)\\(?::in `[^']+'\\)?\\)"
+;;      2 3 nil nil 1)
     ,@compilation-error-regexp-alist-alist)
   "Alist of values for `run-test-error-regexp-alist'.")
 
@@ -30,10 +28,6 @@
   "Alist that specifies how to match errors in compiler output.")
 
 (define-compilation-mode run-test-mode "run-test" "run-test-mode")
-
-
-(defun run-test-buffer-name ()
-  (concat "*" run-test-mode-name "*"))
 
 (defun flatten (lst)
   (cond ((null lst) '())
@@ -106,9 +100,10 @@
 
 (defun run-test-in-new-frame (&optional arg)
   (interactive "P")
-  (if (member (run-test-buffer-name)
-              (mapcar 'buffer-name (buffer-list)))
-      (kill-buffer (run-test-buffer-name)))
+  (let ((run-test-buffer-name "*run-test*"))
+    (if (member run-test-buffer-name
+                (mapcar 'buffer-name (buffer-list)))
+        (kill-buffer run-test-buffer-name)))
   (let ((current-frame (car (frame-list)))
         (target-directory (cadr (split-string (pwd))))
         (frame (make-frame)))
