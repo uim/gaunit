@@ -4,7 +4,7 @@
 (defvar run-test-suffixes '(".scm" ".rb" ".sh")
   "List of test file suffix.")
 
-(defvar run-test-file-names '("test/run-test" "test/runner" "run-test")
+(defvar run-test-file-names '("run-test" "test/run-test" "test/runner")
   "List of invoked file name by run-test.")
 
 (defvar run-test-verbose-level-table '((0 . "-vs")
