@@ -4,7 +4,7 @@
 (defvar run-test-suffixes '(".scm" ".rb" ".sh")
   "List of test file suffix.")
 
-(defvar run-test-file-names '("run-test" "test/run-test" "test/runner")
+(defvar run-test-file-names '("test/run-test" "test/runner" "run-test")
   "List of invoked file name by run-test.")
 
 (defvar run-test-verbose-level-table '((0 . "-vs")
@@ -41,35 +41,27 @@
     (concat " "
             (if elem (cdr elem) ""))))
 
-(defun find-run-test-file-in-directory (directory filenames)
-  (do ((fnames filenames (cdr fnames))
-       (fname (concat directory (car filenames))
-              (concat directory (car fnames))))
-      ((or (file-exists-p fname)
-           (null fnames))
-       (if (file-exists-p fname)
-           fname
-         nil))))
+(defun find-run-test-files-in-directory (directory filenames)
+  (mapcar (lambda (filename)
+            (let ((test-file (concat directory filename)))
+              (if (file-exists-p test-file)
+                  (cons filename test-file)
+                nil)))
+          filenames))
 
-(defun find-run-test-file (filenames)
-  (let ((init-dir "./"))
-    (do ((dir init-dir (concat dir "../"))
-         (run-test-file (find-run-test-file-in-directory init-dir filenames)
-                        (find-run-test-file-in-directory dir filenames)))
-        ((or run-test-file (string= "/" (expand-file-name dir)))
-         run-test-file))))
+(defun find-run-test-files (directory filenames)
+  (if (string= "/" (expand-file-name directory))
+      nil
+    (append (find-run-test-files (concat directory "../") filenames)
+            (find-run-test-files-in-directory directory filenames))))
 
 (defun find-test-files ()
-  (mapcar (lambda (run-test-file)
-            (let ((test-file (find-run-test-file
-                              (mapcar (lambda (suffix)
-                                        (concat run-test-file suffix))
-                                      run-test-suffixes))))
-              (if test-file
-                  (cons run-test-file test-file)
-                test-file)))
-          run-test-file-names))
-
+  (let ((filenames (mapcar (lambda (filename)
+                             (mapcar (lambda (suffix)
+                                       (concat filename suffix))
+                                     run-test-suffixes))
+                           run-test-file-names)))
+    (find-run-test-files "./" (flatten filenames))))
 
 (defun run-test-if-find (test-file-infos verbose-arg runner)
   (cond ((null test-file-infos) nil)
