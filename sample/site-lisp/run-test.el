@@ -43,17 +43,22 @@
 
 (defun find-run-test-files-in-directory (directory filenames)
   (mapcar (lambda (filename)
-            (let ((test-file (concat directory filename)))
-              (if (file-exists-p test-file)
-                  (cons filename test-file)
-                nil)))
+            (do ((test-file (concat directory filename)
+                            (concat "../" test-file))
+                 (rest-dir filename (and (string-match "\/\(.*\)" rest-dir)
+                                         (match-string 1))))
+                ((or (file-exists-p test-file)
+                     (null rest-dir))
+                 (if (file-exists-p test-file)
+                     (cons filename test-file)
+                   nil))))
           filenames))
 
 (defun find-run-test-files (directory filenames)
   (if (string= "/" (expand-file-name directory))
       nil
-    (append (find-run-test-files (concat directory "../") filenames)
-            (find-run-test-files-in-directory directory filenames))))
+    (append (find-run-test-files-in-directory directory filenames)
+            (find-run-test-files (concat directory "../") filenames))))
 
 (defun find-test-files ()
   (let ((filenames (mapcar (lambda (filename)
