@@ -1,7 +1,7 @@
 (require 'cl)
 (require 'compile)
 
-(defvar run-test-suffixes '(".scm" ".rb" ".sh")
+(defvar run-test-suffixes '("" ".scm" ".rb" ".sh")
   "List of test file suffix.")
 
 (defvar run-test-file-names '("test/run-test" "test/runner" "run-test")
@@ -47,11 +47,12 @@
                             (concat "../" test-file))
                  (rest-dir filename (and (string-match "\/\(.*\)" rest-dir)
                                          (match-string 1))))
-                ((or (file-exists-p test-file)
+                ((or (and (file-executable-p test-file)
+                          (not (file-directory-p test-file)))
                      (null rest-dir))
-                 (if (file-exists-p test-file)
-                     (cons filename test-file)
-                   nil))))
+                 (if (null rest-dir)
+                     nil
+                   (cons filename test-file)))))
           filenames))
 
 (defun find-run-test-files (directory filenames)
