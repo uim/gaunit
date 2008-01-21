@@ -1,7 +1,7 @@
 (require 'cl)
 (require 'compile)
 
-(defvar run-test-suffixes '("" ".scm" ".rb" ".sh")
+(defvar run-test-suffixes '("" ".scm" ".rb" ".py" ".sh")
   "List of test file suffix.")
 
 (defvar run-test-file-names '("test/run-test" "test/runner" "run-test")
@@ -58,8 +58,8 @@
 (defun find-run-test-files (directory filenames)
   (if (string= "/" (expand-file-name directory))
       nil
-    (append (find-run-test-files-in-directory directory filenames)
-            (find-run-test-files (concat directory "../") filenames))))
+    (append (find-run-test-files (concat directory "../") filenames)
+            (find-run-test-files-in-directory directory filenames))))
 
 (defun find-test-files ()
   (let ((filenames (mapcar (lambda (filename)
