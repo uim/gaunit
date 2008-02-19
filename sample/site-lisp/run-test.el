@@ -28,12 +28,21 @@
   (mapcar 'car run-test-error-regexp-alist-alist)
   "Alist that specifies how to match errors in compiler output.")
 
+(defvar run-test-mode-line-color-change-time 5
+  "Time to show test result as mode line color.")
+
 (defvar run-test-last-output-start nil)
 (defvar run-test-last-output-start-position nil)
+(defvar run-test-last-output-in-progress nil)
+(defvar run-test-output-status nil)
+(defvar run-test-original-mode-line-color nil)
+(defvar run-test-restoring-original-mode-line-color 0)
 
 (define-compilation-mode run-test-mode "run-test" "run-test-mode"
   (set (make-local-variable 'run-test-last-output-start) (make-marker))
-  (set (make-local-variable 'run-test-last-output-start-position) 1))
+  (set (make-local-variable 'run-test-last-output-start-position) 1)
+  (set (make-local-variable 'run-test-last-output-in-progress) t)
+  (set (make-local-variable 'run-test-output-status) 'success))
 
 (defun flatten (lst)
   (cond ((null lst) '())
@@ -102,22 +111,94 @@
                     (lambda (command)
                       (compilation-start command 'run-test-mode))))
 
+(defun run-test-guess-status (string)
+  (let ((case-fold-search nil)
+        (target-string (if (string-match "\n" string)
+                           (substring string 0 (match-beginning 0))
+                         string)))
+    (cond ((string-match "E" target-string) 'error)
+          ((string-match "F" target-string) 'failure)
+          ((string-match "P" target-string) 'pending)
+          ((string-match "N" target-string) 'notification)
+          ((string-match "\\." target-string) 'success)
+          (t nil))))
+
+(defvar run-test-statuses '((error "yellow")
+                            (failure "red")
+                            (pending "magenta")
+                            (notification "cyan")
+                            (success "green")))
+
+(defun run-test-compare-status (status1 status2)
+  (let ((max-position (length run-test-statuses))
+        (status-names (mapcar 'car run-test-statuses)))
+    (<= (or (position status1 status-names) max-position)
+        (or (position status2 status-names) max-position))))
+
+(defun run-test-status-color (status)
+  (let ((status-info (find-if (lambda (status-info)
+                                (eq (car status-info) status))
+                              run-test-statuses)))
+    (and status-info (cadr status-info))))
+
+(defun run-test-remove-start-message (string)
+  (while (and (string-match "^\\(Loaded suite\\|Started\\| *\n\\)" string)
+              (zerop (match-beginning 0)))
+    (if (string-match "\n" string)
+        (setq string (substring string (match-end 0)))
+      (setq string "")))
+  string)
+
+(defun run-test-update-mode-line (string)
+  (when run-test-last-output-in-progress
+    (let* ((string (run-test-remove-start-message string))
+           (status (run-test-guess-status string)))
+      (if status
+          (setq run-test-output-status
+                (car (sort (list run-test-output-status status)
+                           'run-test-compare-status))))
+      (if (and (not (string-equal "" string))
+               (or (not status) (string-match "\n" string)))
+          (setq run-test-last-output-in-progress nil)))
+    (unless run-test-original-mode-line-color
+      (setq run-test-original-mode-line-color (face-background 'mode-line)))
+    (let ((mode-line-background-color
+           (run-test-status-color run-test-output-status)))
+      (if mode-line-background-color
+          (set-face-background 'mode-line mode-line-background-color)))))
+
 (defadvice compilation-filter (before keep-last-marker (proc string) activate)
   (if (buffer-name (process-buffer proc))
       (with-current-buffer (process-buffer proc)
         (save-excursion
           (widen)
           (goto-char (process-mark proc))
-          (setq run-test-last-output-start-position (point))))))
+          (setq run-test-last-output-start-position (point))
+          (run-test-update-mode-line string)))))
 
-(defun run-test-filter ()
+(defun run-test-output-filter ()
   (let ((start-marker (or run-test-last-output-start (maker-marker)))
         (end-marker (process-mark (get-buffer-process (current-buffer)))))
     (set-marker start-marker
                 (or run-test-last-output-start-position (point-min)))
     (ansi-color-apply-on-region start-marker end-marker)))
 
-(add-hook 'compilation-filter-hook 'run-test-filter)
+(add-hook 'compilation-filter-hook 'run-test-output-filter)
+
+(defun run-test-restore-mode-line-color (cur-buffer msg)
+  (when run-test-original-mode-line-color
+    (setq run-test-restoring-original-mode-line-color
+          (+ 1 run-test-restoring-original-mode-line-color))
+    (add-timeout run-test-mode-line-color-change-time
+                 (lambda (color)
+                   (setq run-test-restoring-original-mode-line-color
+                         (- run-test-restoring-original-mode-line-color 1))
+                   (when (zerop run-test-restoring-original-mode-line-color)
+                     (set-face-background 'mode-line color)
+                     (setq run-test-original-mode-line-color nil)))
+                 run-test-original-mode-line-color)))
+
+(add-hook 'compilation-finish-functions 'run-test-restore-mode-line-color)
 
 (defun run-test-in-new-frame (&optional arg)
   (interactive "P")

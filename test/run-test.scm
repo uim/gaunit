@@ -18,5 +18,5 @@
                               :filter (lambda (x)
                                         (rxmatch #/^test-.+\.scm$/ x))))
     (if (symbol-bound? '_main)
-      (_main `(,(car args) "-vp" ,@(cdr args)))
+      (_main `(,(car args) "-vn" ,@(cdr args)))
       (run-all-test))))
