@@ -1,5 +1,6 @@
 (require 'cl)
 (require 'compile)
+(require 'ansi-color)
 
 (defvar run-test-suffixes '("" ".scm" ".rb" ".py" ".sh")
   "List of test file suffix.")
@@ -27,7 +28,12 @@
   (mapcar 'car run-test-error-regexp-alist-alist)
   "Alist that specifies how to match errors in compiler output.")
 
-(define-compilation-mode run-test-mode "run-test" "run-test-mode")
+(defvar run-test-last-output-start nil)
+(defvar run-test-last-output-start-position nil)
+
+(define-compilation-mode run-test-mode "run-test" "run-test-mode"
+  (set (make-local-variable 'run-test-last-output-start) (make-marker))
+  (set (make-local-variable 'run-test-last-output-start-position) 1))
 
 (defun flatten (lst)
   (cond ((null lst) '())
@@ -95,6 +101,23 @@
                     (get-verbose-level-arg (prefix-numeric-value arg))
                     (lambda (command)
                       (compilation-start command 'run-test-mode))))
+
+(defadvice compilation-filter (before keep-last-marker (proc string) activate)
+  (if (buffer-name (process-buffer proc))
+      (with-current-buffer (process-buffer proc)
+        (save-excursion
+          (widen)
+          (goto-char (process-mark proc))
+          (setq run-test-last-output-start-position (point))))))
+
+(defun run-test-filter ()
+  (let ((start-marker (or run-test-last-output-start (maker-marker)))
+        (end-marker (process-mark (get-buffer-process (current-buffer)))))
+    (set-marker start-marker
+                (or run-test-last-output-start-position (point-min)))
+    (ansi-color-apply-on-region start-marker end-marker)))
+
+(add-hook 'compilation-filter-hook 'run-test-filter)
 
 (defun run-test-in-new-frame (&optional arg)
   (interactive "P")
