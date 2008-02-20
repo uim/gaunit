@@ -177,26 +177,28 @@
           (run-test-update-mode-line string)))))
 
 (defun run-test-output-filter ()
-  (let ((start-marker (or run-test-last-output-start (maker-marker)))
-        (end-marker (process-mark (get-buffer-process (current-buffer)))))
-    (set-marker start-marker
-                (or run-test-last-output-start-position (point-min)))
-    (ansi-color-apply-on-region start-marker end-marker)))
+  (when (eq major-mode 'run-test-mode)
+    (let ((start-marker (or run-test-last-output-start (make-marker)))
+          (end-marker (process-mark (get-buffer-process (current-buffer)))))
+      (set-marker start-marker
+                  (or run-test-last-output-start-position (point-min)))
+      (ansi-color-apply-on-region start-marker end-marker))))
 
 (add-hook 'compilation-filter-hook 'run-test-output-filter)
 
 (defun run-test-restore-mode-line-color (cur-buffer msg)
-  (when run-test-original-mode-line-color
-    (setq run-test-restoring-original-mode-line-color
-          (+ 1 run-test-restoring-original-mode-line-color))
-    (add-timeout run-test-mode-line-color-change-time
-                 (lambda (color)
-                   (setq run-test-restoring-original-mode-line-color
-                         (- run-test-restoring-original-mode-line-color 1))
-                   (when (zerop run-test-restoring-original-mode-line-color)
-                     (set-face-background 'mode-line color)
-                     (setq run-test-original-mode-line-color nil)))
-                 run-test-original-mode-line-color)))
+  (when (eq major-mode 'run-test-mode)
+    (when run-test-original-mode-line-color
+      (setq run-test-restoring-original-mode-line-color
+            (+ 1 run-test-restoring-original-mode-line-color))
+      (add-timeout run-test-mode-line-color-change-time
+                   (lambda (color)
+                     (setq run-test-restoring-original-mode-line-color
+                           (- run-test-restoring-original-mode-line-color 1))
+                     (when (zerop run-test-restoring-original-mode-line-color)
+                       (set-face-background 'mode-line color)
+                       (setq run-test-original-mode-line-color nil)))
+                 run-test-original-mode-line-color))))
 
 (add-hook 'compilation-finish-functions 'run-test-restore-mode-line-color)
 
