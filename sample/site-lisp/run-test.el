@@ -119,6 +119,7 @@
     (cond ((string-match "E" target-string) 'error)
           ((string-match "F" target-string) 'failure)
           ((string-match "P" target-string) 'pending)
+          ((string-match "O" target-string) 'omission)
           ((string-match "N" target-string) 'notification)
           ((string-match "\\." target-string) 'success)
           (t nil))))
@@ -126,6 +127,7 @@
 (defvar run-test-statuses '((error "yellow")
                             (failure "red")
                             (pending "magenta")
+                            (omission "blue")
                             (notification "cyan")
                             (success "green")))
 
