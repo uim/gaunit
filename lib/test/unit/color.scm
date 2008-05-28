@@ -1,9 +1,11 @@
 (define-module test.unit.color
+  (use test.unit.base)
   (use srfi-1)
   (export make-color name-of sequence-of escape-sequence-of +))
 (select-module test.unit.color)
 
-(define names '("black" "red" "green" "yellow" "blue" "magenta" "cyan" "white"))
+(define *names*
+  '("black" "red" "green" "yellow" "blue" "magenta" "cyan" "white"))
 
 (define (make-color name . options)
   (apply make <color> :name name options))
@@ -27,7 +29,7 @@
   (define (name-index name)
     (list-index (lambda (color-name)
                   (equal? name color-name))
-                names))
+                *names*))
   (define (color-parameter)
     (let ((name (name-of self)))
       (cond ((equal? name "none")
