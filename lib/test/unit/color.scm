@@ -1,6 +1,6 @@
 (define-module test.unit.color
   (use srfi-1)
-  (export make-color name-of sequence-of escape-sequence-of))
+  (export make-color name-of sequence-of escape-sequence-of +))
 (select-module test.unit.color)
 
 (define names '("black" "red" "green" "yellow" "blue" "magenta" "cyan" "white"))
@@ -41,10 +41,32 @@
                   ,(if (italic-of self) "3" '())
                   ,(if (underline-of self) "4" '()))))
 
-(define-method escape-sequence-of ((self <color>))
-  (let ((joined-sequence (string-join (sequence-of self) ";")))
-    (if (equal? joined-sequence "")
+(define (sequence->escape-sequence sequence)
+  (if (null? sequence)
       ""
-      #`"\x1b[,|joined-sequence|m")))
+      (let ((joined-sequence (string-join sequence ";")))
+        #`"\x1b[,|joined-sequence|m")))
+
+(define-method escape-sequence-of ((self <color>))
+  (sequence->escape-sequence (sequence-of self)))
+
+(define-method + ((self <color>) . rest)
+  (make <mix-color> :colors (cons self rest)))
+
+
+(define-class <mix-color> ()
+  ((colors :accessor colors-of :init-value '() :init-keyword :colors)))
+
+(define-method sequence-of ((self <mix-color>))
+  (fold (lambda (color result)
+          (append result (sequence-of color)))
+        '()
+        (colors-of self)))
+
+(define-method escape-sequence-of ((self <mix-color>))
+  (sequence->escape-sequence (sequence-of self)))
+
+(define-method + ((self <mix-color>) . rest)
+  (make <mix-color> :colors (cons self rest)))
 
 (provide "test/unit/color")
