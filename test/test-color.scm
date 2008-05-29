@@ -1,9 +1,6 @@
-#!/usr/bin/env gosh
-
 (define-module test.test-color
   (extend test.unit.test-case)
-  (use test.unit.color)
-  (require "test/utils"))
+  (use test.unit.color))
 (select-module test.test-color)
 
 (define (assert-escape-sequence expected color)

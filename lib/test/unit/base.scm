@@ -142,39 +142,41 @@
 
 (reset-test-suites)
 
-(define (collect-tests test-module)
-  (map (lambda (info)
-         (let ((symbol (car info))
-               (test-function (cdr info)))
+(define (test-procedure? symbol module)
+  (and-let* (((#/^test-/ (symbol->string symbol)))
+             (value (with-error-handler
+                        (lambda (e) #f)
+                      (lambda ()
+                        (eval symbol module))))
+             ((procedure? value)))
+    (procedure-arity-includes? value 0)))
+
+(define (collect-tests test-case-module)
+  (map (lambda (symbol)
+         (let ((test-procedure (eval symbol test-case-module)))
            (make <test>
              :name (symbol->string symbol)
-             :asserts (lambda ()
-                        (eval `(,test-function) test-module)
-                        #f))))
-       (filter identity
-               (hash-table-map (module-table test-module)
-                               (lambda (symbol gloc)
-                                 (with-error-handler
-                                     (lambda (e) #f)
-                                   (lambda ()
-                                     (if (#/^test-/ (symbol->string symbol))
-                                       (cons symbol
-                                             (eval symbol test-module))
-                                       #f))))))))
+             :asserts test-procedure)))
+       (filter (lambda (symbol)
+                 (test-procedure? symbol test-case-module))
+               (hash-table-keys (module-table test-case-module)))))
+
+(define (find-test-case-modules base-test-case-module)
+  (map (lambda (test-case-module)
+         (make <test-case>
+           :name (symbol->string (module-name test-case-module))
+           :tests (collect-tests test-case-module)))
+       (filter (lambda (mod)
+                 (member base-test-case-module
+                         (cdr (module-precedence-list mod))))
+               (all-modules))))
 
 (define (run-all-test . options)
   (unless *default-test-suite*
     (eval '(use test.unit.ui.text) (current-module)))
-  (let ((test-case-module (find-module 'test.unit.test-case)))
-    (for-each (lambda (test-module)
-                (add-test-case! *default-test-suite*
-                                (make <test-case>
-                                  :name (symbol->string (module-name test-module))
-                                  :tests (collect-tests test-module))))
-              (filter (lambda (mod)
-                        (member test-case-module
-                                (cdr (module-precedence-list mod))))
-                      (all-modules))))
+  (for-each (lambda (test-case)
+              (add-test-case! *default-test-suite* test-case))
+            (find-test-case-modules (find-module 'test.unit.test-case)))
   (let-keywords* options ((ui (default-test-ui))
                           (test-suite-regexp #//)
                           (test-case-regexp #//)
