@@ -142,9 +142,39 @@
 
 (reset-test-suites)
 
+(define (collect-tests test-module)
+  (map (lambda (info)
+         (let ((symbol (car info))
+               (test-function (cdr info)))
+           (make <test>
+             :name (symbol->string symbol)
+             :asserts (lambda ()
+                        (eval `(,test-function) test-module)
+                        #f))))
+       (filter identity
+               (hash-table-map (module-table test-module)
+                               (lambda (symbol gloc)
+                                 (with-error-handler
+                                     (lambda (e) #f)
+                                   (lambda ()
+                                     (if (#/^test-/ (symbol->string symbol))
+                                       (cons symbol
+                                             (eval symbol test-module))
+                                       #f))))))))
+
 (define (run-all-test . options)
   (unless *default-test-suite*
     (eval '(use test.unit.ui.text) (current-module)))
+  (let ((test-case-module (find-module 'test.unit.test-case)))
+    (for-each (lambda (test-module)
+                (add-test-case! *default-test-suite*
+                                (make <test-case>
+                                  :name (symbol->string (module-name test-module))
+                                  :tests (collect-tests test-module))))
+              (filter (lambda (mod)
+                        (member test-case-module
+                                (cdr (module-precedence-list mod))))
+                      (all-modules))))
   (let-keywords* options ((ui (default-test-ui))
                           (test-suite-regexp #//)
                           (test-case-regexp #//)
