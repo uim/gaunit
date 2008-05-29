@@ -71,7 +71,7 @@
 
 (define-method test-erred ((self <test-ui-text>) test err)
   (let ((stack-trace (retrieve-target-stack-trace
-                      (cddddr (vm-get-stack-trace-lite)))))
+                      (cdddr (vm-get-stack-trace-lite)))))
     (set! (succeeded-of self) #f)
     (output self "E" (color self 'error) :progress)
     (push! (faults-of self)
