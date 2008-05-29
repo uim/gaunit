@@ -43,11 +43,11 @@
 (define-class <test> (<collection>)
   ((name :accessor name-of :init-keyword :name)
    (result :accessor result-of :init-thunk (lambda () (make <result>)))
-   (asserts :accessor asserts-of :init-keyword :asserts :init-value '())
+   (thunk :accessor thunk-of :init-keyword :thunk :init-form (lambda () #f))
    (operating-time :accessor operating-time-of :init-value 0)))
 
 (define-method call-with-iterator ((coll <test>) proc . args)
-  (apply call-with-iterator (asserts-of coll) proc args))
+  (apply call-with-iterator (thunk-of coll) proc args))
 
 (define-class <test-case> (<collection>)
   ((name :accessor name-of :init-keyword :name)
@@ -156,7 +156,7 @@
          (let ((test-procedure (eval symbol test-case-module)))
            (make <test>
              :name (symbol->string symbol)
-             :asserts test-procedure)))
+             :thunk test-procedure)))
        (filter (lambda (symbol)
                  (test-procedure? symbol test-case-module))
                (hash-table-keys (module-table test-case-module)))))
@@ -255,19 +255,19 @@
 
 (define-syntax make-test
   (syntax-rules ()
-    ((_ name assert ...)
+    ((_ name assertion ...)
      (make <test>
        :name name
-       :asserts (lambda () assert ... #f))))) ; #f is for get stack-trace
+       :thunk (lambda () assertion ... #f))))) ; #f is for get stack-trace
 
 (define-syntax make-tests
   (syntax-rules ()
     ((_)
      '())
-    ((_ (name assert ...))
-     (list (make-test name assert ...)))
-    ((_ (name assert ...) rest ...)
-     (cons (make-test name assert ...)
+    ((_ (name assertion ...))
+     (list (make-test name assertion ...)))
+    ((_ (name assertion ...) rest ...)
+     (cons (make-test name assertion ...)
            (make-tests rest ...)))))
 
 (define-method setup ((self <test-case>))
@@ -373,8 +373,7 @@
                            (parameterize ((test-result (result-of self))
                                           (test-ui ui)
                                           (current-test self))
-                             (with-time-counter counter
-                                                ((asserts-of self))))
+                             (with-time-counter counter ((thunk-of self))))
                            (set! (operating-time-of self)
                                  (time-counter-value counter)))))))
           (lambda ()
