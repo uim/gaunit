@@ -34,7 +34,7 @@
 
 (let* ((test
         (make-test-case "Error test"
-          ("Error occured"
+          ("Error occurred"
            (assert-equal (1)))))
        (test-result (run-test-with-no-output test)))
   (define-test-case "Error test"

@@ -4,14 +4,13 @@
   (call-with-output-string
    (cut with-output-to-port <>
         (lambda ()
-          (apply run test :ui (make <test-ui-text> :verbose :silent)
+          (apply run test :ui (make <test-ui-text> :verbose :progress)
                  options)))))
 
 (select-module test.unit.assertions)
 (define (make-number-of-message-handler expect type)
   (make-message-handler expect :after-expected
                         (format " number of ~a" type)))
-  
 
 (define-assertion (assert-test-case-result test-case test-num
                                            success-num failure-num

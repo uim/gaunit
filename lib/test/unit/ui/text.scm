@@ -49,7 +49,7 @@
   (>= (hash-table-get *verbose-level* l1)
       (hash-table-get *verbose-level* l2)))
 
-(define-method display-when ((self <test-ui-text>) color level message . options)
+(define-method output ((self <test-ui-text>) color level message . options)
   (let-optionals* options ((print-proc display))
     (if (level>=? (verbose-of self) level)
       (let ((message (if (and (use-color-of self) color)
@@ -59,9 +59,9 @@
                        message)))
         (print-proc message)))))
 
-(define (print-error-line stack)
+(define (output-error-line self stack)
   (and-let* ((line (error-line stack)))
-    (print line)))
+    (output self #f :progress line print)))
 
 (define (color self key)
   (cdr (assoc key (color-scheme-of self))))
@@ -70,19 +70,20 @@
   (let ((stack-trace (retrieve-target-stack-trace
                       (cddddr (vm-get-stack-trace-lite)))))
     (set! (successed-of self) #f)
-    (display-when self (color self 'error) :progress "E\n")
-    (print-error-line (car stack-trace))
-    (print #`"Error occurred in ,(name-of test)")
-    (print (error-message err stack-trace :max-depth 5))))
+    (output self (color self 'error) :progress "E\n")
+    (output-error-line self (car stack-trace))
+    (output self #f :progress #`"Error occurred in ,(name-of test)" print)
+    (output self #f :progress (error-message err stack-trace :max-depth 5)
+            print)))
 
 (define-method test-successed ((self <test-ui-text>) test)
   #f)
 
 (define-method test-failed ((self <test-ui-text>) test message stack-trace)
   (set! (successed-of self) #f)
-  (display-when self (color self 'failure) :progress "F\n")
-  (print-error-line stack-trace)
-  (print message #`" in ,(name-of test)"))
+  (output self (color self 'failure) :progress "F\n")
+  (output-error-line self stack-trace)
+  (output self #f :progress #`",message in ,(name-of test)" print))
   ;; (print (error-message err (list stack-trace) :max-depth 5)))
 
 (define-method test-start ((self <test-ui-text>) test)
@@ -90,20 +91,20 @@
 
 (define-method test-finish ((self <test-ui-text>) test)
   (if (successed-of self)
-    (display-when self (color self 'success) :progress ".")))
+    (output self (color self 'success) :progress ".")))
 
 (define-method test-case-start ((self <test-ui-text>) test-case)
-  (display-when self #f :verbose #`"-- (test case) ,(name-of test-case): "))
+  (output self #f :verbose #`"-- (test case) ,(name-of test-case): "))
 
 (define-method test-case-finish ((self <test-ui-text>) test-case)
-  (display-when self #f :verbose #\newline))
+  (output self #f :verbose #\newline))
 
 (define-method test-suite-start ((self <test-ui-text>) test-suite)
-  (display-when self #f :normal #`"- (test suite) ,(name-of test-suite)\n"))
+  (output self #f :normal #`"- (test suite) ,(name-of test-suite)\n"))
 
 (define-method test-suite-finish ((self <test-ui-text>) test-suite)
-  (display-when self #f :normal "\n")
-  (display-when self #f :normal
+  (output self #f :normal "\n")
+  (output self #f :normal
    (format "~s tests, ~s assertions, ~s successes, ~s failures, ~s errors"
            (test-number-of test-suite)
            (assertion-number-of test-suite)
@@ -111,9 +112,9 @@
            (failure-number-of test-suite)
            (error-number-of test-suite))
    print)
-  (display-when self #f :normal
+  (output self #f :normal
    (format "Testing time: ~s" (operating-time-of test-suite)))
-  (display-when self #f :progress "\n"))
+  (output self #f :progress "\n"))
 
 (set-default-test-ui! (make <test-ui-text>))
 
