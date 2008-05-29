@@ -22,6 +22,6 @@
 
 (define-method add-error! ((self <result>) test-ui test err)
   (inc! (error-of self))
-  (test-errored test-ui test err))
+  (test-erred test-ui test err))
 
 (provide "test/unit/result")

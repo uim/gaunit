@@ -295,7 +295,7 @@
     (append-fault-detail-list! self #f (list stack-trace))
     (gtk-list-append-items fault-list (list fault-item))))
 
-(define-method test-errored ((self <test-ui-gtk>) test err)
+(define-method test-erred ((self <test-ui-gtk>) test err)
   (let* ((stack-trace (retrieve-target-stack-trace
                        (cddddr (vm-get-stack-trace-lite))))
          (fault-list (fault-list-of self))

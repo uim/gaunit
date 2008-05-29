@@ -67,7 +67,7 @@
 (define (color self key)
   (cdr (assoc key (color-scheme-of self))))
 
-(define-method test-errored ((self <test-ui-text>) test err)
+(define-method test-erred ((self <test-ui-text>) test err)
   (let ((stack-trace (retrieve-target-stack-trace
                       (cddddr (vm-get-stack-trace-lite)))))
     (set! (succeeded-of self) #f)
