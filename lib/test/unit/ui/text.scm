@@ -49,19 +49,20 @@
   (>= (hash-table-get *verbose-level* l1)
       (hash-table-get *verbose-level* l2)))
 
-(define-method output ((self <test-ui-text>) color level message . options)
-  (let-optionals* options ((print-proc display))
+(define-method output ((self <test-ui-text>) message . options)
+  (let-optionals* options ((color #f)
+                           (level :normal))
     (if (level>=? (verbose-of self) level)
       (let ((message (if (and (use-color-of self) color)
                        (string-append (escape-sequence-of color)
                                       message
                                       (escape-sequence-of (reset-color-of self)))
                        message)))
-        (print-proc message)))))
+        (display message)))))
 
 (define (output-error-line self stack)
   (and-let* ((line (error-line stack)))
-    (output self #f :progress line print)))
+    (output self #`",|line|\n")))
 
 (define (color self key)
   (cdr (assoc key (color-scheme-of self))))
@@ -70,20 +71,21 @@
   (let ((stack-trace (retrieve-target-stack-trace
                       (cddddr (vm-get-stack-trace-lite)))))
     (set! (succeeded-of self) #f)
-    (output self (color self 'error) :progress "E\n")
+    (output self "E" (color self 'error) :progress)
+    (output self "\n")
     (output-error-line self (car stack-trace))
-    (output self #f :progress #`"Error occurred in ,(name-of test)" print)
-    (output self #f :progress (error-message err stack-trace :max-depth 5)
-            print)))
+    (output self #`"Error occurred in ,(name-of test)\n")
+    (output self #`",(error-message err stack-trace :max-depth 5)\n")))
 
 (define-method test-succeeded ((self <test-ui-text>) test)
   #f)
 
 (define-method test-failed ((self <test-ui-text>) test message stack-trace)
   (set! (succeeded-of self) #f)
-  (output self (color self 'failure) :progress "F\n")
+  (output self "F" (color self 'failure) :progress)
+  (output self "\n")
   (output-error-line self stack-trace)
-  (output self #f :progress #`",message in ,(name-of test)" print))
+  (output self #`",message in ,(name-of test)\n"))
   ;; (print (error-message err (list stack-trace) :max-depth 5)))
 
 (define-method test-start ((self <test-ui-text>) test)
@@ -91,30 +93,29 @@
 
 (define-method test-finish ((self <test-ui-text>) test)
   (if (succeeded-of self)
-    (output self (color self 'success) :progress ".")))
+    (output self "." (color self 'success) :progress)))
 
 (define-method test-case-start ((self <test-ui-text>) test-case)
-  (output self #f :verbose #`"-- (test case) ,(name-of test-case): "))
+  (output self #`"-- (test case) ,(name-of test-case): " #f :verbose))
 
 (define-method test-case-finish ((self <test-ui-text>) test-case)
-  (output self #f :verbose #\newline))
+  (output self "\n" #f :verbose))
 
 (define-method test-suite-start ((self <test-ui-text>) test-suite)
-  (output self #f :normal #`"- (test suite) ,(name-of test-suite)\n"))
+  (output self #`"- (test suite) ,(name-of test-suite)\n" #f :verbose))
 
 (define-method test-suite-finish ((self <test-ui-text>) test-suite)
-  (output self #f :normal "\n")
-  (output self #f :normal
-   (format "~s tests, ~s assertions, ~s successes, ~s failures, ~s errors"
-           (test-number-of test-suite)
-           (assertion-number-of test-suite)
-           (success-number-of test-suite)
-           (failure-number-of test-suite)
-           (error-number-of test-suite))
-   print)
-  (output self #f :normal
-   (format "Testing time: ~s" (operating-time-of test-suite)))
-  (output self #f :progress "\n"))
+  (output self "\n")
+  (output self (format "\nFinished in ~s seconds\n\n"
+                       (operating-time-of test-suite)))
+  (output self
+          (format "~s tests, ~s assertions, ~s successes, ~s failures, ~s errors"
+                  (test-number-of test-suite)
+                  (assertion-number-of test-suite)
+                  (success-number-of test-suite)
+                  (failure-number-of test-suite)
+                  (error-number-of test-suite)))
+  (output self "\n" #f :progress))
 
 (set-default-test-ui! (make <test-ui-text>))
 
