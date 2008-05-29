@@ -42,12 +42,12 @@
 
 (define-class <test> (<collection>)
   ((name :accessor name-of :init-keyword :name)
-   (result :accessor result-of :init-thunk (lambda () (make <result>)))
-   (thunk :accessor thunk-of :init-keyword :thunk :init-form (lambda () #f))
+   (result :accessor result-of :init-form (make <result>))
+   (thunk :accessor thunk-of :init-keyword :thunk :init-value (lambda () #f))
    (operating-time :accessor operating-time-of :init-value 0)))
 
-(define-method call-with-iterator ((coll <test>) proc . args)
-  (apply call-with-iterator (thunk-of coll) proc args))
+(define-method call-with-iterator ((self <test>) proc . args)
+  (apply call-with-iterator (thunk-of self) proc args))
 
 (define-class <test-case> (<collection>)
   ((name :accessor name-of :init-keyword :name)
