@@ -3,6 +3,7 @@
   (use test.unit)
   (use test.unit.color)
   (use gauche.time)
+  (use gauche.sequence)
   (use srfi-2)
   (export <test-ui-text>))
 (select-module test.unit.ui.text)
@@ -31,6 +32,7 @@
   ((succeeded :accessor succeeded-of)
    (verbose :accessor verbose-of :init-keyword :verbose
             :init-value :normal)
+   (faults :accessor faults-of :init-form '())
    (use-color :accessor use-color-of :init-keyword :use-color
               :init-thunk guess-color-availability)
    (color-scheme :accessor color-scheme-of
@@ -72,10 +74,10 @@
                       (cddddr (vm-get-stack-trace-lite)))))
     (set! (succeeded-of self) #f)
     (output self "E" (color self 'error) :progress)
-    (output self "\n")
-    (output-error-line self (car stack-trace))
-    (output self #`"Error occurred in ,(name-of test)\n")
-    (output self #`",(error-message err stack-trace :max-depth 5)\n")))
+    (push! (faults-of self)
+           (list 'error "Error" test
+                 (error-message err stack-trace :max-depth 5)
+                 stack-trace))))
 
 (define-method test-succeeded ((self <test-ui-text>) test)
   #f)
@@ -83,10 +85,8 @@
 (define-method test-failed ((self <test-ui-text>) test message stack-trace)
   (set! (succeeded-of self) #f)
   (output self "F" (color self 'failure) :progress)
-  (output self "\n")
-  (output-error-line self stack-trace)
-  (output self #`",message in ,(name-of test)\n"))
-  ;; (print (error-message err (list stack-trace) :max-depth 5)))
+  (push! (faults-of self)
+         (list 'failure "Failure" test message (list stack-trace))))
 
 (define-method test-start ((self <test-ui-text>) test)
   (set! (succeeded-of self) #t))
@@ -106,6 +106,16 @@
 
 (define-method test-suite-finish ((self <test-ui-text>) test-suite)
   (output self "\n")
+  (for-each-with-index
+   (lambda (i args)
+     (apply (lambda (i type label test message stack-trace)
+              (output self "\n")
+              (output self (format "~3d) ~a\n" (+ i 1) (name-of test)))
+              (output self #`",message\n")
+              (output-error-line self stack-trace))
+            i
+            args))
+   (faults-of self))
   (output self (format "\nFinished in ~s seconds\n\n"
                        (operating-time-of test-suite)))
   (output self

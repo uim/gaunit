@@ -39,4 +39,4 @@
        (test-result (run-test-with-no-output test)))
   (define-test-case "Error test"
     ("Test test-case1"
-     (assert-have-error-message test-result))))
+     (assert-equal "E" test-result))))
