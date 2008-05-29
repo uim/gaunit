@@ -28,7 +28,7 @@
         (else #f)))
 
 (define-class <test-ui-text> (<test-ui-base>)
-  ((successed :accessor successed-of)
+  ((succeeded :accessor succeeded-of)
    (verbose :accessor verbose-of :init-keyword :verbose
             :init-value :normal)
    (use-color :accessor use-color-of :init-keyword :use-color
@@ -69,28 +69,28 @@
 (define-method test-errored ((self <test-ui-text>) test err)
   (let ((stack-trace (retrieve-target-stack-trace
                       (cddddr (vm-get-stack-trace-lite)))))
-    (set! (successed-of self) #f)
+    (set! (succeeded-of self) #f)
     (output self (color self 'error) :progress "E\n")
     (output-error-line self (car stack-trace))
     (output self #f :progress #`"Error occurred in ,(name-of test)" print)
     (output self #f :progress (error-message err stack-trace :max-depth 5)
             print)))
 
-(define-method test-successed ((self <test-ui-text>) test)
+(define-method test-succeeded ((self <test-ui-text>) test)
   #f)
 
 (define-method test-failed ((self <test-ui-text>) test message stack-trace)
-  (set! (successed-of self) #f)
+  (set! (succeeded-of self) #f)
   (output self (color self 'failure) :progress "F\n")
   (output-error-line self stack-trace)
   (output self #f :progress #`",message in ,(name-of test)" print))
   ;; (print (error-message err (list stack-trace) :max-depth 5)))
 
 (define-method test-start ((self <test-ui-text>) test)
-  (set! (successed-of self) #t))
+  (set! (succeeded-of self) #t))
 
 (define-method test-finish ((self <test-ui-text>) test)
-  (if (successed-of self)
+  (if (succeeded-of self)
     (output self (color self 'success) :progress ".")))
 
 (define-method test-case-start ((self <test-ui-text>) test-case)

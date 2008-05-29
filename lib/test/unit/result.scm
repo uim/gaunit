@@ -14,7 +14,7 @@
 
 (define-method add-success! ((self <result>) test-ui test)
   (inc! (success-of self))
-  (test-successed test-ui test))
+  (test-succeeded test-ui test))
 
 (define-method add-failure! ((self <result>) test-ui test message stack-trace)
   (inc! (failure-of self))

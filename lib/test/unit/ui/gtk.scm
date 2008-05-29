@@ -281,7 +281,7 @@
                              (gtk-label-get-text label))))
   
 
-(define-method test-successed ((self <test-ui-gtk>) test)
+(define-method test-succeeded ((self <test-ui-gtk>) test)
   (count-up-label (success-count-label-of self)))
 
 (define-method test-failed ((self <test-ui-gtk>) test message stack-trace)

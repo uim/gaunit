@@ -2,7 +2,7 @@
   (extend test.unit.common)
   (use srfi-1)
   (use srfi-2)
-  (export test-successed test-failed test-errored
+  (export test-succeeded test-failed test-errored
           test-run test-case-run
           test-case-setup test-case-teardown
           test-start test-case-start test-suite-start
@@ -15,7 +15,7 @@
 (define-method test-errored (ui test err)
   (error "Not implimented"))
 
-(define-method test-successed (ui test)
+(define-method test-succeeded (ui test)
   (error "Not implimented"))
 
 (define-method test-failed (ui test message stack-trace)
