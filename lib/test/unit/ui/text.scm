@@ -86,7 +86,7 @@
   (set! (succeeded-of self) #f)
   (output self "F" (color self 'failure) :progress)
   (push! (faults-of self)
-         (list 'failure "Failure" test message (list stack-trace))))
+         (list 'failure "Failure" test message stack-trace)))
 
 (define-method test-start ((self <test-ui-text>) test)
   (set! (succeeded-of self) #t))

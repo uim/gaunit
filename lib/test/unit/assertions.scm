@@ -40,7 +40,7 @@
                            (after-actual ""))
     (lambda (actual)
       (format #f
-              " expected:<~s>~a\n  but was:<~s>~a"
+              "expected: <~s>~a\n but was: <~s>~a"
               expected after-expected
               actual after-actual))))
 

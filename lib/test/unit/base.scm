@@ -52,10 +52,8 @@
 (define-class <test-case> (<collection>)
   ((name :accessor name-of :init-keyword :name)
    (tests :accessor tests-of :init-keyword :tests :init-value '())
-   (setup :accessor setup-of :init-keyword :setup
-          :init-value (lambda () #f))
-   (teardown :accessor teardown-of :init-keyword :teardown
-             :init-value (lambda () #f))))
+   (setup-procedures :accessor setup-procedures-of :init-form '())
+   (teardown-procedures :accessor teardown-procedures-of :init-form '())))
 
 (define-method call-with-iterator ((coll <test-case>) proc . args)
   (apply call-with-iterator (tests-of coll) proc args))
@@ -81,17 +79,13 @@
 
 (define-method initialize ((self <test-case>) args)
   (next-method)
-  (let ((setup-procs `(,@*default-setup-procs* ,(setup-of self))))
-    (set! (setup-of self)
-          (lambda ()
-            (for-each (lambda (proc) (proc))
-                      setup-procs))))
-  (let ((teardown-procs (cons (teardown-of self)
-                              (reverse *default-teardown-procs*))))
-    (set! (teardown-of self)
-          (lambda ()
-            (for-each (lambda (proc) (proc))
-                      teardown-procs)))))
+  (let-keywords args ((setup #f)
+                      (teardown #f)
+                      . rest)
+                (set! (setup-procedures-of self)
+                      `(,@*default-setup-procs* ,setup))
+                (set! (teardown-procedures-of self)
+                      (cons teardown (reverse *default-teardown-procs*)))))
 
 (define-class <test-suite> (<collection>)
   ((name :accessor name-of :init-keyword :name)
@@ -142,14 +136,19 @@
 
 (reset-test-suites)
 
+(define (retrieve-procedure symbol module)
+  (let ((value (with-error-handler
+                   (lambda (e) #f)
+                 (lambda ()
+                   (eval symbol module)))))
+    (if (procedure? value)
+      value
+      #f)))
+
 (define (test-procedure? symbol module)
   (and-let* (((#/^test-/ (symbol->string symbol)))
-             (value (with-error-handler
-                        (lambda (e) #f)
-                      (lambda ()
-                        (eval symbol module))))
-             ((procedure? value)))
-    (procedure-arity-includes? value 0)))
+             (procedure (retrieve-procedure symbol module)))
+    (procedure-arity-includes? procedure 0)))
 
 (define (collect-tests test-case-module)
   (map (lambda (symbol)
@@ -165,6 +164,8 @@
   (map (lambda (test-case-module)
          (make <test-case>
            :name (symbol->string (module-name test-case-module))
+           :setup (retrieve-procedure 'setup test-case-module)
+           :teardown (retrieve-procedure 'teardown test-case-module)
            :tests (collect-tests test-case-module)))
        (filter (lambda (mod)
                  (member base-test-case-module
@@ -270,11 +271,16 @@
      (cons (make-test name assertion ...)
            (make-tests rest ...)))))
 
+(define (apply-empty-argument-procedure procedure)
+  (if (and (procedure? procedure)
+           (procedure-arity-includes? procedure 0))
+    (procedure)))
+
 (define-method setup ((self <test-case>))
-  ((setup-of self)))
+  (for-each apply-empty-argument-procedure (setup-procedures-of self)))
 
 (define-method teardown ((self <test-case>))
-  ((teardown-of self)))
+  (for-each apply-empty-argument-procedure (teardown-procedures-of self)))
 
 (use gauche.interactive)
 (define-method run ((self <test-suite>) . options)
