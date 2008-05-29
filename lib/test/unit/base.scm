@@ -168,8 +168,7 @@
            :teardown (retrieve-procedure 'teardown test-case-module)
            :tests (collect-tests test-case-module)))
        (filter (lambda (mod)
-                 (member base-test-case-module
-                         (cdr (module-precedence-list mod))))
+                 (member base-test-case-module (module-parents mod)))
                (all-modules))))
 
 (define (run-all-test . options)
