@@ -12,11 +12,7 @@
 
 (define (main args)
   (let ((dir (sys-dirname (car args))))
-    (for-each (lambda (test-script)
-                (load (string-join (list dir test-script) "/")))
-              (directory-list dir
-                              :filter (lambda (x)
-                                        (rxmatch #/^test-.+\.scm$/ x))))
+    (for-each load (glob #`",|dir|/**/test-*.scm"))
     (if (symbol-bound? '_main)
       (_main `(,(car args) "-vn" ,@(cdr args)))
       (run-all-test))))

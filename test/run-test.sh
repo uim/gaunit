@@ -1,7 +1,9 @@
 #!/bin/sh
 
-for test in test/test-*.scm
+basedir=`dirname $0`
+
+for test in $basedir/../test/**/test-*.scm
 do
   echo "Running test $test"
-  gosh -I. $test -vp
+  gosh -I$basedir/../ $test -vp
 done

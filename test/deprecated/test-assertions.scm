@@ -1,9 +1,7 @@
 #!/usr/bin/env gosh
 
-(add-load-path ".")
-
 (use test.unit)
-(require "test/utils")
+(require "test/deprecated/utils")
 
 (let ((test
        (make-test-case "Test assert"
