@@ -12,14 +12,21 @@
   (define default-ui (cons <test-ui-text> "text"))
   (define default-verbose (cons :normal "normal"))
   (define (usage)
+    (print #`"Usage:")
+    (print #`"  ,(car args) [OPTIONS]")
+    (print)
+    (print #`"Options:")
     (print #`"\t-u, --ui=UI\t\tUse the given UI. (default ,(cdr default-ui))")
-    (print "\t\t\t\t(t[ext], g[tk]).")
-    (print #`"\t-v, --verbose=LEVEL\tSet the output LEVEL. (default ,(cdr default-verbose))")
+    (print #`"\t\t\t\t(t[ext], g[tk]).")
+    (print #`"\t-v, --verbose=LEVEL\tSet the output LEVEL. "
+           #`"(default ,(cdr default-verbose))")
     (print "\t\t\t\t(s[ilent], p[rogress], n[ormal], v[erbose]).")
-    (print #`"\t-s, --test-suite=REGEXP\t\tRun only test suites which match REGEXP")
-    (print #`"\t-c, --test-case=REGEXP\t\tRun only test cases which match REGEXP")
+    (print #`"\t-s, --test-suite=REGEXP\t\t"
+           #`"Run only test suites which match REGEXP")
+    (print #`"\t-c, --test-case=REGEXP\t\t"
+           #`"Run only test cases which match REGEXP")
     (print #`"\t-t, --test=REGEXP\t\tRun only tests which match REGEXP")
-    (print "\t-h, --help\t\tDisplay this help.")
+    (print #`"\t-h, --help\t\tDisplay this help.")
     (exit -1))
   (define options
     (list (option '(#\u "ui") #t #f
@@ -68,7 +75,7 @@
      (args-fold (cdr args)
        options
        (lambda (option name arg . seeds)         ; unrecognized
-         (print "Unrecognized option:" name)
+         (print "Unrecognized option: " name)
          (usage))
        (lambda (operand ui verbose suite case test) ; operand
          (values ui verbose suite case test))
