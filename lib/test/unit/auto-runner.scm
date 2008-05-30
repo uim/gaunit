@@ -1,9 +1,9 @@
-(define-module test.unit.autorunner
+(define-module test.unit.auto-runner
   (use srfi-13)
   (use srfi-37)
   (use test.unit.base)
   (export main))
-(select-module test.unit.autorunner)
+(select-module test.unit.auto-runner)
 
 (autoload test.unit.ui.text <test-ui-text>)
 (autoload test.unit.ui.gtk <test-ui-gtk>)
@@ -83,4 +83,4 @@
                    :test-regexp test))
   0)
 
-(provide "test/unit/autorunner")
+(provide "test/unit/auto-runner")
