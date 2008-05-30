@@ -4,7 +4,7 @@
   (use gauche.collection)
   (use gauche.parameter)
   (use gauche.time)
-  (use test.unit.result)
+  (use test.unit.run-context)
   (use test.unit.ui)
   (export *gaunit-version*
           gaunit-default-test-suite
@@ -42,7 +42,6 @@
 
 (define-class <test> (<collection>)
   ((name :accessor name-of :init-keyword :name)
-   (result :accessor result-of :init-form (make <result>))
    (thunk :accessor thunk-of :init-keyword :thunk :init-value (lambda () #f))
    (operating-time :accessor operating-time-of :init-value 0)))
 
@@ -117,22 +116,7 @@
   (set! *test-suites* (list *default-test-suite*))
   (soft-reset-test-suites))
 (define (soft-reset-test-suites . options)
-  (let-optionals* options ((suites *test-suites*))
-    (for-each
-     (lambda (suite)
-       (set-ran! suite #f)
-       (for-each
-        (lambda (test-case)
-          (for-each
-           (lambda (test)
-             (let ((result (result-of test)))
-               (for-each
-                (lambda (slot)
-                  (slot-set! result slot 0))
-                '(success failure error))))
-           (tests-of test-case)))
-        (test-cases-of suite)))
-     suites)))
+  #f)
 
 (reset-test-suites)
 
@@ -305,11 +289,11 @@
           (lambda ()
             (test-suite-finish ui self))))))
 
-(define (wrap-thunk-with-error-handling test ui thunk)
+(define (wrap-thunk-with-error-handling test run-context thunk)
   (lambda ()
     (with-error-handler
-        (lambda (err)
-          (add-error! (result-of test) ui test err)
+        (lambda (error)
+          (test-run-context-error run-context test error)
           #f)
       (lambda ()
         (thunk)
