@@ -5,17 +5,18 @@
 
 (let ((test
        (make-test-case "Test assert"
-         ("assert"
-          (assert eq? #t #t)
-          (assert eq? #t #f)
+         ("assert success1"
+          (assert eq? #t #t))
+         ("assert success2"
           (assert (lambda (expected actual)
                     (= expected (apply + actual)))
                   10
-                  '(1 2 3 4))))))
-  (run-test-with-no-output test)
+                  '(1 2 3 4)))
+         ("assert fail"
+          (assert eq? #t #f)))))
   (define-test-case "Test assert"
     ("Test assert"
-     (assert-test-case-result test 1 2 1 0))))
+     (assert-test-case-result test 3 2 1 0))))
 
 (let ((test
        (make-test-case "Test assert-equal"
@@ -23,109 +24,116 @@
           (assert-equal 3 3)
           (assert-equal 5 5)
           (assert-equal 1 -1)))))
-  (run-test-with-no-output test)
   (define-test-case "Test assert-equal"
     ("Test assert-equal"
      (assert-test-case-result test 1 2 1 0))))
 
 (let ((test
        (make-test-case "Test assert-not-equal"
-         ("assert-not-equal"
-          (assert-not-equal 3 3)
-          (assert-not-equal 5 5)
-          (assert-not-equal 1 -1)))))
-  (run-test-with-no-output test)
+         ("assert-not-equal success"
+          (assert-not-equal 1 -1))
+         ("assert-not-equal fail1"
+          (assert-not-equal 3 3))
+         ("assert-not-equal fail2"
+          (assert-not-equal 5 5)))))
   (define-test-case "Test assert-not-equal"
     ("Test assert-not-equal"
-     (assert-test-case-result test 1 1 2 0))))
+     (assert-test-case-result test 3 1 2 0))))
 
 (let ((test
        (make-test-case "Test assert-null"
-         ("assert-null"
-          (assert-null 1)
-          (assert-null '())
+         ("assert-null success"
+          (assert-null '()))
+         ("assert-null fail1"
+          (assert-null 1))
+         ("assert-null fail2"
           (assert-null '(1 1 2 -2))))))
-  (run-test-with-no-output test)
   (define-test-case "Test assert-null"
     ("Test assert-null"
-     (assert-test-case-result test 1 1 2 0))))
+     (assert-test-case-result test 3 1 2 0))))
 
 (let ((test
        (make-test-case "Test assert-not-null"
-         ("assert-not-null"
+         ("assert-not-null success"
           (assert-not-null 1)
-          (assert-not-null '())
-          (assert-not-null '(1 1 2 -2))))))
-  (run-test-with-no-output test)
+          (assert-not-null '(1 1 2 -2)))
+         ("assert-not-null fail"
+          (assert-not-null '())))))
   (define-test-case "Test assert-not-null"
-    ("Test assert-null"
-     (assert-test-case-result test 1 2 1 0))))
+    ("Test assert-not-null"
+     (assert-test-case-result test 2 2 1 0))))
 
 (let ((test
        (make-test-case "Test assert-true"
-         ("assert-true"
-          (assert-true 1)
-          (assert-true #t)
+         ("assert-true success"
+          (assert-true #t))
+         ("assert-true fail1"
+          (assert-true 1))
+         ("assert-true fail2"
           (assert-true #f)))))
-  (run-test-with-no-output test)
   (define-test-case "Test assert-true"
     ("Test assert-true"
-     (assert-test-case-result test 1 1 2 0))))
+     (assert-test-case-result test 3 1 2 0))))
 
 (let ((test
        (make-test-case "Test assert-false"
-         ("assert-false"
-          (assert-false 1)
-          (assert-false #t)
-          (assert-false #f)))))
-  (run-test-with-no-output test)
+         ("assert-false success"
+          (assert-false #f))
+         ("assert-false fail1"
+          (assert-false 1))
+         ("assert-false fail2"
+          (assert-false #t)))))
   (define-test-case "Test assert-false"
-    ("Test assert-falsa"
-     (assert-test-case-result test 1 1 2 0))))
+    ("Test assert-false"
+     (assert-test-case-result test 3 1 2 0))))
 
 (let ((test
        (make-test-case "Test assert-instance-of"
-         ("assert-instance-of"
-          (assert-instance-of <integer> 1)
-          (assert-instance-of <integer> #t)
+         ("assert-instance-of success"
+          (assert-instance-of <integer> 1))
+         ("assert-instance-of fail1"
+          (assert-instance-of <integer> #t))
+         ("assert-instance-of fail2"
           (assert-instance-of <list> #f)))))
-  (run-test-with-no-output test)
   (define-test-case "Test assert-instance-of"
     ("Test assert-instance-of"
-     (assert-test-case-result test 1 1 2 0))))
+     (assert-test-case-result test 3 1 2 0))))
 
 (let ((test
        (make-test-case "Test assert-raise"
-         ("assert-raise"
-          (assert-raise <error> (lambda () (1)))
-          (assert-raise <integer> (lambda () (1)))
+         ("assert-raise success"
+          (assert-raise <error> (lambda () (1))))
+         ("assert-raise fail1"
+          (assert-raise <integer> (lambda () (1))))
+         ("assert-raise fail2"
           (assert-raise <error> (lambda () #f))))))
-  (run-test-with-no-output test)
   (define-test-case "Test assert-raise"
     ("Test assert-raise"
-     (assert-test-case-result test 1 1 2 0))))
+     (assert-test-case-result test 3 1 2 0))))
 
 (let ((test
        (make-test-case "Test assert-error"
-         ("assert-error"
-          (assert-error (lambda () (1)))
-          (assert-error (lambda () 1))
+         ("assert-error success"
+          (assert-error (lambda () (1))))
+         ("assert-error fail1"
+          (assert-error (lambda () 1)))
+         ("assert-error fail2"
           (assert-error #f)))))
-  (run-test-with-no-output test)
   (define-test-case "Test assert-error"
     ("Test assert-error"
-     (assert-test-case-result test 1 1 2 0))))
+     (assert-test-case-result test 3 1 2 0))))
 
 (let ((test
        (make-test-case "Test assert-not-raise"
-         ("assert-not-raise"
-          (assert-not-raise (lambda () 1))
-          (assert-not-raise (lambda () (1)))
+         ("assert-not-raise success"
+          (assert-not-raise (lambda () 1)))
+         ("assert-not-raise fail1"
+          (assert-not-raise (lambda () (1))))
+         ("assert-not-raise fail2"
           (assert-not-raise #f)))))
-  (run-test-with-no-output test)
   (define-test-case "Test assert-not-raise"
     ("Test assert-not-raise"
-     (assert-test-case-result test 1 1 2 0))))
+     (assert-test-case-result test 3 1 2 0))))
 
 (let ((test
        (make-test-case "Test assert-each"
@@ -157,17 +165,13 @@
                              (assert-each assert-true args)
                              (assert-true args)))
                        '(#t #t (#t #t) #t)
-                       :apply-if-can #f)
-          )
-         ("assert-each fail-1"
+                       :apply-if-can #f))
+         ("assert-each fail"
           (assert-each assert-true
                        '(#t #f)))
          ("assert-each error"
           (assert-each assert-true
-                       #t))
-         )))
-  (run-test-with-no-output test)
-  ;; (run test)
+                       #t)))))
   (define-test-case "Test assert-each"
     ("Test assert-each"
      (assert-test-case-result test 3 5 1 1))))
@@ -177,7 +181,7 @@
 
 (let ((test
        (make-test-case "Test assert-macro1"
-         ("assert-macro1 success-3"
+         ("assert-macro1 success"
           (assert-macro1 '(error "error string!")
                          '(die "error string!"))
           (assert-macro1 '(error "error-symbol!")
@@ -185,15 +189,13 @@
           (assert-macro1 '(error "1")
                          '(die 1))
           )
-         ("assert-macro1 fail-1"
+         ("assert-macro1 fail"
           (assert-macro1 '(error 1)
                          '(die 1)))
          ("assert-marcro1 error"
           (assert-macro1 '(error "syntax error")
                          '(die)))
          )))
-  (run-test-with-no-output test)
-  ;; (run test)
   (define-test-case "Test assert-macro1"
     ("Test assert-macro1"
      (assert-test-case-result test 3 3 1 1))))
@@ -207,7 +209,7 @@
 
 (let ((test
        (make-test-case "Test assert-macro"
-         ("assert-macro success-3"
+         ("assert-macro success"
           (assert-macro '(or #t
                              (die "shuld not be here!"))
                         '(or-die #t "shuld not be here!"))
@@ -218,9 +220,8 @@
                                #t
                                #f)
                              (die "always error too!"))
-                        '(or-die (begin #t #f) "always error too!"))
-          )
-         ("assert-macro fail-1"
+                        '(or-die (begin #t #f) "always error too!")))
+         ("assert-macro fail"
           (assert-macro '(and #t
                               (die "must be fail!"))
                         '(or-die #t "must be fail!")))
@@ -229,35 +230,31 @@
                              (die "syntax error"))
                         '(or-die)))
          )))
-  (run-test-with-no-output test)
-  ;; (run test)
   (define-test-case "Test assert-macro"
     ("Test assert-macro"
      (assert-test-case-result test 3 3 1 1))))
 
 (let ((test
        (make-test-case "Test assert-lset-equal"
-         ("assert-lset-equal success-3"
+         ("assert-lset-equal success"
           (assert-lset-equal '(1 2 3)
                              '(3 2 1))
           (assert-lset-equal '(1 (2) 3)
                              '(3 1 (2)))
           (assert-lset-equal '((1) (2 3) (1))
                              '((2 3) (1) (2 3))))
-         ("assert-lset-equal fail-1"
+         ("assert-lset-equal fail"
           (assert-lset-equal '(a b c)
                              '(a b c d)))
-         ("assert-lset-equal error-1"
+         ("assert-lset-equal error"
           (assert-lset-equal #(1) '(1))))))
-  (run-test-with-no-output test)
-  ;; (run test)
   (define-test-case "Test assert-lset-equal"
     ("Test assert-lset-equal"
      (assert-test-case-result test 3 3 1 1))))
 
 (let ((test
        (make-test-case "Test assert-values-equal"
-         ("assert-values-equal success-3"
+         ("assert-values-equal success"
           (assert-values-equal '(1 2 3)
                                (lambda ()
                                  (values 1 2 3)))
@@ -266,63 +263,56 @@
                                  (apply values '(1 (2) 3))))
           (let ((productor (lambda () (values '(1) '(2 3) '(1)))))
             (assert-values-equal '((1) (2 3) (1)) productor)))
-         ("assert-values-equal fail-1"
+         ("assert-values-equal fail"
           (assert-values-equal '(a b c)
                                (lambda ()
                                  '(a b c))))
-         ("assert-values-equal error-1"
+         ("assert-values-equal error"
           (assert-values-equal '(1) 1)))))
-  (run-test-with-no-output test)
-  ;; (run test)
   (define-test-case "Test assert-values-equal"
     ("Test assert-values-equal"
      (assert-test-case-result test 3 3 1 1))))
 
 (let ((test
        (make-test-case "Test assert-in-delta"
-         ("assert-in-delta success-3"
+         ("assert-in-delta success"
           (assert-in-delta 0.9 0.1 1)
           (assert-in-delta 0.9 0.01 0.899999)
           (assert-in-delta -0.1 0.0001 -0.1000000009))
-         ("assert-in-delta fail-1"
+         ("assert-in-delta fail"
           (assert-in-delta 1 0.5 2))
-         ("assert-in-delta error-1"
+         ("assert-in-delta error"
           (assert-in-delta 1 1)))))
-  (run-test-with-no-output test)
-  ;; (run test)
   (define-test-case "Test assert-in-delta"
     ("Test assert-in-delta"
      (assert-test-case-result test 3 3 1 1))))
 
 (let ((test
        (make-test-case "Test assert-output"
-         ("assert-output success-4"
+         ("assert-output success"
           (assert-output #/\*+/ (lambda () (display "***")))
           (assert-output "***\n" (lambda () (print "***")))
           (assert-output "\n" newline)
           (assert-output "" (lambda () #f)))
-         ("assert-output fail-1"
+         ("assert-output fail"
           (assert-output "***" (lambda () #f)))
-         ("assert-output error-1"
+         ("assert-output error"
           (assert-output "***" "***")))))
-  (run-test-with-no-output test)
-  ;; (run test)
   (define-test-case "Test assert-output"
     ("Test assert-output"
      (assert-test-case-result test 3 4 1 1))))
 
 (let ((test
        (make-test-case "Test assert-match"
-         ("assert-match success-2"
+         ("assert-match success"
           (assert-match #/\*+/ "*****")
           (assert-match #/.*/ ""))
-         ("assert-match fail-2"
-          (assert-match #/\*+/ "")
+         ("assert-match fail1"
           (assert-match "***" "***"))
-         ("assert-match error-1"
+         ("assert-match fail2"
+          (assert-match "***" "***"))
+         ("assert-match error"
           (assert-match "***" ("***"))))))
-  (run-test-with-no-output test)
-  ;; (run test)
   (define-test-case "Test assert-match"
     ("Test assert-match"
-     (assert-test-case-result test 3 2 2 1))))
+     (assert-test-case-result test 4 2 2 1))))

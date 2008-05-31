@@ -4,22 +4,7 @@
   (use test.unit.base)
   (use test.unit.run-context)
   (use gauche.parameter)
-  (export define-assertion
-
-          fail assert
-          assert-equal assert-not-equal
-          assert-null assert-not-null
-          assert-true assert-false
-          assert-instance-of
-          assert-error assert-error-message
-          assert-raise assert-not-raise
-          assert-each
-          assert-macro assert-macro1
-          assert-lset-equal
-          assert-values-equal
-          assert-in-delta
-          assert-output
-          assert-match))
+  (export define-assertion))
 (select-module test.unit.assertions)
 
 (define-class <assertion-failure> ()
@@ -70,12 +55,15 @@
                             (stack-trace-of e)))
 
 (define-macro (define-assertion name&args . body)
-  `(define ,name&args
-     (parameterize ((count-assertion #f))
-       ,@body)
-     (if (count-assertion)
-       (test-run-context-pass-assertion (test-run-context)
-                                        (current-test)))))
+  `(begin
+     (if (eq? 'test.unit.assertions (module-name (current-module)))
+       (export ,(car name&args)))
+     (define ,name&args
+       (parameterize ((count-assertion #f))
+         ,@body)
+       (if (count-assertion)
+         (test-run-context-pass-assertion (test-run-context)
+                                          (current-test))))))
 
 (define-assertion (fail . message)
   (raise (make <assertion-failure>
