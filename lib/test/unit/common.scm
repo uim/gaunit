@@ -1,9 +1,10 @@
 (define-module test.unit.common
-  (use gauche.parameter))
+  (use gauche.parameter)
+  (use srfi-1))
 (select-module test.unit.common)
 
 (define test-result (make-parameter #f))
-(define test-ui (make-parameter #f))
+(define test-run-context (make-parameter #f))
 (define current-test (make-parameter #f))
 (define count-assertion (make-parameter #t))
 
@@ -25,6 +26,6 @@
         (rxmatch #/\/test\/unit\//
                  (car (stack->source-info stack '("") 0)))))
   (let-optionals* options ((stack-trace (cddr (vm-get-stack-trace-lite))))
-    (unwrap-syntax stack-trace)))
+    (remove in-library? (unwrap-syntax stack-trace))))
 
 (provide "test/unit/common")

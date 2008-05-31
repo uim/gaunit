@@ -4,7 +4,22 @@
   (use test.unit.base)
   (use test.unit.run-context)
   (use gauche.parameter)
-  (export define-assertion))
+  (export define-assertion
+
+          fail assert
+          assert-equal assert-not-equal
+          assert-null assert-not-null
+          assert-true assert-false
+          assert-instance-of
+          assert-error assert-error-message
+          assert-raise assert-not-raise
+          assert-each
+          assert-macro assert-macro1
+          assert-lset-equal
+          assert-values-equal
+          assert-in-delta
+          assert-output
+          assert-match))
 (select-module test.unit.assertions)
 
 (define-class <assertion-failure> ()
@@ -13,7 +28,10 @@
                     :init-value "assertion failed")
    (actual :accessor actual-of
            :init-keyword :actual
-           :init-value #f)))
+           :init-value #f)
+   (stack-trace :accessor stack-trace-of
+                :init-keyword :stack-trace
+                :init-form (retrieve-target-stack-trace))))
 
 (define (assertion-failure? obj)
   (is-a? obj <assertion-failure>))
@@ -44,37 +62,20 @@
               expected after-expected
               actual after-actual))))
 
-(define (eval-body body-thunk)
-  (call/cc
-   (lambda (cont)
-     (with-exception-handler
-      cont
-      (lambda ()
-        (parameterize ((count-assertion #f))
-          (body-thunk)))))))
+(define-method test-handle-exception ((test <test>)
+                                      run-context (e <assertion-failure>))
+  (test-run-context-failure run-context
+                            test
+                            (failure-message-of e)
+                            (stack-trace-of e)))
 
 (define-macro (define-assertion name&args . body)
-  `(with-module test.unit.assertions
-     (export ,(car name&args))
-     (define ,name&args
-       (if (test-run-context)
-         (let ((result (eval-body (lambda () ,@body))))
-           (if (count-assertion)
-             (cond ((assertion-failure? result)
-                    (run-context-failure (test-run-context)
-                                         (current-test)
-                                         (failure-message-of result)
-                                         (car (retrieve-target-stack-trace))))
-                   ((is-a? result <error>)
-                    (run-context-error (test-run-context)
-                                       (current-test)
-                                       result))
-                   (else
-                    (run-context-pass-assertion (test-run-context)
-                                                (current-test))))
-             (if (or (assertion-failure? result)
-                     (is-a? result <error>))
-               (raise result))))))))
+  `(define ,name&args
+     (parameterize ((count-assertion #f))
+       ,@body)
+     (if (count-assertion)
+       (test-run-context-pass-assertion (test-run-context)
+                                        (current-test)))))
 
 (define-assertion (fail . message)
   (raise (make <assertion-failure>
@@ -141,39 +142,32 @@
                (format #f " <~s> must be procedure" thunk))
   (assert is-a? expected-class <class>
           " Should expect a class of exception")
-  (call/cc
-   (lambda (cont)
-     (with-exception-handler
-      (lambda (exn)
-        (cont
-         (if (is-a? exn expected-class)
-             #t
-             (make-assertion-failure
-              (get-optional
-               message
-               (format #f
-                       " expected:<~s> class exception\n  but was:<~s>"
-                       expected-class
-                       (class-of exn)))
-              exn))))
-      (lambda ()
-        (thunk)
-        (make-assertion-failure
-         (get-optional
-          message
-          (format #f
-                  " expected:<~s> class exception\n  but none was thrown"
-                  expected-class))))))))
+  (guard (e (else
+             (unless (is-a? e expected-class)
+               (assertion-failure
+                (get-optional
+                 message
+                 (format #f
+                         " expected:<~s> class exception\n  but was:<~s>"
+                         expected-class
+                         (class-of e)))
+                e))))
+         (thunk)
+         (assertion-failure
+          (get-optional
+           message
+           (format #f
+                   " expected:<~s> class exception\n  but none was thrown"
+                   expected-class)))))
 
 (define-assertion (assert-error thunk . message)
   (assert-true (procedure? thunk)
                (format #f " <~s> must be procedure" thunk))
-  (with-error-handler
-   (lambda (err) #t)
-   (lambda ()
-     (thunk)
-     (assertion-failure
-      (get-optional message " None expection was thrown")))))
+  (unless (guard (e (else #t))
+                 (thunk)
+                 #f)
+    (assertion-failure
+     (get-optional message " None expection was thrown"))))
 
 (define-assertion (assert-error-message expected thunk . message)
   (assert-true (procedure? thunk)
@@ -203,20 +197,16 @@
 (define-assertion (assert-not-raise thunk . message)
   (assert-true (procedure? thunk)
                (format #f " <~s> must be procedure" thunk))
-  (call/cc
-   (lambda (cont)
-     (with-exception-handler
-      (lambda (exn)
-        (cont (make-assertion-failure
-               (get-optional
-                message
-                (format #f
-                        (string-append " expected no exception was thrown\n"
-                                       "  but <~s> class exception was thrown")
-                        (class-of exn)))
-               exn)))
-      (lambda ()
-        (thunk) #t)))))
+  (guard (e (else (assertion-failure
+                   (get-optional
+                    message
+                    (format #f
+                            (string-append
+                             " expected no exception was thrown\n"
+                             "  but <~s> class exception was thrown")
+                            (class-of e)))
+                   e)))
+         (thunk)))
 
 (define-assertion (assert-each assert-proc lst . keywords)
   (let-keywords* keywords ((apply-if-can #t)
@@ -232,11 +222,11 @@
                     (apply run-assert assert-proc args))))
               lst)))
 
-(define-assertion (assert-macro1 expanded form . message)
-  (apply assert-equal expanded (macroexpand-1 form) message))
-
 (define-assertion (assert-macro expanded form . message)
   (apply assert-equal expanded (macroexpand form) message))
+
+(define-assertion (assert-macro1 expanded form . message)
+  (apply assert-equal expanded (macroexpand-1 form) message))
 
 (define-assertion (assert-lset-equal expected actual . message)
   (let ((result (lset= equal? expected actual)))

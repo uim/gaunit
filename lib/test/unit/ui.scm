@@ -1,5 +1,6 @@
 (define-module test.unit.ui
   (extend test.unit.common)
+  (use test.unit.listener)
   (use srfi-1)
   (use srfi-2)
   (export test-succeeded test-failed test-erred
@@ -9,7 +10,7 @@
           test-finish test-case-finish test-suite-finish))
 (select-module test.unit.ui)
 
-(define-class <test-ui-base> ()
+(define-class <test-ui-base> (<test-listener>)
   ((setup-success? :accessor setup-success?)))
 
 (define-method test-erred (ui test err)

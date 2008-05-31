@@ -9,16 +9,16 @@
   (export *gaunit-version*
           gaunit-default-test-suite
           gaunit-all-test-suite
-          
+
+          <test> <test-case> <test-suite>
           make-test make-test-case make-test-suite
           define-test-suite define-test-case
           run run-all-test
           reset-test-suites soft-reset-test-suites
           set-default-test-ui!
-          tests-of success-of failure-of error-of
-          name-of test-number-of assertion-number-of
-          success-number-of failure-number-of error-number-of
-          operating-time-of
+          name-of operating-time-of
+
+          test-handle-exception
 
           gaunit-add-default-setup-proc!
           gaunit-delete-default-setup-proc!
@@ -136,10 +136,9 @@
 
 (define (collect-tests test-case-module)
   (map (lambda (symbol)
-         (let ((test-procedure (eval symbol test-case-module)))
-           (make <test>
-             :name (symbol->string symbol)
-             :thunk test-procedure)))
+         (make <test>
+           :name (symbol->string symbol)
+           :thunk (lambda () (eval `(,symbol) test-case-module))))
        (filter (lambda (symbol)
                  (test-procedure? symbol test-case-module))
                (hash-table-keys (module-table test-case-module)))))
@@ -155,25 +154,35 @@
                  (member base-test-case-module (module-parents mod)))
                (all-modules))))
 
+(define (make-default-run-context)
+  (let ((run-context (make <test-run-context>)))
+    (push! (listeners-of run-context) (default-test-ui))
+    run-context))
+
 (define (run-all-test . options)
   (unless *default-test-suite*
     (eval '(use test.unit.ui.text) (current-module)))
   (for-each (lambda (test-case)
               (add-test-case! *default-test-suite* test-case))
             (find-test-case-modules (find-module 'test.unit.test-case)))
-  (let-keywords* options ((ui (default-test-ui))
+  (let-keywords* options ((run-context (make-default-run-context))
                           (test-suite-regexp #//)
                           (test-case-regexp #//)
                           (test-regexp #//))
-    (for-each (lambda (suite)
-                (if (and (not (null? (test-cases-of suite)))
-                         (not (ran? suite)))
-                    (run suite
-                         :ui ui
-                         :test-suite-regexp test-suite-regexp
-                         :test-case-regexp test-case-regexp
-                         :test-regexp test-regexp)))
-              (reverse *test-suites*))))
+    (test-run-context-start run-context)
+    (let ((success (fold (lambda (suite prev-success)
+                           (and (if (and (not (null? (test-cases-of suite)))
+                                         (not (ran? suite)))
+                                  (run suite
+                                       :run-context run-context
+                                       :test-suite-regexp test-suite-regexp
+                                       :test-case-regexp test-case-regexp
+                                       :test-regexp test-regexp))
+                                prev-success))
+                         #t
+                         (reverse *test-suites*))))
+      (test-run-context-finish run-context)
+      success)))
 
 (define-syntax define-test-suite
   (syntax-rules ()
@@ -267,27 +276,23 @@
 
 (use gauche.interactive)
 (define-method run ((self <test-suite>) . options)
-  (let-keywords* options ((ui (default-test-ui))
+  (let-keywords* options ((run-context (make <test-run-context>))
                           (test-suite-regexp #//)
                           (test-case-regexp #//)
                           (test-regexp #//))
     (when (rxmatch test-suite-regexp (name-of self))
-      (dynamic-wind
-          (lambda ()
-            (test-suite-start ui self))
-          (lambda ()
-            (let ((counter (make <real-time-counter>)))
-              (with-time-counter counter
-                                 (for-each
-                                  (lambda (test-case)
-                                    (run test-case
-                                         :ui ui
-                                         :test-case-regexp test-case-regexp
-                                         :test-regexp test-regexp))
-                                  (test-cases-of self))))
-            (set-ran! self #t))
-          (lambda ()
-            (test-suite-finish ui self))))))
+      (test-run-context-start-test-suite run-context self)
+      (let ((counter (make <real-time-counter>)))
+        (with-time-counter counter
+                           (for-each
+                            (lambda (test-case)
+                              (run test-case
+                                   :run-context run-context
+                                   :test-case-regexp test-case-regexp
+                                   :test-regexp test-regexp))
+                            (test-cases-of self))))
+      (set-ran! self #t)
+      (test-run-context-finish-test-suite run-context self))))
 
 (define (wrap-thunk-with-error-handling test run-context thunk)
   (lambda ()
@@ -299,74 +304,63 @@
         (thunk)
         #t))))
 
+(define-method test-handle-exception ((self <test-case>) (test <test>)
+                                      run-context e)
+  (test-run-context-error run-context test e))
+
+(define (run-test test-case run-context test test-regexp
+                  setup-proc teardown-proc)
+  (let ((success (guard (e (else
+                            (test-handle-exception test-case test run-context e)
+                            #f))
+                        (setup-proc)
+                        (run test
+                             :run-context run-context
+                             :test-regexp test-regexp)
+                        #t)))
+    (guard (e (else
+               (test-run-context-error run-context e)
+               #f))
+           (teardown-proc)
+           success)))
+
 (define-method run ((self <test-case>) . options)
-  (let-keywords* options ((ui (default-test-ui))
+  (let-keywords* options ((run-context (make <test-run-context>))
                           (test-case-regexp #//)
                           (test-regexp #//))
     (when (rxmatch test-case-regexp (name-of self))
-      (let ((setup-proc (lambda () (setup self)))
-            (teardown-proc (lambda () (teardown self)))
-            (output (current-output-port))
-            (buffering-mode #f))
-        (dynamic-wind
-            (lambda ()
-              (test-case-start ui self))
-            (lambda ()
-              (for-each (lambda (test)
-                          (dynamic-wind
-                              (lambda ()
-                                (test-case-setup
-                                 ui self
-                                 (wrap-thunk-with-error-handling
-                                  test
-                                  ui
-                                  (lambda ()
-                                    (set! buffering-mode
-                                          (port-buffering output))
-                                    (if buffering-mode
-                                      (set! (port-buffering output) :none))
-                                    (setup-proc)))))
-                              (lambda ()
-                                (run test
-                                     :ui ui
-                                     :test-regexp test-regexp))
-                              (lambda ()
-                                (test-case-teardown
-                                 ui self
-                                 (wrap-thunk-with-error-handling
-                                  test
-                                  ui
-                                  (lambda ()
-                                    (teardown-proc)
-                                    (if buffering-mode
-                                      (set! (port-buffering output)
-                                            buffering-mode))))))))
-                        (tests-of self)))
-            (lambda ()
-              (test-case-finish ui self)))))))
+      (test-run-context-start-test-case run-context self)
+      (let* ((setup-proc (lambda () (setup self)))
+             (teardown-proc (lambda () (teardown self)))
+             (success (fold (lambda (test prev-success)
+                              (and (run-test self run-context test test-regexp
+                                             setup-proc teardown-proc)
+                                   prev-success))
+                            #f
+                            (tests-of self))))
+        (test-run-context-finish-test-case run-context self)
+        success))))
+
+(define-method test-handle-exception ((self <test>) run-context e)
+  (test-run-context-error run-context self e))
 
 (define-method run ((self <test>) . options)
-  (let-keywords* options ((ui (default-test-ui))
+  (let-keywords* options ((run-context (make <test-run-context>))
                           (test-regexp #//))
     (when (rxmatch test-regexp (name-of self))
-      (dynamic-wind
-          (lambda ()
-            (test-start ui self))
-          (lambda ()
-            (let ((counter (make <real-time-counter>)))
-              (test-run ui self
-                        (wrap-thunk-with-error-handling
-                         self
-                         ui
-                         (lambda ()
-                           (parameterize ((test-result (result-of self))
-                                          (test-ui ui)
-                                          (current-test self))
-                             (with-time-counter counter ((thunk-of self))))
-                           (set! (operating-time-of self)
-                                 (time-counter-value counter)))))))
-          (lambda ()
-            (test-finish ui self))))))
+      (let ((counter (make <real-time-counter>)))
+        (test-run-context-start-test run-context self)
+        (let ((success (guard (e (else
+                                  (test-handle-exception self run-context e)
+                                  #f))
+                              (parameterize ((test-run-context run-context)
+                                             (current-test self))
+                                (with-time-counter counter ((thunk-of self))))
+                              (test-run-context-success run-context self)
+                              #t)))
+          (set! (operating-time-of self) (time-counter-value counter))
+          (test-run-context-finish-test run-context self)
+          success)))))
 
 
 (define-method operating-time-of ((self <test-suite>))
@@ -377,66 +371,5 @@
   (fold + 0
         (map operating-time-of (tests-of self))))
 
-
-(define-macro (define-assertion-number-of type)
-  `(define-method assertion-number-of ((self ,type))
-     (fold (lambda (get-number-proc prev)
-             (+ prev (get-number-proc self)))
-           0
-           (list success-of failure-of error-of))))
-
-(define-method x-of ((self <test>) get-x-proc)
-  (get-x-proc (result-of self)))
-
-(define-method success-of ((self <test>))
-  (x-of self success-of))
-
-(define-method failure-of ((self <test>))
-  (x-of self failure-of))
-
-(define-method error-of ((self <test>))
-  (x-of self error-of))
-
-(define-assertion-number-of <test>)
-
-(define-method x-of ((self <test-case>) get-x-proc)
-  (fold (lambda (test prev) (+ prev (get-x-proc test)))
-        0
-        self))
-
-(define-method success-of ((self <test-case>))
-  (x-of self success-of))
-
-(define-method failure-of ((self <test-case>))
-  (x-of self failure-of))
-
-(define-method error-of ((self <test-case>))
-  (x-of self error-of))
-
-(define-assertion-number-of <test-case>)
-
-(define-method x-of ((self <test-suite>) get-x-proc)
-  (fold (lambda (test prev) (+ prev (get-x-proc test)))
-        0
-        self))
-
-(define-method test-number-of ((self <test-suite>))
-  (x-of self
-        (lambda (test-case)
-          (length (tests-of test-case)))))
-
-(define-method success-of ((self <test-suite>))
-  (x-of self success-of))
-(define success-number-of success-of)
-
-(define-method failure-of ((self <test-suite>))
-  (x-of self failure-of))
-(define failure-number-of failure-of)
-
-(define-method error-of ((self <test-suite>))
-  (x-of self error-of))
-(define error-number-of error-of)
-
-(define-assertion-number-of <test-suite>)
 
 (provide "test/unit/base")

@@ -2,6 +2,7 @@
   (use srfi-13)
   (use srfi-37)
   (use test.unit.base)
+  (use test.unit.run-context)
   (export main))
 (select-module test.unit.auto-runner)
 
@@ -84,7 +85,10 @@
        #//
        #//
        #//)
-     (run-all-test :ui (make ui :verbose verbose)
+     (run-all-test :run-context (let ((run-context (make <test-run-context>)))
+                                  (push! (listeners-of run-context)
+                                         (make ui :verbose verbose))
+                                  run-context)
                    :test-suite-regexp suite
                    :test-case-regexp case
                    :test-regexp test))

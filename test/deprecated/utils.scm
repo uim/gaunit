@@ -1,10 +1,10 @@
-(use test.unit.ui.text)
+(use test.unit.run-context)
 
 (define (run-test-with-no-output test . options)
   (call-with-output-string
    (cut with-output-to-port <>
         (lambda ()
-          (apply run test :ui (make <test-ui-text>) options)))))
+          (apply run test :run-context (make <test-run-context>) options)))))
 
 (select-module test.unit.assertions)
 (define (make-number-of-message-handler expect type)

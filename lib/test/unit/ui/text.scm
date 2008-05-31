@@ -2,6 +2,8 @@
   (extend test.unit.ui)
   (use test.unit)
   (use test.unit.color)
+  (use test.unit.listener)
+  (use test.unit.run-context)
   (use gauche.time)
   (use gauche.sequence)
   (use srfi-2)
@@ -69,7 +71,42 @@
 (define (color self key)
   (cdr (assoc key (color-scheme-of self))))
 
-(define-method test-erred ((self <test-ui-text>) test err)
+(define-method test-listener-on-start ((self <test-ui-text>) run-context)
+  #f)
+
+(define-method test-listener-on-start-test-suite ((self <test-ui-text>)
+                                                  run-context
+                                                  test-suite)
+  (output self #`"- (test suite) ,(name-of test-suite)\n" #f :verbose))
+
+(define-method test-listener-on-start-test-case ((self <test-ui-text>)
+                                                 run-context
+                                                 test-case)
+  (output self #`"-- (test case) ,(name-of test-case): " #f :verbose))
+
+(define-method test-listener-on-start-test ((self <test-ui-text>)
+                                            run-context
+                                            test)
+  (set! (succeeded-of self) #t))
+
+(define-method test-listener-on-success ((self <test-ui-text>) run-context test)
+  (output self "." (color self 'success) :progress))
+
+(define-method test-listener-on-pass-assertion ((self <test-ui-text>)
+                                                run-context test)
+  #f)
+
+(define-method test-listener-on-failure ((self <test-ui-text>) run-context test
+                                         message stack-trace)
+  (set! (succeeded-of self) #f)
+  (output self "F" (color self 'failure) :progress)
+  (push! (faults-of self)
+         (list 'failure "Failure" test
+               #`",|message|\n,(error-message #f stack-trace :max-depth 5)"
+               stack-trace)))
+
+(define-method test-listener-on-error ((self <test-ui-text>)
+                                       run-context test err)
   (let ((stack-trace (retrieve-target-stack-trace
                       (cdddr (vm-get-stack-trace-lite)))))
     (set! (succeeded-of self) #f)
@@ -79,32 +116,22 @@
                  (error-message err stack-trace :max-depth 5)
                  stack-trace))))
 
-(define-method test-succeeded ((self <test-ui-text>) test)
-  #f)
-
-(define-method test-failed ((self <test-ui-text>) test message stack-trace)
-  (set! (succeeded-of self) #f)
-  (output self "F" (color self 'failure) :progress)
-  (push! (faults-of self)
-         (list 'failure "Failure" test message stack-trace)))
-
-(define-method test-start ((self <test-ui-text>) test)
-  (set! (succeeded-of self) #t))
-
-(define-method test-finish ((self <test-ui-text>) test)
+(define-method test-listener-on-finish-test ((self <test-ui-text>)
+                                             run-context test)
   (if (succeeded-of self)
     (output self "." (color self 'success) :progress)))
 
-(define-method test-case-start ((self <test-ui-text>) test-case)
-  (output self #`"-- (test case) ,(name-of test-case): " #f :verbose))
+(define-method test-listener-on-finish-test-case ((self <test-ui-text>)
+                                                  run-context
+                                                  test-case)
+  #f)
 
-(define-method test-case-finish ((self <test-ui-text>) test-case)
+(define-method test-listener-on-finish-test-suite ((self <test-ui-text>)
+                                                   run-context
+                                                   test-suite)
   (output self "\n" #f :verbose))
 
-(define-method test-suite-start ((self <test-ui-text>) test-suite)
-  (output self #`"- (test suite) ,(name-of test-suite)\n" #f :verbose))
-
-(define-method test-suite-finish ((self <test-ui-text>) test-suite)
+(define-method test-listener-on-finish ((self <test-ui-text>) run-context)
   (output self "\n")
   (for-each-with-index
    (lambda (i args)
@@ -116,15 +143,16 @@
             i
             args))
    (faults-of self))
-  (output self (format "\nFinished in ~s seconds\n\n"
-                       (operating-time-of test-suite)))
+  (output self (format "\nFinished in ~s seconds: FIXME!!!\n"
+                       (elapsed-of run-context)))
+  (output self "\n")
   (output self
           (format "~s tests, ~s assertions, ~s successes, ~s failures, ~s errors"
-                  (test-number-of test-suite)
-                  (assertion-number-of test-suite)
-                  (success-number-of test-suite)
-                  (failure-number-of test-suite)
-                  (error-number-of test-suite)))
+                  (n-tests-of run-context)
+                  (n-assertions-of run-context)
+                  (n-successes-of run-context)
+                  (n-failures-of run-context)
+                  (n-errors-of run-context)))
   (output self "\n" #f :progress))
 
 (set-default-test-ui! (make <test-ui-text>))
