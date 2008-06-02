@@ -52,9 +52,11 @@ end_point = "http://www.cozmixng.org/~rwiki/rw-soap.rb"
 driver = RWiki::SOAP::Driver.new(end_point)
 
 %w(ja en).each do |lang|
-  %w(README NEWS).each do |target|
-    update_rd(driver, "#{target}.#{lang}")
+  %w(README NEWS Tutorial).each do |target|
+    rd = "#{target}.#{lang}"
+    update_rd(driver, rd) if File.exist?(rd)
   end
 end
+
 
 update_index(driver, prev_version, current_version)
