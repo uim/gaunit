@@ -7,6 +7,8 @@
           n-test-suites-of n-test-cases-of n-tests-of
           n-assertions-of n-successes-of n-failures-of n-errors-of
 
+          test-run-context-status
+
           test-run-context-start
           test-run-context-start-test-suite
           test-run-context-start-test-case
@@ -33,6 +35,11 @@
    (n-successes :accessor n-successes-of :init-value 0)
    (n-failures :accessor n-failures-of :init-value 0)
    (n-errors :accessor n-errors-of :init-value 0)))
+
+(define (test-run-context-status run-context)
+  (cond ((not (zero? (n-errors-of run-context))) 'error)
+        ((not (zero? (n-failures-of run-context))) 'failure)
+        (else 'success)))
 
 (define (notify run-context key . args)
   (let* ((callback-symbol (string->symbol #`"test-listener-on-,key"))

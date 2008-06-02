@@ -152,7 +152,8 @@
                   (n-assertions-of run-context)
                   (n-successes-of run-context)
                   (n-failures-of run-context)
-                  (n-errors-of run-context)))
+                  (n-errors-of run-context))
+          (color self (test-run-context-status run-context)))
   (output self "\n" #f :progress))
 
 (set-default-test-ui! (make <test-ui-text>))
