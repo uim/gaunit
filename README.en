@@ -16,7 +16,7 @@ GPL or BSD License
 
 == Caution
 
-This is for Gauche 0.8.6. This doesn't work on Gauche <= 0.8.3.
+This is for Gauche 0.8.13. This will not work on older Gauche.
 
 == What's this?
 
@@ -48,23 +48,48 @@ English mail is welcome too.
 
 == Install
 
-  # gosh install/install.scm
+  % sudo gosh install/install.scm
 
 == Usage
 
 Make the program that define some tests.
 
+  (define-module test-your-module
+    (extend test.unit.test-case)
+    (use your-module))
+  (select-module test-your-module)
+
+  (define (test-your-module-function1)
+    (assert-equal "Good!" (your-module-function1))
+    ...
+    #f)
+
+  (define (test-your-module-function2)
+    (assert-equal 29 (your-module-function2))
+    ...
+    #f)
+
+  (provide "test-your-module")
+
+Execute the program with '-u test.unit' option. GaUnit
+exports (({main})) procedure that run test in test.unit
+module. So you don't need to define (({main})) procedure if
+you use test.unit.
+
+  % gosh -u test.unit test-your-module.scm
+
+It's better that you create a test runner script,
+run-test.scm:
+  (add-load-path ".")
+
   (use test.unit)
 
-  (define-test-suite ...)
-  or
-  (define-test-case ...)
+  (define base-dir (sys-dirname *program-name*))
+  (for-each load (glob #`",|base-dir|/**/test-*.scm"))
 
-Execute the program. GaUnit exports (({main})) procedure
-that run test. So, you don't need define (({main}))
-procedure.
+You can run the script like the following:
 
-  % gosh test-program.scm
+  % gosh run-test.scm
 
 === Options
 
@@ -78,6 +103,8 @@ procedure.
       GaUnit uses text version user interface. It is default.
 
    : g[tk]
+      ((*NOT WORK FOR NOW*))
+
       GaUnit users GTK+ version user interface. It has
       following key bindings. Those bindings ignore prefix
       like Ctrl, Alt and so on. So you can use l, Ctrl + l

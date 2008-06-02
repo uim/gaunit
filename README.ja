@@ -14,7 +14,7 @@ GPL or BSD License
 
 == 注意
 
-Gauche 0.8.6用です．Gauche 0.8.3以前では動きません．
+Gauche 0.8.13用です。それより前で動くかどうかはわかりません。
 
 == なにこれ？
 
@@ -41,24 +41,50 @@ GaUnitはGaucheで実装されたUnit Testing Frameworkです．おまけ
 
 == インストール
 
-  # gosh install/install.scm
+  % sudo gosh install/install.scm
 
 == 使い方
 
-テストを定義したプログラムを用意します．
+テスト用のモジュールを定義したプログラムを用意します．
+
+  (define-module test-your-module
+    (extend test.unit.test-case)
+    (use your-module))
+  (select-module test-your-module)
+
+  (define (test-your-module-function1)
+    (assert-equal "Good!" (your-module-function1))
+    ...
+    #f)
+
+  (define (test-your-module-function2)
+    (assert-equal 29 (your-module-function2))
+    ...
+    #f)
+
+  (provide "test-your-module")
+
+'-u test.unit'オプション付きでプログラムを実行します。GaUnit
+はtest.unitモジュールでテストを走らせる(({main}))手続きを提供
+しています。test.unitをuseすれば、(({main}))手続きを定義する
+必要はありません。
+
+  % gosh -u test.unit test-your-module.scm
+
+しかし、今後のために以下のようなテスト起動スクリプト
+run-test.scmを作成するとよいでしょう。
+
+run-test.scm:
+  (add-load-path ".")
 
   (use test.unit)
 
-  (define-test-suite ...)
-  とか
-  (define-test-case ...)
-  とか
+  (define base-dir (sys-dirname *program-name*))
+  (for-each load (glob #`",|base-dir|/**/test-*.scm"))
 
-プログラムを実行します．GaUnitはテストを走らせる(({main}))手
-続きを提供しているので，(({main}))手続きを定義する必要はあり
-ません．
+以下のように実行します。
 
-  % gosh test-program.scm
+  % gosh run-test.scm
 
 === オプション
 
@@ -74,6 +100,8 @@ GaUnitが提供している(({main}))手続きはいくつかオプションを受
       トです．
 
    : g[tk]
+      ((*今は動きません。*))
+
       GTK+版のユーザインタフェースを使用します．以下のように
       キーバインドされています．これらのキーはCtrlやAltなど
       の修飾キーが付いていても動作します．つまり，lでもCtrl
@@ -264,6 +292,7 @@ GaUnitは以下の手続きを用意しています．
     ((|define-test-case|)), ((|define-test-suite|))で定義されたテストを
     実行します．
     
+
 GaUnitは以下の構文を用意しています．
 
 --- define-test-case

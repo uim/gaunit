@@ -11,7 +11,7 @@
 
 (define (main args)
   (define default-ui (cons <test-ui-text> "text"))
-  (define default-verbose (cons :normal "normal"))
+  (define default-verbose (cons 'normal "normal"))
   (define (usage)
     (print #`"Usage:")
     (print #`"  ,(car args) [OPTIONS]")
