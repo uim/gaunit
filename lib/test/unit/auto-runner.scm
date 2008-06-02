@@ -85,7 +85,7 @@
        #//
        #//
        #//)
-     (run-all-test :run-context (let ((run-context (make <test-run-context>)))
+     (test-run-all :run-context (let ((run-context (make <test-run-context>)))
                                   (push! (listeners-of run-context)
                                          (make ui :verbose verbose))
                                   run-context)

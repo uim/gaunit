@@ -7,13 +7,13 @@
 
 (define (run-test test)
   (let ((run-context (make <test-run-context>)))
-    (run test :run-context run-context)
+    (test-run test :run-context run-context)
     run-context))
 
 (define (run-test-with-ui test)
   (let ((run-context (make <test-run-context>)))
     (push! (listeners-of run-context) (make <test-ui-text>))
-    (run test :run-context run-context)))
+    (test-run test :run-context run-context)))
 
 (define (assert-run-context n-test-suites n-test-cases n-tests
                             n-assertions n-successes n-failures n-errors

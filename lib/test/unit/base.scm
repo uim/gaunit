@@ -13,7 +13,7 @@
           <test> <test-case> <test-suite>
           make-test make-test-case make-test-suite
           define-test-suite define-test-case
-          run run-all-test
+          test-run test-run-all
           reset-test-suites soft-reset-test-suites
           set-default-test-ui!
           name-of elapsed-of |setter of elapsed-of|
@@ -159,7 +159,7 @@
     (push! (listeners-of run-context) (default-test-ui))
     run-context))
 
-(define (run-all-test . options)
+(define (test-run-all . options)
   (unless *default-test-suite*
     (eval '(use test.unit.ui.text) (current-module)))
   (for-each (lambda (test-case)
@@ -173,11 +173,11 @@
     (let ((success (fold (lambda (suite prev-success)
                            (and (if (and (not (null? (test-cases-of suite)))
                                          (not (ran? suite)))
-                                  (run suite
-                                       :run-context run-context
-                                       :test-suite-regexp test-suite-regexp
-                                       :test-case-regexp test-case-regexp
-                                       :test-regexp test-regexp))
+                                  (test-run suite
+                                            :run-context run-context
+                                            :test-suite-regexp test-suite-regexp
+                                            :test-case-regexp test-case-regexp
+                                            :test-regexp test-regexp))
                                 prev-success))
                          #t
                          (reverse *test-suites*))))
@@ -275,7 +275,7 @@
   (for-each apply-empty-argument-procedure (teardown-procedures-of self)))
 
 (use gauche.interactive)
-(define-method run ((self <test-suite>) . options)
+(define-method test-run ((self <test-suite>) . options)
   (let-keywords* options ((run-context (make <test-run-context>))
                           (test-suite-regexp #//)
                           (test-case-regexp #//)
@@ -286,10 +286,10 @@
         (with-time-counter counter
                            (for-each
                             (lambda (test-case)
-                              (run test-case
-                                   :run-context run-context
-                                   :test-case-regexp test-case-regexp
-                                   :test-regexp test-regexp))
+                              (test-run test-case
+                                        :run-context run-context
+                                        :test-case-regexp test-case-regexp
+                                        :test-regexp test-regexp))
                             (test-cases-of self))))
       (set-ran! self #t)
       (test-run-context-finish-test-suite run-context self))))
@@ -314,9 +314,9 @@
                             (test-handle-exception test-case test run-context e)
                             #f))
                         (setup-proc)
-                        (run test
-                             :run-context run-context
-                             :test-regexp test-regexp)
+                        (test-run test
+                                  :run-context run-context
+                                  :test-regexp test-regexp)
                         #t)))
     (guard (e (else
                (test-run-context-error run-context e)
@@ -324,7 +324,7 @@
            (teardown-proc)
            success)))
 
-(define-method run ((self <test-case>) . options)
+(define-method test-run ((self <test-case>) . options)
   (let-keywords* options ((run-context (make <test-run-context>))
                           (test-case-regexp #//)
                           (test-regexp #//))
@@ -344,7 +344,7 @@
 (define-method test-handle-exception ((self <test>) run-context e)
   (test-run-context-error run-context self e))
 
-(define-method run ((self <test>) . options)
+(define-method test-run ((self <test>) . options)
   (let-keywords* options ((run-context (make <test-run-context>))
                           (test-regexp #//))
     (when (rxmatch test-regexp (name-of self))

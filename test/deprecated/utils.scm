@@ -8,7 +8,7 @@
                                            n-errors)
   (let ((run-context (make <test-run-context>)))
     (parameterize ((count-assertion #t))
-      (run test-case :run-context run-context))
+      (test-run test-case :run-context run-context))
     (assert-equal n-tests (n-tests-of run-context)
                   (make-number-of-message-handler n-tests "test"))
     (assert-equal n-assertions (n-assertions-of run-context)
