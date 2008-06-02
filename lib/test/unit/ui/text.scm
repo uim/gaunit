@@ -151,7 +151,7 @@
               (output-error-line self stack-trace))
             i
             args))
-   (faults-of self))
+   (reverse (faults-of self)))
   (output self "\n" #f 'verbose)
   (output self (format "Finished in ~s seconds\n"
                        (elapsed-of run-context)))
