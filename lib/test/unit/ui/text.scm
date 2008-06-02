@@ -24,7 +24,7 @@
 (define (guess-color-availability)
   (cond ((not (sys-isatty (current-output-port))) #f)
         ((and-let* ((term (sys-getenv "TERM"))
-                    ((or (#/term\z/ term)
+                    ((or (#/term$/ term)
                          (equal? term "screen")))))
          #t)
         ((equal? (sys-getenv "EMACS") "t") #t)
