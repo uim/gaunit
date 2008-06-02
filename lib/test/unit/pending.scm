@@ -2,6 +2,7 @@
   (extend test.unit.common)
   (use test.unit.base)
   (use test.unit.run-context)
+  (use test.unit.assertions)
   (export pend))
 (select-module test.unit.pending)
 
@@ -16,8 +17,14 @@
 (define (pending? obj)
   (is-a? obj <test-pending>))
 
-(define (pend message)
-  (raise (make <test-pending> :message message)))
+(define (pend message . options)
+  (let-optionals* options ((thunk #f))
+    (if thunk
+      (begin
+        (guard (e (else (raise (make <test-pending> :message message))))
+               (thunk))
+        (fail #`"Pending thunk should not be passed: ,message"))
+      (raise (make <test-pending> :message message)))))
 
 (define-method test-handle-exception ((test <test>)
                                       run-context (e <test-pending>))

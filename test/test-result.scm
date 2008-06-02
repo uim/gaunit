@@ -25,10 +25,15 @@
                            (assert-equal #f #t)
                            (assert-equal #f #t)
                            (assert-equal (1))))
-                         ("test-case3: 1 test result"
-                          ("1 passes, 1 pendings"
+                         ("test-case3: 3 test result"
+                          ("1 pass, 1 pending"
                            (assert-equal 1 1)
-                           (pend "not work yet")))))
+                           (pend "not work yet"))
+                          ("1 failure"
+                           (pend "not work yet" (lambda () "nothing raised")))
+                          ("1 pending"
+                           (pend "not work yet"
+                                 (lambda () (error "not implemented")))))))
 
   (set! test-case
         (make-test-case "Error test"
@@ -49,10 +54,17 @@
    (cadr (%test-cases-of test-suite)))
   #f)
 
+(define (test-pending-result)
+  (assert-run-result
+   0 1 3
+   1 0 2 1 0
+   (caddr (%test-cases-of test-suite)))
+  #f)
+
 (define (test-suite-result)
   (assert-run-result
-   1 3 4
-   3 0 1 2 1
+   1 3 6
+   3 0 2 3 1
    test-suite)
   #f)
 
