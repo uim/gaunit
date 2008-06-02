@@ -31,6 +31,7 @@
   (test-run-context-pending run-context
                             test
                             (message-of e)
-                            (stack-trace-of e)))
+                            (stack-trace-of e))
+  #t)
 
 (provide "test/unit/pending")

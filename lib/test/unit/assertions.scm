@@ -69,7 +69,8 @@
   (test-run-context-failure run-context
                             test
                             (failure-message-of e)
-                            (stack-trace-of e)))
+                            (stack-trace-of e))
+  #f)
 
 (define-macro (define-assertion name&args . body)
   `(begin

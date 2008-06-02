@@ -5,6 +5,7 @@
 (select-module test.test-result)
 
 (define %test-cases-of (with-module test.unit.base test-cases-of))
+(define %tests-of (with-module test.unit.base tests-of))
 
 (define test-suite #f)
 (define test-case #f)
@@ -40,7 +41,7 @@
                         ("Error occurred"
                          (assert-equal (1))))))
 
-(define (test-success-failure-result)
+(define (test-success-failure-test-case-result)
   (assert-run-result
    #f
    0 1 1
@@ -48,7 +49,7 @@
    (car (%test-cases-of test-suite)))
   #f)
 
-(define (test-success-error-result)
+(define (test-success-error-test-case-result)
   (assert-run-result
    #f
    0 1 2
@@ -56,12 +57,20 @@
    (cadr (%test-cases-of test-suite)))
   #f)
 
-(define (test-pending-result)
+(define (test-pending-test-case-result)
   (assert-run-result
    #f
    0 1 3
    1 0 2 1 0
    (caddr (%test-cases-of test-suite)))
+  #f)
+
+(define (test-pending-test-result)
+  (assert-run-result
+   #t
+   0 0 1
+   1 0 1 0 0
+   (car (%tests-of (caddr (%test-cases-of test-suite)))))
   #f)
 
 (define (test-suite-result)

@@ -315,13 +315,14 @@
 
 (define-method test-handle-exception ((self <test-case>) (test <test>)
                                       run-context e)
-  (test-run-context-error run-context test e))
+  (test-run-context-error run-context test e)
+  #f)
 
 (define (run-test test-case run-context test test-regexp
                   setup-proc teardown-proc)
   (let ((success (guard (e (else
-                            (test-handle-exception test-case test run-context e)
-                            #f))
+                            (test-handle-exception test-case test
+                                                   run-context e)))
                         (setup-proc)
                         (test-run test
                                   :run-context run-context
@@ -359,8 +360,7 @@
       (let ((counter (make <real-time-counter>)))
         (test-run-context-start-test run-context self)
         (let ((success (guard (e (else
-                                  (test-handle-exception self run-context e)
-                                  #f))
+                                  (test-handle-exception self run-context e)))
                               (parameterize ((test-run-context run-context)
                                              (current-test self))
                                 (with-time-counter counter ((thunk-of self))))
