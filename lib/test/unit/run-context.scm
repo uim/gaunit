@@ -3,7 +3,7 @@
   (use test.unit.listener)
   (export <test-run-context>
           listeners-of
-          elapsed-of |setter of elapsed-of|
+          elapsed-of |setter of elapsed-of| faults-of |setter of faults-of|
           n-test-suites-of n-test-cases-of n-tests-of
           n-assertions-of n-successes-of n-failures-of n-errors-of
 
@@ -28,6 +28,7 @@
 (define-class <test-run-context> ()
   ((listeners :accessor listeners-of :init-form '())
    (elapsed :accessor elapsed-of :init-value 0)
+   (faults-of :accessor faults-of :init-form '())
    (n-test-suites :accessor n-test-suites-of :init-value 0)
    (n-test-cases :accessor n-test-cases-of :init-value 0)
    (n-tests :accessor n-tests-of :init-value 0)
@@ -71,10 +72,12 @@
 
 (define (test-run-context-failure run-context test message stack-trace)
   (inc! (n-failures-of run-context))
+  (push! (faults-of run-context) (list 'failure test message stack-trace))
   (notify run-context 'failure test message stack-trace))
 
 (define (test-run-context-error run-context test error)
   (inc! (n-errors-of run-context))
+  (push! (faults-of run-context) (list 'error test error))
   (notify run-context 'error test error))
 
 (define (test-run-context-finish-test run-context test)

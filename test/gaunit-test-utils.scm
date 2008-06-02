@@ -31,7 +31,8 @@
                   (n-assertions . ,(n-assertions-of run-context))
                   (n-successes . ,(n-successes-of run-context))
                   (n-failures . ,(n-failures-of run-context))
-                  (n-errors . ,(n-errors-of run-context)))))
+                  (n-errors . ,(n-errors-of run-context))))
+  run-context)
 
 (define (assert-run-result n-test-suites n-test-cases n-tests
                            n-assertions n-successes n-failures n-errors

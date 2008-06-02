@@ -1,6 +1,7 @@
 (define-module test.test-assertions
   (extend test.unit.test-case)
   (use test.unit.base)
+  (use test.unit.run-context)
   (use test.gaunit-test-utils))
 (select-module test.test-assertions)
 
@@ -20,15 +21,24 @@
   #f)
 
 (define (test-assert-equal)
-  (assert-run-result
-   0 1 2
-   2 1 1 0
-   (make-test-case "Test assert-equal"
-                   ("assert-equal success"
-                    (assert-equal 3 3)
-                    (assert-equal 5 5))
-                   ("assert-equal fail"
-                    (assert-equal 1 -1))))
+  (let* ((run-context (assert-run-result
+                       0 1 2
+                       2 1 1 0
+                       (make-test-case "Test assert-equal"
+                                       ("assert-equal success"
+                                        (assert-equal 3 3)
+                                        (assert-equal 5 5))
+                                       ("assert-equal fail"
+                                        (assert-equal 1 -1)))))
+         (failure (car (faults-of run-context))))
+    (assert-equal `(failure
+                    "assert-equal fail"
+                    ,(string-append
+                      "expected: <1>\n"
+                      " but was: <-1>"))
+                  `(,(car failure)
+                    ,(name-of (cadr failure))
+                    ,(caddr failure))))
   #f)
 
 (define (test-assert-not-equal)
