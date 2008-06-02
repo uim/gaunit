@@ -319,7 +319,7 @@
                                   :test-regexp test-regexp)
                         #t)))
     (guard (e (else
-               (test-run-context-error run-context e)
+               (test-run-context-error run-context test e)
                #f))
            (teardown-proc)
            success)))
