@@ -317,25 +317,12 @@ run-test.elを使うための設定例です．
 
   #!/usr/bin/env gosh
 
-  (use file.util)
+  (add-load-path ".")
+
   (use test.unit)
 
-  (if (symbol-bound? 'main)
-      (define _main main))
-
-  (define (main args)
-    (let ((dir (sys-dirname (car args))))
-      (for-each (lambda (test-script)
-                  (print "loading " (string-join
-                                     (list dir test-script)
-                                     "/"))
-                  (load (string-join (list dir test-script) "/")))
-                (directory-list dir
-                                :filter (lambda (x)
-                                          (rxmatch #/^test-.+\.scm/ x))))
-      (if (symbol-bound? '_main)
-          (_main args)
-          (run-all-test))))
+  (define base-dir (sys-dirname *program-name*))
+  (for-each load (glob #`",|base-dir|/**/test-*.scm"))
 
 
 で，testというディレクトリを作って，このrun-test.shあるいは
@@ -378,13 +365,14 @@ C-cT(run-test-in-new-frame)とやると，新しくフレームを作成し
 
 ==== カスタマイズ変数
 
-: run-test-file
-   テストを実行するスクリプトの拡張子を除いたファイル名です．
+: run-test-file-names
+   テストを実行するスクリプトの拡張子を除いたファイル名のリ
+   ストです．
    
-   デフォルト: "test/run-test"
+   デフォルト: ("test/run-test" "test/runner" "run-test")
 
 : run-test-suffixes
    run-test-fileに付加する拡張子のリストです．先頭の方にある拡張子程
    優先されます．
    
-   デフォルト: (".scm" ".rb" ".sh")
+   デフォルト: (".scm" ".rb" ".py" ".sh")

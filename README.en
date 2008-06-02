@@ -301,26 +301,16 @@ Write following code in your .emacs.
   (setq load-path (cons directory-which-has-run-test{,-setting}.el load-path))
   (load "run-test-setting")
 
-Write run-test.scm which run test like below. 
+Write run-test.scm which run test like the below:
 
   #!/usr/bin/env gosh
 
-  (use file.util)
+  (add-load-path ".")
+
   (use test.unit)
 
-  (if (symbol-bound? 'main)
-      (define _main main))
-
-  (define (main args)
-    (let ((dir (sys-dirname (car args))))
-      (for-each (lambda (test-script)
-                  (load (string-join (list dir test-script) "/")))
-                (directory-list dir
-                                :filter (lambda (x)
-                                          (rxmatch #/^test-.+\.scm/ x))))
-      (if (symbol-bound? '_main)
-          (_main args)
-          (run-all-test))))
+  (define base-dir (sys-dirname *program-name*))
+  (for-each load (glob #`",|base-dir|/**/test-*.scm"))
 
 
 Make a directory whose name is `test' and move run-test.scm to
@@ -361,13 +351,13 @@ Happy testing!!
 
 ==== Customize variables
 
-: run-test-file
-   Is is base name of file that runs test.
+: run-test-file-names
+   Is is a list of base name of file that runs test.
    
-   default: "test/run-test"
+   default: ("test/run-test" "test/runner" "run-test")
 
 : run-test-suffixes
    It is a list of suffix that is added to
-   ((|run-test-file|)). 
+   ((|run-test-file|)).
    
-   default: (".scm" ".rb" ".sh")
+   default: (".scm" ".rb" ".py" ".sh")
