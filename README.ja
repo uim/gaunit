@@ -75,6 +75,8 @@ GaUnitはGaucheで実装されたUnit Testing Frameworkです．おまけ
 run-test.scmを作成するとよいでしょう。
 
 run-test.scm:
+  #!/usr/bin/env gosh
+
   (add-load-path ".")
 
   (use test.unit)

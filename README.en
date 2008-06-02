@@ -80,6 +80,8 @@ you use test.unit.
 
 It's better that you create a test runner script,
 run-test.scm:
+  #!/usr/bin/env gosh
+
   (add-load-path ".")
 
   (use test.unit)
