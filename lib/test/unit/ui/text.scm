@@ -143,7 +143,7 @@
             i
             args))
    (faults-of self))
-  (output self (format "\nFinished in ~s seconds: FIXME!!!\n"
+  (output self (format "\nFinished in ~s seconds\n"
                        (elapsed-of run-context)))
   (output self "\n")
   (output self

@@ -16,7 +16,7 @@
           run run-all-test
           reset-test-suites soft-reset-test-suites
           set-default-test-ui!
-          name-of operating-time-of
+          name-of elapsed-of |setter of elapsed-of|
 
           test-handle-exception
 
@@ -43,7 +43,7 @@
 (define-class <test> (<collection>)
   ((name :accessor name-of :init-keyword :name)
    (thunk :accessor thunk-of :init-keyword :thunk :init-value (lambda () #f))
-   (operating-time :accessor operating-time-of :init-value 0)))
+   (elapsed :accessor elapsed-of :init-value 0)))
 
 (define-method call-with-iterator ((self <test>) proc . args)
   (apply call-with-iterator (thunk-of self) proc args))
@@ -358,18 +358,18 @@
                                 (with-time-counter counter ((thunk-of self))))
                               (test-run-context-success run-context self)
                               #t)))
-          (set! (operating-time-of self) (time-counter-value counter))
+          (set! (elapsed-of self) (time-counter-value counter))
           (test-run-context-finish-test run-context self)
           success)))))
 
 
-(define-method operating-time-of ((self <test-suite>))
+(define-method elapsed-of ((self <test-suite>))
   (fold + 0
-        (map operating-time-of (test-cases-of self))))
+        (map elapsed-of (test-cases-of self))))
 
-(define-method operating-time-of ((self <test-case>))
+(define-method elapsed-of ((self <test-case>))
   (fold + 0
-        (map operating-time-of (tests-of self))))
+        (map elapsed-of (tests-of self))))
 
 
 (provide "test/unit/base")

@@ -3,7 +3,7 @@
   (use test.unit.listener)
   (export <test-run-context>
           listeners-of
-          elapsed-of
+          elapsed-of |setter of elapsed-of|
           n-test-suites-of n-test-cases-of n-tests-of
           n-assertions-of n-successes-of n-failures-of n-errors-of
 
@@ -72,6 +72,7 @@
 
 (define (test-run-context-finish-test run-context test)
   (inc! (n-tests-of run-context))
+  (set! (elapsed-of run-context) (+ (elapsed-of run-context) (elapsed-of test)))
   (notify run-context 'finish-test test))
 
 (define (test-run-context-finish-test-case run-context test-case)
