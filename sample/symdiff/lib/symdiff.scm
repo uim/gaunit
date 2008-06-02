@@ -29,8 +29,8 @@
                       (multiplicand exp2))
                 equal?))))
 
-  (cond ((=number? exp1 0) exp2)
-        ((=number? exp2 0) exp1)
+  (cond ((number=? exp1 0) exp2)
+        ((number=? exp2 0) exp1)
         ((and (number? exp1) (number? exp2))
          (+ exp1 exp2))
         ((same-variable? exp1 exp2)
@@ -49,7 +49,6 @@
                  (list '+ exp1 exp2)))
              (list '+ exp1 exp2))))))
 
-
 (define (sum? exp)
   (and (pair? exp) (eq? '+ (car exp))))
 
@@ -60,9 +59,9 @@
   (caddr sum))
 
 (define (make-product exp1 exp2)
-  (cond ((=number? exp1 1) exp2)
-        ((=number? exp2 1) exp1)
-        ((or (=number? exp1 0) (=number? exp2 0)) 0)
+  (cond ((number=? exp1 1) exp2)
+        ((number=? exp2 1) exp1)
+        ((or (number=? exp1 0) (number=? exp2 0)) 0)
         ((and (number? exp1) (number? exp2))
          (* exp1 exp2))
         (else
@@ -91,6 +90,7 @@
                           (list (* num mulcand mulier))))))
              (list '* exp1 exp2))))))
 
+
 (define (product? exp)
   (and (pair? exp) (eq? '* (car exp))))
 
@@ -108,7 +108,7 @@
 (define (variable? exp)
   (symbol? exp))
 
-(define (=number? exp1 exp2)
+(define (number=? exp1 exp2)
   (and (number? exp1)
        (number? exp2)
        (= exp1 exp2)))
