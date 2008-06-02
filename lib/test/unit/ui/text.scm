@@ -33,7 +33,7 @@
 (define-class <test-ui-text> (<test-ui-base>)
   ((succeeded :accessor succeeded-of)
    (verbose :accessor verbose-of :init-keyword :verbose
-            :init-value :normal)
+            :init-value 'normal)
    (faults :accessor faults-of :init-form '())
    (use-color :accessor use-color-of :init-keyword :use-color
               :init-thunk guess-color-availability)
@@ -44,10 +44,10 @@
 
 (define *verbose-level* (make-hash-table 'eq?))
 
-(hash-table-put! *verbose-level* :silent 0)
-(hash-table-put! *verbose-level* :progress 1)
-(hash-table-put! *verbose-level* :normal 2)
-(hash-table-put! *verbose-level* :verbose 3)
+(hash-table-put! *verbose-level* 'silent 0)
+(hash-table-put! *verbose-level* 'progress 1)
+(hash-table-put! *verbose-level* 'normal 2)
+(hash-table-put! *verbose-level* 'verbose 3)
 
 (define (level>=? l1 l2)
   (>= (hash-table-get *verbose-level* l1)
@@ -55,7 +55,7 @@
 
 (define-method output ((self <test-ui-text>) message . options)
   (let-optionals* options ((color #f)
-                           (level :normal))
+                           (level 'normal))
     (if (level>=? (verbose-of self) level)
       (let ((message (if (and (use-color-of self) color)
                        (string-append (escape-sequence-of color)
@@ -77,12 +77,12 @@
 (define-method test-listener-on-start-test-suite ((self <test-ui-text>)
                                                   run-context
                                                   test-suite)
-  (output self #`"- (test suite) ,(name-of test-suite)\n" #f :verbose))
+  (output self #`"- (test suite) ,(name-of test-suite)\n" #f 'verbose))
 
 (define-method test-listener-on-start-test-case ((self <test-ui-text>)
                                                  run-context
                                                  test-case)
-  (output self #`"-- (test case) ,(name-of test-case): " #f :verbose))
+  (output self #`"-- (test case) ,(name-of test-case): " #f 'verbose))
 
 (define-method test-listener-on-start-test ((self <test-ui-text>)
                                             run-context
@@ -90,7 +90,7 @@
   (set! (succeeded-of self) #t))
 
 (define-method test-listener-on-success ((self <test-ui-text>) run-context test)
-  (output self "." (color self 'success) :progress))
+  (output self "." (color self 'success) 'progress))
 
 (define-method test-listener-on-pass-assertion ((self <test-ui-text>)
                                                 run-context test)
@@ -99,7 +99,7 @@
 (define-method test-listener-on-failure ((self <test-ui-text>) run-context test
                                          message stack-trace)
   (set! (succeeded-of self) #f)
-  (output self "F" (color self 'failure) :progress)
+  (output self "F" (color self 'failure) 'progress)
   (push! (faults-of self)
          (list 'failure "Failure" test
                #`",|message|\n,(error-message #f stack-trace :max-depth 5)"
@@ -110,7 +110,7 @@
   (let ((stack-trace (retrieve-target-stack-trace
                       (cdddr (vm-get-stack-trace-lite)))))
     (set! (succeeded-of self) #f)
-    (output self "E" (color self 'error) :progress)
+    (output self "E" (color self 'error) 'progress)
     (push! (faults-of self)
            (list 'error "Error" test
                  (error-message err stack-trace :max-depth 5)
@@ -119,7 +119,7 @@
 (define-method test-listener-on-finish-test ((self <test-ui-text>)
                                              run-context test)
   (if (succeeded-of self)
-    (output self "." (color self 'success) :progress)))
+    (output self "." (color self 'success) 'progress)))
 
 (define-method test-listener-on-finish-test-case ((self <test-ui-text>)
                                                   run-context
@@ -129,7 +129,7 @@
 (define-method test-listener-on-finish-test-suite ((self <test-ui-text>)
                                                    run-context
                                                    test-suite)
-  (output self "\n" #f :verbose))
+  (output self "\n" #f 'verbose))
 
 (define-method test-listener-on-finish ((self <test-ui-text>) run-context)
   (output self "\n")
@@ -163,7 +163,7 @@
                   (* 100.0
                      (/ (n-successes-of run-context) (n-tests-of run-context))))
           (color self (test-run-context-status run-context)))
-  (output self "\n" #f :progress))
+  (output self "\n" #f 'progress))
 
 (set-default-test-ui! (make <test-ui-text>))
 
