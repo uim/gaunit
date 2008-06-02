@@ -137,7 +137,10 @@
    (lambda (i args)
      (apply (lambda (i type label test message stack-trace)
               (output self "\n")
-              (output self (format "~3d) ~a\n" (+ i 1) (name-of test)))
+              (output self (format "~3d) " (+ i 1)))
+              (output self
+                      (format "~a: ~a\n" type (name-of test))
+                      (color self type))
               (output self #`",message\n")
               (output-error-line self stack-trace))
             i
@@ -147,12 +150,18 @@
                        (elapsed-of run-context)))
   (output self "\n")
   (output self
-          (format "~s tests, ~s assertions, ~s successes, ~s failures, ~s errors"
+          (format (string-append
+                   "~s tests, ~s assertions, ~s successes, "
+                   "~s failures, ~s errors"
+                   "\n"
+                   "~s% passed")
                   (n-tests-of run-context)
                   (n-assertions-of run-context)
                   (n-successes-of run-context)
                   (n-failures-of run-context)
-                  (n-errors-of run-context))
+                  (n-errors-of run-context)
+                  (* 100.0
+                     (/ (n-successes-of run-context) (n-tests-of run-context))))
           (color self (test-run-context-status run-context)))
   (output self "\n" #f :progress))
 
