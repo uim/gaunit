@@ -1,11 +1,15 @@
 (define-module test.unit.assertions
   (extend test.unit.common)
   (use srfi-1)
+  (use text.diff)
+  (use slib)
   (use test.unit.base)
   (use test.unit.run-context)
   (use gauche.parameter)
   (export define-assertion))
 (select-module test.unit.assertions)
+
+(require 'pretty-print)
 
 (define-class <assertion-failure> ()
   ((failure-message :accessor failure-message-of
@@ -38,14 +42,27 @@
         (message actual)
         message)))
 
+(define (format-diff from to)
+  (let* ((from (with-output-to-string (lambda () (pretty-print from))))
+         (to (with-output-to-string (lambda () (pretty-print to)))))
+    (with-output-to-string
+      (lambda ()
+        (diff-report from to)))))
+
 (define (make-message-handler expected . keywords)
   (let-keywords* keywords ((after-expected "")
                            (after-actual ""))
     (lambda (actual)
       (format #f
-              "expected: <~s>~a\n but was: <~s>~a"
+              (string-append
+               "expected: <~s>~a\n"
+               " but was: <~s>~a\n"
+               "\n"
+               "diff:\n"
+               "~a")
               expected after-expected
-              actual after-actual))))
+              actual after-actual
+              (regexp-replace #/\s*$/ (format-diff expected actual) "")))))
 
 (define-method test-handle-exception ((test <test>)
                                       run-context (e <assertion-failure>))

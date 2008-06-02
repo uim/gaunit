@@ -35,7 +35,11 @@
                     "assert-equal fail"
                     ,(string-append
                       "expected: <1>\n"
-                      " but was: <-1>"))
+                      " but was: <-1>\n"
+                      "\n"
+                      "diff:\n"
+                      "- 1\n"
+                      "+ -1"))
                   `(,(car failure)
                     ,(name-of (cadr failure))
                     ,(caddr failure))))
