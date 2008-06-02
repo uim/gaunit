@@ -2,21 +2,7 @@
 
 (add-load-path "./lib")
 
-(use gauche.interactive)
-(use file.util)
 (use test.unit)
 
-(if (and (symbol-bound? 'main)
-         (not (symbol-bound? '_main)))
-  (define _main main))
-
-(define (main args)
-  (let ((dir (sys-dirname (car args))))
-    (for-each (lambda (test-script)
-                (load (string-join (list dir test-script) "/")))
-              (directory-list dir
-                              :filter (lambda (x)
-                                        (rxmatch #/^test-.+\.scm$/ x))))
-    (if (symbol-bound? '_main)
-      (_main `(,(car args) "-vp" ,@(cdr args)))
-      (run-all-test))))
+(define base-dir (sys-dirname *program-name*))
+(for-each load (glob #`",|base-dir|/**/test-*.scm"))
