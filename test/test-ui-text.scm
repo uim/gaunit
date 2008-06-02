@@ -7,11 +7,16 @@
 (define empty-test-suite #f)
 (define empty-test-case #f)
 (define empty-test #f)
+(define pending-test #f)
 
 (define (setup)
   (set! empty-test-suite (make <test-suite> :name "empty test suite"))
   (set! empty-test-case (make <test-case> :name "empty test case"))
-  (set! empty-test (make <test> :name "empty test")))
+  (set! empty-test (make <test> :name "empty test"))
+
+  (set! pending-test (make <test>
+                       :name "pending test"
+                       :thunk (lambda () (pend "not implemented yet")))))
 
 (define (test-empty-test-suite)
   (assert-output ""
@@ -47,6 +52,18 @@
   (assert-output "--- (test) empty test: .\n"
                  (lambda ()
                    (run-test-with-ui empty-test :verbose 'verbose)))
+  #f)
+
+(define (test-pending-test)
+  (assert-output ""
+                 (lambda ()
+                   (run-test-with-ui pending-test :verbose 'silent)))
+  (assert-output "P"
+                 (lambda ()
+                   (run-test-with-ui pending-test)))
+  (assert-output "--- (test) pending test: P\n"
+                 (lambda ()
+                   (run-test-with-ui pending-test :verbose 'verbose)))
   #f)
 
 (provide "test/test-base")

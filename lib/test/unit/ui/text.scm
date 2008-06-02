@@ -95,6 +95,14 @@
                                                 run-context test)
   #f)
 
+(define-method test-listener-on-pending ((self <test-ui-text>) run-context test
+                                         message stack-trace)
+  (output self "P" (color self 'pending) 'progress)
+  (push! (faults-of self)
+         (list 'pending "Pending" test
+               #`",|message|\n,(error-message #f stack-trace :max-depth 3)"
+               stack-trace)))
+
 (define-method test-listener-on-failure ((self <test-ui-text>) run-context test
                                          message stack-trace)
   (output self "F" (color self 'failure) 'progress)
@@ -128,13 +136,16 @@
   #f)
 
 (define-method test-listener-on-finish ((self <test-ui-text>) run-context)
-  (output self "\n\n")
+  (if (eq? 'verbose (verbose-of self))
+    (unless (null? (faults-of self))
+      (output self "\n"))
+    (output self "\n\n"))
   (for-each-with-index
    (lambda (i args)
      (apply (lambda (i type label test message stack-trace)
               (output self (format "~3d) " (+ i 1)))
               (output self
-                      (format "~a: ~a\n" type (name-of test))
+                      (format "~a: ~a\n" label (name-of test))
                       (color self type))
               (output self #`",message\n\n")
               (output-error-line self stack-trace))
@@ -147,13 +158,14 @@
   (output self "\n")
   (output self
           (format (string-append
-                   "~s tests, ~s assertions, ~s successes, "
-                   "~s failures, ~s errors"
+                   "~s test(s), ~s assertion(s), ~s successe(s), ~s pending(s), "
+                   "~s failure(s), ~s error(s)"
                    "\n"
                    "~s% passed")
                   (n-tests-of run-context)
                   (n-assertions-of run-context)
                   (n-successes-of run-context)
+                  (n-pendings-of run-context)
                   (n-failures-of run-context)
                   (n-errors-of run-context)
                   (if (zero? (n-tests-of run-context))

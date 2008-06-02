@@ -7,6 +7,7 @@
           test-listener-on-start-test
           test-listener-on-pass-assertion
           test-listener-on-success
+          test-listener-on-pending
           test-listener-on-failure
           test-listener-on-error
           test-listener-on-finish-test
@@ -36,6 +37,10 @@
 
 (define-method test-listener-on-success (listener run-context test)
   (error "Not implemented: test-listener-on-success"))
+
+(define-method test-listener-on-pending (listener
+                                         run-context test message stack-trace)
+  (error "Not implemented: test-listener-on-pending"))
 
 (define-method test-listener-on-failure (listener
                                          run-context test message stack-trace)

@@ -5,7 +5,7 @@
           listeners-of
           elapsed-of |setter of elapsed-of| faults-of |setter of faults-of|
           n-test-suites-of n-test-cases-of n-tests-of
-          n-assertions-of n-successes-of n-failures-of n-errors-of
+          n-assertions-of n-successes-of n-pendings-of n-failures-of n-errors-of
 
           test-run-context-status
 
@@ -17,6 +17,7 @@
           test-run-context-pass-assertion
           test-run-context-success
           test-run-context-failure
+          test-run-context-pending
           test-run-context-error
 
           test-run-context-finish-test
@@ -34,12 +35,14 @@
    (n-tests :accessor n-tests-of :init-value 0)
    (n-assertions :accessor n-assertions-of :init-value 0)
    (n-successes :accessor n-successes-of :init-value 0)
+   (n-pendings :accessor n-pendings-of :init-value 0)
    (n-failures :accessor n-failures-of :init-value 0)
    (n-errors :accessor n-errors-of :init-value 0)))
 
 (define (test-run-context-status run-context)
   (cond ((not (zero? (n-errors-of run-context))) 'error)
         ((not (zero? (n-failures-of run-context))) 'failure)
+        ((not (zero? (n-pendings-of run-context))) 'pending)
         (else 'success)))
 
 (define (notify run-context key . args)
@@ -69,6 +72,11 @@
 (define (test-run-context-success run-context test)
   (inc! (n-successes-of run-context))
   (notify run-context 'success test))
+
+(define (test-run-context-pending run-context test message stack-trace)
+  (inc! (n-pendings-of run-context))
+  (push! (faults-of run-context) (list 'pending test message stack-trace))
+  (notify run-context 'pending test message stack-trace))
 
 (define (test-run-context-failure run-context test message stack-trace)
   (inc! (n-failures-of run-context))

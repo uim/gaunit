@@ -24,7 +24,11 @@
                           ("0 passes, 2 failures, 1 errors"
                            (assert-equal #f #t)
                            (assert-equal #f #t)
-                           (assert-equal (1))))))
+                           (assert-equal (1))))
+                         ("test-case3: 1 test result"
+                          ("1 passes, 1 pendings"
+                           (assert-equal 1 1)
+                           (pend "not work yet")))))
 
   (set! test-case
         (make-test-case "Error test"
@@ -34,21 +38,21 @@
 (define (test-success-failure-result)
   (assert-run-result
    0 1 1
-   1 0 1 0
+   1 0 0 1 0
    (car (%test-cases-of test-suite)))
   #f)
 
 (define (test-success-error-result)
   (assert-run-result
    0 1 2
-   1 0 1 1
+   1 0 0 1 1
    (cadr (%test-cases-of test-suite)))
   #f)
 
 (define (test-suite-result)
   (assert-run-result
-   1 2 3
-   2 0 2 1
+   1 3 4
+   3 0 1 2 1
    test-suite)
   #f)
 
