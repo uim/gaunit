@@ -10,9 +10,9 @@
     (test-run test :run-context run-context)
     run-context))
 
-(define (run-test-with-ui test)
+(define (run-test-with-ui test . options)
   (let ((run-context (make <test-run-context>)))
-    (push! (listeners-of run-context) (make <test-ui-text>))
+    (push! (listeners-of run-context) (apply make <test-ui-text> options))
     (test-run test :run-context run-context)))
 
 (define (assert-run-context n-test-suites n-test-cases n-tests

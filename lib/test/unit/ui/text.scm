@@ -31,8 +31,7 @@
         (else #f)))
 
 (define-class <test-ui-text> (<test-ui-base>)
-  ((succeeded :accessor succeeded-of)
-   (verbose :accessor verbose-of :init-keyword :verbose
+  ((verbose :accessor verbose-of :init-keyword :verbose
             :init-value 'normal)
    (faults :accessor faults-of :init-form '())
    (use-color :accessor use-color-of :init-keyword :use-color
@@ -77,17 +76,17 @@
 (define-method test-listener-on-start-test-suite ((self <test-ui-text>)
                                                   run-context
                                                   test-suite)
-  (output self #`"- (test suite) ,(name-of test-suite)\n" #f 'verbose))
+  (output self #`"- (test suite) ,(name-of test-suite):\n" #f 'verbose))
 
 (define-method test-listener-on-start-test-case ((self <test-ui-text>)
                                                  run-context
                                                  test-case)
-  (output self #`"-- (test case) ,(name-of test-case): " #f 'verbose))
+  (output self #`"-- (test case) ,(name-of test-case):\n" #f 'verbose))
 
 (define-method test-listener-on-start-test ((self <test-ui-text>)
                                             run-context
                                             test)
-  (set! (succeeded-of self) #t))
+  (output self #`"--- (test) ,(name-of test): " #f 'verbose))
 
 (define-method test-listener-on-success ((self <test-ui-text>) run-context test)
   (output self "." (color self 'success) 'progress))
@@ -98,7 +97,6 @@
 
 (define-method test-listener-on-failure ((self <test-ui-text>) run-context test
                                          message stack-trace)
-  (set! (succeeded-of self) #f)
   (output self "F" (color self 'failure) 'progress)
   (push! (faults-of self)
          (list 'failure "Failure" test
@@ -109,7 +107,6 @@
                                        run-context test err)
   (let ((stack-trace (retrieve-target-stack-trace
                       (cdddr (vm-get-stack-trace-lite)))))
-    (set! (succeeded-of self) #f)
     (output self "E" (color self 'error) 'progress)
     (push! (faults-of self)
            (list 'error "Error" test
@@ -118,8 +115,7 @@
 
 (define-method test-listener-on-finish-test ((self <test-ui-text>)
                                              run-context test)
-  (if (succeeded-of self)
-    (output self "." (color self 'success) 'progress)))
+  (output self "\n" #f 'verbose))
 
 (define-method test-listener-on-finish-test-case ((self <test-ui-text>)
                                                   run-context
@@ -129,24 +125,24 @@
 (define-method test-listener-on-finish-test-suite ((self <test-ui-text>)
                                                    run-context
                                                    test-suite)
-  (output self "\n" #f 'verbose))
+  #f)
 
 (define-method test-listener-on-finish ((self <test-ui-text>) run-context)
-  (output self "\n")
+  (output self "\n\n")
   (for-each-with-index
    (lambda (i args)
      (apply (lambda (i type label test message stack-trace)
-              (output self "\n")
               (output self (format "~3d) " (+ i 1)))
               (output self
                       (format "~a: ~a\n" type (name-of test))
                       (color self type))
-              (output self #`",message\n")
+              (output self #`",message\n\n")
               (output-error-line self stack-trace))
             i
             args))
    (faults-of self))
-  (output self (format "\nFinished in ~s seconds\n"
+  (output self "\n" #f 'verbose)
+  (output self (format "Finished in ~s seconds\n"
                        (elapsed-of run-context)))
   (output self "\n")
   (output self
