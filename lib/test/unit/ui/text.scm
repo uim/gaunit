@@ -156,8 +156,11 @@
                   (n-successes-of run-context)
                   (n-failures-of run-context)
                   (n-errors-of run-context)
-                  (* 100.0
-                     (/ (n-successes-of run-context) (n-tests-of run-context))))
+                  (if (zero? (n-tests-of run-context))
+                    0
+                    (* 100.0
+                       (/ (n-successes-of run-context)
+                          (n-tests-of run-context)))))
           (color self (test-run-context-status run-context)))
   (output self "\n" #f 'progress))
 
