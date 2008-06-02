@@ -4,48 +4,48 @@
 
 $Id$
 
-== ���
+== 作者
 
 Kouhei Sutou <kou@cozmixng.org>
 
-== �饤����
+== ライセンス
 
 GPL or BSD License
 
-== ����
+== 注意
 
-Gauche 0.8.13�ѤǤ�������������ư�����ɤ����Ϥ狼��ޤ���
+Gauche 0.8.13用です。それより前で動くかどうかはわかりません。
 
-== �ʤˤ��졩
+== なにこれ？
 
-GaUnit��Gauche�Ǽ������줿Unit Testing Framework�Ǥ������ޤ�
-�ǥƥ��Ȥμ¹Ԥ�ٱ礹��Emacs-Lisp���դ��Ƥ��ޤ���
+GaUnitはGaucheで実装されたUnit Testing Frameworkです．おまけ
+でテストの実行を支援するEmacs-Lispが付いています．
 
-Ʊ�ͤΤ�Τ�
+同様のものに
 ((<SchemeUnit|URL:http://schematics.sourceforge.net/schemeunit.html>))
-������ޤ���
+があります．
 
-== �ɤ�ͤ���
+== 読めねぇよ
 
-�֤��ˤäȡפȤ��Ϥɤ��Ǥ��礦��
+「ごにっと」とかはどうでしょう？
 
-== �᡼��󥰥ꥹ��
+== メーリングリスト
 
-((<COZMIXNG RWiki - Ϣ����|URL:http://www.cozmixng.org/~rwiki/?cmd=view;name=%CF%A2%CD%ED%C0%E8>))�������������
+((<COZMIXNG RWiki - 連絡先|URL:http://www.cozmixng.org/~rwiki/?cmd=view;name=%CF%A2%CD%ED%C0%E8>))を御覧下さい．
 
-== ������ˡ
+== 入手方法
 
 ((<URL:http://www.cozmixng.org/~kou/download/gaunit.tar.gz>))
 
   % svn co http://www.cozmixng.org/repos/gauche/gaunit/trunk gaunit
 
-== ���󥹥ȡ���
+== インストール
 
   % sudo gosh install/install.scm
 
-== �Ȥ���
+== 使い方
 
-�ƥ����ѤΥ⥸�塼�����������ץ��������Ѱդ��ޤ���
+テスト用のモジュールを定義したプログラムを用意します．
 
   (define-module test-your-module
     (extend test.unit.test-case)
@@ -64,15 +64,15 @@ GaUnit��Gauche�Ǽ������줿Unit Testing Framework�Ǥ������ޤ�
 
   (provide "test-your-module")
 
-'-u test.unit'���ץ�����դ��ǥץ�������¹Ԥ��ޤ���GaUnit
-��test.unit�⥸�塼��ǥƥ��Ȥ����餻��(({main}))��³������
-���Ƥ��ޤ���test.unit��use����С�(({main}))��³�����������
-ɬ�פϤ���ޤ���
+'-u test.unit'オプション付きでプログラムを実行します。GaUnit
+はtest.unitモジュールでテストを走らせる(({main}))手続きを提供
+しています。test.unitをuseすれば、(({main}))手続きを定義する
+必要はありません。
 
   % gosh -u test.unit test-your-module.scm
 
-������������Τ���˰ʲ��Τ褦�ʥƥ��ȵ�ư������ץ�
-run-test.scm���������Ȥ褤�Ǥ��礦��
+しかし、今後のために以下のようなテスト起動スクリプト
+run-test.scmを作成するとよいでしょう。
 
 run-test.scm:
   (add-load-path ".")
@@ -82,160 +82,160 @@ run-test.scm:
   (define base-dir (sys-dirname *program-name*))
   (for-each load (glob #`",|base-dir|/**/test-*.scm"))
 
-�ʲ��Τ褦�˼¹Ԥ��ޤ���
+以下のように実行します。
 
   % gosh run-test.scm
 
-=== ���ץ����
+=== オプション
 
-GaUnit���󶡤��Ƥ���(({main}))��³���Ϥ����Ĥ����ץ������
-���դ��ޤ���
+GaUnitが提供している(({main}))手続きはいくつかオプションを受
+け付けます．
 
 : -uUI, --ui=UI
-   �ƥ��ȷ�̤�ɽ������桼�����󥿥ե���������ꤷ�ޤ���
-   ((|UI|))�ˤϰʲ��Τ�Τ�����Ǥ��ޤ���
+   テスト結果を表示するユーザインタフェースを指定します．
+   ((|UI|))には以下のものが指定できます．
 
    : t[ext]
-      �ƥ������ǤΥ桼�����󥿥ե���������Ѥ��ޤ����ǥե���
-      �ȤǤ���
+      テキスト版のユーザインタフェースを使用します．デフォル
+      トです．
 
    : g[tk]
-      ((*����ư���ޤ���*))
+      ((*今は動きません。*))
 
-      GTK+�ǤΥ桼�����󥿥ե���������Ѥ��ޤ����ʲ��Τ褦��
-      �����Х���ɤ���Ƥ��ޤ��������Υ�����Ctrl��Alt�ʤ�
-      �ν����������դ��Ƥ��Ƥ�ư��ޤ����Ĥޤꡤl�Ǥ�Ctrl
-      + l�Ǥ�Alt + l�Ǥ�ư��ޤ���
+      GTK+版のユーザインタフェースを使用します．以下のように
+      キーバインドされています．これらのキーはCtrlやAltなど
+      の修飾キーが付いていても動作します．つまり，lでもCtrl
+      + lでもAlt + lでも動作します．
       
       : l
-         Load�ܥ���򲡤��ޤ���
+         Loadボタンを押します．
       
       : r
-         Run�ܥ���򲡤��ޤ���
+         Runボタンを押します．
        
       : q, ESC
-         ��λ���ޤ���
+         終了します．
 
 
 : -vLEVEL, --vervose=LEVEL
-   �ƥ��ȷ�̤�ɤ����پܺ٤�ɽ�����뤫����ꤷ�ޤ������ߤ�
-   �Ȥ������ƥ������ǤΥ桼�����󥿥ե������ǤΤ߰�̣������
-   �ޤ���((|LEVEL|))�ˤϰʲ��Τ�Τ�����Ǥ��ޤ���
+   テスト結果をどの程度詳細に表示するかを指定します．現在の
+   ところ，テキスト版のユーザインタフェースでのみ意味があり
+   ます．((|LEVEL|))には以下のものが指定できます．
 
    : s[ilent]
-      �ƥ��Ȥ����Ԥ����Ȥ������뤤�ϥ��顼��ȯ�������Ȥ��Τ�
-      ���ξܺ٤�ɽ�����ޤ����ƥ��Ȥ����������Ȥ��Ϥʤˤ����
-      ���ޤ���
+      テストが失敗したとき，あるいはエラーが発生したときのみ
+      その詳細を表示します．テストが成功したときはなにも出力
+      しません．
 
    : p[rogress]
-      �ƥ��Ȥ����������Ȥ���"."�����Ϥ���ޤ�������ʳ���
-      silent��Ʊ���Ǥ���
+      テストが成功したときに"."が出力されます．それ以外は
+      silentと同じです．
 
    : n[ormal]
-      �ƥ��ȥ������Ȥμ¹Ի��ˤ��Υƥ��ȥ������Ȥ�̾����ɽ
-      �����ޤ����ޤ����ƥ��Ȥ�����ä��Ȥ��ˡ��ƥ��ȿ�����ɽ
-      ��������������ɽ���������Ԥ���ɽ���������顼�����ƥ���
-      �ˤ����ä����֤�ɽ�����ޤ�������ʳ���progress��Ʊ����
-      �����ǥե���ȤǤ���
+      テストスイートの実行時にそのテストスイートの名前を表
+      示します．また，テストが終わったときに，テスト数，全表
+      明数，成功した表明数，失敗した表明数，エラー数，テスト
+      にかかった時間を表示します．それ以外はprogressと同じで
+      す．デフォルトです．
 
    : v[erbose]
-      �ƥ��ȥ������μ¹Ի��ˤ��Υƥ��ȥ�������̾����ɽ������
-      ��������ʳ���normal��Ʊ���Ǥ���
+      テストケースの実行時にそのテストケースの名前を表示しま
+      す．それ以外はnormalと同じです．
 
 : -sREGEXP, --test-suite=REGEXP
 
-   ����ɽ��REGEXP�˥ޥå�����ƥ��ȥ�������̾����ĥƥ��ȥ�
-   �����ȤΤ߼¹Ԥ��ޤ���
+   正規表現REGEXPにマッチするテストスイート名を持つテストス
+   イートのみ実行します．
 
 : -cREGEXP, --test-case=REGEXP
 
-   ����ɽ��REGEXP�˥ޥå�����ƥ��ȥ�����̾����ĥƥ��ȥ���
-   ���Τ߼¹Ԥ��ޤ���
+   正規表現REGEXPにマッチするテストケース名を持つテストケー
+   スのみ実行します．
 
 : -tREGEXP, --test=REGEXP
 
-   ����ɽ��REGEXP�˥ޥå�����ƥ���̾����ĥƥ��ȤΤ߼¹Ԥ�
-   �ޤ���
+   正規表現REGEXPにマッチするテスト名を持つテストのみ実行し
+   ます．
 
 : -h, --help
-   ����ˡ��ɽ�����ƽ�λ���ޤ���
+   使用法を表示して終了します．
 
-�㤨�С��桼�����󥿥ե������Ȥ���GTK+�Ǥ�Ȥ�������аʲ���
-�褦�ˤ��ޤ���
+例えば，ユーザインタフェースとしてGTK+版を使いたければ以下の
+ようにします．
 
   % gosh test-program.scm -ug
 
-�ܺ٤ʥ�����ɽ����������аʲ��Τ褦�ˤ��ޤ���
+詳細なログを表示したければ以下のようにします．
 
   % gosh test-program.scm -vv
 
-=== ��ե����
+=== リファレンス
 
-==== ɽ��(?)
+==== 表明(?)
 
-GaUnit�ϰʲ��˼����ƥ��Ȥ򤹤뤿��μ�³�����Ѱդ��Ƥ��ޤ���
+GaUnitは以下に示すテストをするための手続きを用意しています．
 
-((|[message]|))�ϥ��ץ����Ǥ������Ի��Υ�å������Ǥ���ʸ
-���󤫡�������ҤȤĤȤ��³������ꤷ�ޤ�����³���ξ��ϥ�
-���ȷ�̤������Ȥ����Ϥ���ޤ���
+((|[message]|))はオプションです．失敗時のメッセージである文
+字列か，引数をひとつとる手続きを指定します．手続きの場合はテ
+スト結果が引数として渡されます．
 
 --- fail([message])
     
-    ɬ�����Ԥ��ޤ���
+    必ず失敗します．
 
 --- assert(pred expected actual [message])
     
-    (({(pred expected actual)}))��#f�Ǥʤ��ʤ���������ޤ���
+    (({(pred expected actual)}))が#fでないならば成功します．
 
 --- assert-equal(expected actual [message])
     
-    (({(equal? expected actual)}))��#t���֤����������ޤ���
+    (({(equal? expected actual)}))が#tを返せば成功します．
 
 --- assert-not-equal(expected actual [message])
     
-    (({(not (equal? expected actual))}))��#t���֤����������ޤ���
+    (({(not (equal? expected actual))}))が#tを返せば成功します．
 
 --- assert-null(actual [message])
     
-    (({(null? actual)}))��#t���֤����������ޤ���
+    (({(null? actual)}))が#tを返せば成功します．
 
 --- assert-not-null(actual [message])
     
-    (({(not (null? actual))}))��#t���֤����������ޤ���
+    (({(not (null? actual))}))が#tを返せば成功します．
 
 --- assert-true(actual [message])
     
-    ((|actual|))��#t�ʤ���������ޤ���
+    ((|actual|))が#tならば成功します．
 
 --- assert-false(actual [message])
     
-    ((|actual|))��#f�ʤ���������ޤ���
+    ((|actual|))が#fならば成功します．
 
 --- assert-instance-of(expected-class object [message])
     
-    ((|object|))��((|expected-class|))�Υ��󥹥��󥹤Ǥ����
-    �������ޤ���
+    ((|object|))が((|expected-class|))のインスタンスであれば
+    成功します．
 
 --- assert-raise(expected-class thunk [message])
     
-    ((|thunk|))(����̵���μ�³��)��ǵ����ä��㳰��
-    ((|expected-class|))�Υ��󥹥��󥹤Ǥ�����������ޤ���
+    ((|thunk|))(引数無しの手続き)内で起こった例外が
+    ((|expected-class|))のインスタンスであれば成功します．
 
 --- assert-error(tunk [message])
     
-    ((|thunk|))(����̵���μ�³��)����㳰��ȯ��������������ޤ���
+    ((|thunk|))(引数無しの手続き)内で例外が発生すれば成功します．
 
 --- assert-each(assert-proc lst &keyword :apply-if-can :run-assert :prepare)
     
-    ((|assert-proc|))��((|lst|))�γ����Ǥ��Ф���Ŭ�Ѥ��ޤ���
+    ((|assert-proc|))を((|lst|))の各要素に対して適用します．
     
-    ((|lst|))�γ����Ǥ�((|prepare|))��Ŭ�Ѥ��졤
-    ((|run-assert|))�ˤ�ä�((|assert-proc|))��Ŭ�Ѥ���ޤ���
+    ((|lst|))の各要素は((|prepare|))に適用され，
+    ((|run-assert|))によって((|assert-proc|))に適用されます．
     
-    �⤷��((|prepare|))�����ͤ��ꥹ�Ȥ�((|apply-if-can|))��
-    #t(�ǥե����)�ʤ�((|assert-proc|))��((|apply|))����ޤ���
+    もし，((|prepare|))が返値がリストで((|apply-if-can|))が
+    #t(デフォルト)なら((|assert-proc|))に((|apply|))されます．
     
-    ���᡼���Ȥ��ƤϤ���ʴ����Ǥ���
+    イメージとしてはこんな感じです．
 
       (define (run-assert assert-proc args)
         (if (and (list? args) apply-if-can)
@@ -247,155 +247,155 @@ GaUnit�ϰʲ��˼����ƥ��Ȥ򤹤뤿��μ�³�����Ѱդ��Ƥ��ޤ���
 
 --- assert-macro(expanded form [message])
     
-    (({(equal? expanded (macroexpand form))}))�������֤����������ޤ���
+    (({(equal? expanded (macroexpand form))}))が真を返せば成功します．
     
 --- assert-macro1(expanded form [message])
     
-    (({(equal? expanded (macroexpand-1 form))}))�������֤����������ޤ���
+    (({(equal? expanded (macroexpand-1 form))}))が真を返せば成功します．
     
 --- assert-lset-equal(expected actual [message])
     
-    (({(lset= equal? expected actual)}))�������֤����������ޤ���
+    (({(lset= equal? expected actual)}))が真を返せば成功します．
     
 --- assert-values-equal(expected productor [message])
     
     (({(receive actual (productor) (equal? expected
-    actual))}))�������֤����������ޤ���
+    actual))}))が真を返せば成功します．
     
 --- assert-in-delta(expected delta actual [message])
     
     (({(<= (- expected delta) actual (+ expected delta))}))
-    �������֤����������ޤ���
+    が真を返せば成功します．
     
 --- assert-output(expected thunk [message])
     
-    (({(equal? expected (with-output-to-string thunk))}))��
-    �����֤����������ޤ����Ĥޤꡤ((|expected|))��
-    (({(thunk)}))�ν��Ϸ�̤�����������������ޤ���
+    (({(equal? expected (with-output-to-string thunk))}))が
+    真を返せば成功します．つまり，((|expected|))と
+    (({(thunk)}))の出力結果が等しければ成功します．
     
-    �⤷��((|expected|))������ɽ������ꤷ�Ƥ�������
-    (({(rxmatch expected (with-output-to-string thunk))}))��
-    #f�ʳ����֤����������ޤ����Ĥޤꡤ(({(trunk)}))�ν��Ϸ�
-    �̤�((|expected|))�˥ޥå�������������ޤ���
+    もし，((|expected|))に正規表現を指定していた場合は
+    (({(rxmatch expected (with-output-to-string thunk))}))が
+    #f以外を返せば成功します．つまり，(({(trunk)}))の出力結
+    果が((|expected|))にマッチすれば成功します．
 
 --- assert-match(expected actual [message])
     
-    (({(rxmatch expected actual)}))��#f�ʳ����֤�����������
-    ����
+    (({(rxmatch expected actual)}))が#f以外を返せば成功しま
+    す．
 
-==== ɬ�׺Ǿ���
+==== 必要最小限
 
-GaUnit�ϰʲ��μ�³�����Ѱդ��Ƥ��ޤ���
+GaUnitは以下の手続きを用意しています．
 
 --- run-all-test(&keyword :ui)
     
-    ((|define-test-case|)), ((|define-test-suite|))��������줿�ƥ��Ȥ�
-    �¹Ԥ��ޤ���
+    ((|define-test-case|)), ((|define-test-suite|))で定義されたテストを
+    実行します．
     
 
-GaUnit�ϰʲ��ι�ʸ���Ѱդ��Ƥ��ޤ���
+GaUnitは以下の構文を用意しています．
 
 --- define-test-case
     
-    �ƥ��ȥ�������������ޤ���
+    テストケースを定義します．
     
-      (define-test-case "�ƥ��ȥ�����̾"
-        (setup �ƥ��Ȥ��¹Ԥ�������˼¹Ԥ�������̵���μ�³��) ; ɬ�פʤ�
-        (teardown �ƥ��Ȥ��¹Ԥ��줿��˼¹Ԥ�������̵���μ�³��) ; ɬ�פʤ�
-        ("�ƥ���̾"
-          (assert�ʤ�Ȥ� ...))
+      (define-test-case "テストケース名"
+        (setup テストが実行される前に実行される引数無しの手続き) ; 必要なら
+        (teardown テストが実行された後に実行される引数無しの手続き) ; 必要なら
+        ("テスト名"
+          (assertなんとか ...))
         ...)
 
 --- define-test-suite
     
-    �ƥ��ȥ������Ȥ�������ޤ���
+    テストスイートを定義します．
     
-      (define-test-suite "�ƥ��ȥ�������̾"
-        ("�ƥ��ȥ�����̾"
-          (setup �ƥ��Ȥ��¹Ԥ�������˼¹Ԥ�������̵���μ�³��) ; ɬ�פʤ�
-          (teardown �ƥ��Ȥ��¹Ԥ��줿��˼¹Ԥ�������̵���μ�³��) ; ɬ�פʤ�
-          ("�ƥ���̾"
-            (assert�ʤ�Ȥ�)
+      (define-test-suite "テストスイート名"
+        ("テストケース名"
+          (setup テストが実行される前に実行される引数無しの手続き) ; 必要なら
+          (teardown テストが実行された後に実行される引数無しの手続き) ; 必要なら
+          ("テスト名"
+            (assertなんとか)
             ...)
           ...)
         ...)
 
-==== ɬ�פʤ�
+==== 必要なら
 
-GaUnit�ϰʲ��μ�³�����Ѱդ��Ƥ��ޤ���
+GaUnitは以下の手続きを用意しています．
 
 --- run(<test-suite> or <test-case> or <test> &keyword :ui)
 
-    �ƥ��Ȥ�¹Ԥ��ޤ���
+    テストを実行します．
     
-    ������ɰ���((|:ui|))����ꤹ�뤳�Ȥˤ��ƥ��Ȥ�¹Ԥ���桼
-    �����󥿡��ե��������ѹ��Ǥ��ޤ���
+    キーワード引数((|:ui|))を指定することによりテストを実行するユー
+    ザインターフェイスを変更できます．
 
-GaUnit�ϰʲ��ι�ʸ���Ѱդ��Ƥ��ޤ���
+GaUnitは以下の構文を用意しています．
 
 --- define-assertion
     
-    assertion(ɽ��?)��������ޤ���
+    assertion(表明?)を定義します．
     
-      (define-assertion (ɽ��̾ ���� ...)
-        ������:�Ǹ�μ����ͤ����������Ԥ�����)
+      (define-assertion (表明名 引数 ...)
+        式の列:最後の式の値が成功か失敗か示す)
     
-    ((|������|))���ͤ�((|<assertion-failure>|))���饹�Υ��֥�����
-    �Ȥʤ鼺�ԡ�����ʳ��ʤ������򼨤��ޤ����ܤ�����
-    lib/test/assertions.scm��((|define-assertion|))��Ȥä������
-    ��Ƥ���assertion�򸫤Ƥ���������
+    ((|式の列|))の値が((|<assertion-failure>|))クラスのオブジェク
+    トなら失敗，それ以外なら成功を示します．詳しくは
+    lib/test/assertions.scmの((|define-assertion|))を使って定義さ
+    れているassertionを見てください．
 
 --- make-test
     
-    �ƥ��Ȥ�������ޤ���
+    テストを作成します．
 
 --- make-test-case
     
-    �ƥ��ȥ�������������ޤ���
+    テストケースを作成します．
 
 --- make-test-suite
     
-    �ƥ��ȥ������Ȥ�������ޤ���
+    テストスイートを作成します．
 
 
-�ޤ���(({define-test-case}))��(({make-test-case}))�ǥƥ��ȥ���
-�����������ݡ��ƥ��Ȥ������ɬ���¹Ԥ�����³������Ͽ/��
-�������³��������ޤ���
+また，(({define-test-case}))や(({make-test-case}))でテストケー
+スを作成する際，テストの前後に必ず実行される手続きを登録/削
+除する手続きがあります．
 
 --- gaunit-add-default-setup-proc!(proc)
     
-    ����̵���μ�³��((|proc|))��ƥƥ��Ȥ��Ϥޤ����˼¹Ԥ���
-    ��³���Ȥ�����Ͽ���ޤ���
+    引数無しの手続き((|proc|))を各テストが始まる前に実行する
+    手続きとして登録します．
 
 --- gaunit-delete-default-setup-proc!(proc)
     
-    (({gaunit-add-default-setup-proc!}))����Ͽ����((|proc|))
-    �������ޤ���
+    (({gaunit-add-default-setup-proc!}))で登録した((|proc|))
+    を削除します．
 
 --- gaunit-clear-default-setup-procs!
     
-    (({gaunit-add-default-setup-proc!}))����Ͽ����((|proc|))
-    �򤹤٤ƺ�����ޤ���
+    (({gaunit-add-default-setup-proc!}))で登録した((|proc|))
+    をすべて削除します．
 
 --- gaunit-add-default-teardown-proc!(proc)
     
-    ����̵���μ�³��((|proc|))��ƥƥ��Ȥ�����ä���˼¹Ԥ�
-    ���³���Ȥ�����Ͽ���ޤ���
+    引数無しの手続き((|proc|))を各テストが終わった後に実行す
+    る手続きとして登録します．
 
 --- gaunit-delete-default-teardown-proc!(proc)
     
-    (({gaunit-add-default-teardown-proc!}))����Ͽ����((|proc|))
-    �������ޤ���
+    (({gaunit-add-default-teardown-proc!}))で登録した((|proc|))
+    を削除します．
 
 --- gaunit-clear-default-teardown-procs!
     
-    (({gaunit-add-default-teardown-proc!}))����Ͽ����((|proc|))
-    �򤹤٤ƺ�����ޤ���
+    (({gaunit-add-default-teardown-proc!}))で登録した((|proc|))
+    をすべて削除します．
 
-(({gaunit-*-default-{setup,teardown}-*}))��Ȥ��С�
-(({define-test-case}))�ʤɤ�(({setup}))��(({teardown}))���
-�ꤻ�����б������³������Ͽ���뤳�Ȥ��Ǥ��ޤ����㤨�С��ʲ�
-�Τդ��Ĥ�(({define-test-case}))��Ʊ��ư��򤷤ޤ���
+(({gaunit-*-default-{setup,teardown}-*}))を使えば，
+(({define-test-case}))などで(({setup}))や(({teardown}))を指
+定せずに対応する手続きを登録することができます．例えば，以下
+のふたつの(({define-test-case}))は同じ動作をします．
 
   (define-test-case "test case"
     (setup (lambda () (print "setup")))
@@ -413,11 +413,11 @@ GaUnit�ϰʲ��ι�ʸ���Ѱդ��Ƥ��ޤ���
   (gaunit-clear-default-setup-procs!)
   (gaunit-clear-default-teardown-procs!)
 
-(({gaunit-*-default-{setup,teardown}-*}))����Ͽ������³����
-ɬ�פʤ��ʤä����ϡ�
-(({gaunit-clear-default-{setup,teardown}-procs!}))�ʤɤ���Ͽ
-������³���������뤳�Ȥ�˺��ʤ��Ǥ����������ʲ��Τ褦�ˡ�
-�ȼ��Υƥ��ȥ���������ޥ�����������Ƥ⤤���Ǥ��礦��
+(({gaunit-*-default-{setup,teardown}-*}))で登録した手続きが
+必要なくなった場合は，
+(({gaunit-clear-default-{setup,teardown}-procs!}))などで登録
+した手続きを削除することを忘れないでください．以下のように，
+独自のテストケース定義マクロを作成してもいいでしょう．
 
   (define (*setup-proc*) ...)
   (define (*teardown-proc*) ...)
@@ -431,23 +431,23 @@ GaUnit�ϰʲ��ι�ʸ���Ѱդ��Ƥ��ޤ���
          (gaunit-delete-default-setup-proc! *setup-proc)
          (gaunit-delete-default-teardown-proc! *teardown-proc*)))))
 
-== ��°��
+== 付属品
 
-�ʲ��Τ�Τ���°���Ƥ��ޤ���
+以下のものが付属しています．
 
 === run-test.el
 
-sample/site-lisp/run-test.el��Emacs��ǤΥƥ��Ȥμ¹Ԥ�ٱ�
-����Emacs-Lisp�Ǥ���sample/site-lisp/run-test-setting.el��
-run-test.el��Ȥ������������Ǥ���
+sample/site-lisp/run-test.elはEmacs上でのテストの実行を支援
+するEmacs-Lispです．sample/site-lisp/run-test-setting.elは
+run-test.elを使うための設定例です．
 
-�Ȥ��ˤϡ��ޤ���.emacs�˰ʲ��򵭽Ҥ��ޤ���
+使うには，まず，.emacsに以下を記述します．
 
-  (setq load-path (cons run-test{,-setting}.el������ǥ��쥯�ȥ� load-path))
+  (setq load-path (cons run-test{,-setting}.elがあるディレクトリ load-path))
   (load "run-test-setting")
 
-�ƥ��Ȥ�¹Ԥ��륹����ץ�run-test.sh��񤭤ޤ����㤨�С���
-��ʴ����Ǥ���
+テストを実行するスクリプトrun-test.shを書きます．例えば，こ
+んな感じです．
 
   #!/bin/sh
 
@@ -457,7 +457,7 @@ run-test.el��Ȥ������������Ǥ���
     gosh $test
   done
 
-���뤤�ϡ�run-test.scm�Ȥ��Ƥ���ʴ����Ǥ⤤���Ǥ���
+あるいは，run-test.scmとしてこんな感じでもいいです．
 
   #!/usr/bin/env gosh
 
@@ -482,12 +482,12 @@ run-test.el��Ȥ������������Ǥ���
           (run-all-test))))
 
 
-�ǡ�test�Ȥ����ǥ��쥯�ȥ���äơ�����run-test.sh���뤤��
-run-test.scm�˼¹Ը����դ��Ƥ����Ƥ����ޤ���
+で，testというディレクトリを作って，このrun-test.shあるいは
+run-test.scmに実行権を付けておいておきます．
 
-�ƥ��ȥե������test�Ȥ����ǥ��쥯�ȥ�ʲ���test-hoge.scm��
-����̾���Ǻ�äƤ����ޤ����Ĥޤꡤ�ǥ��쥯�ȥ깽���ϰʲ�����
-�ˤʤ�ޤ���
+テストファイルはtestというディレクトリ以下にtest-hoge.scmと
+いう名前で作っていきます．つまり，ディレクトリ構成は以下の様
+になります．
 
   topdir --- test --- run-test.sh or run-test.scm
                    |
@@ -499,36 +499,36 @@ run-test.scm�˼¹Ը����դ��Ƥ����Ƥ����ޤ���
                    |
                    +- test-fuga.scm
 
-�ƥ���(run-test.scm)��topdir�ǵ�ư����ޤ����Ĥޤꡤ
+テスト(run-test.scm)はtopdirで起動されます．つまり，
 
   % test/run-test.sh
 
-�Ȥ����褦�˵�ư����ޤ���
+というように起動されます．
 
-run-test.{sh,scm}��񤯤Ȥ��Ϥ��Τ��Ȥ����դ��ޤ��礦��
+run-test.{sh,scm}を書くときはこのことに注意しましょう．
 
-����Ϥ���ǽ�λ�Ǥ���
+設定はこれで終了です．
 
-topdir�ʲ��ˤ���Ȥ���C-cC-t(run-test)��
-topdir/test/run-test.sh���¹ԤǤ��ޤ����¹Է�̤�*run-test*
-�Хåե�����������ޤ����ƥ��Ȥ�¹Ԥ��Ƽ���/���顼��������
-�饨�顼��ȯ������assertion��C-x`�ǥ����פ��뤳�Ȥ��Ǥ��ޤ���
+topdir以下にいるときはC-cC-t(run-test)で
+topdir/test/run-test.shが実行できます．実行結果は*run-test*
+バッファに挿入されます．テストを実行して失敗/エラーがおきた
+らエラーが発生したassertionにC-x`でジャンプすることができます．
 
-C-cT(run-test-in-new-frame)�Ȥ��ȡ��������ե졼��������
-��topdir/test/run-test.sh��¹Ԥ��ޤ����ǽ�˥ƥ��Ȥ����餻
-����˻Ȥ��Ȥ褤�Ǥ��礦��
+C-cT(run-test-in-new-frame)とやると，新しくフレームを作成し
+てtopdir/test/run-test.shを実行します．最初にテストを走らせ
+る時に使うとよいでしょう．
 
-����Ǽ�ڤ����ˤ˥ƥ��Ȥ�¹ԤǤ��ޤ��͡�Happy testing!!
+これで手軽に頻繁にテストを実行できますね．Happy testing!!
 
-==== �������ޥ����ѿ�
+==== カスタマイズ変数
 
 : run-test-file
-   �ƥ��Ȥ�¹Ԥ��륹����ץȤγ�ĥ�Ҥ�������ե�����̾�Ǥ���
+   テストを実行するスクリプトの拡張子を除いたファイル名です．
    
-   �ǥե����: "test/run-test"
+   デフォルト: "test/run-test"
 
 : run-test-suffixes
-   run-test-file���ղä����ĥ�ҤΥꥹ�ȤǤ�����Ƭ�����ˤ����ĥ����
-   ͥ�褵��ޤ���
+   run-test-fileに付加する拡張子のリストです．先頭の方にある拡張子程
+   優先されます．
    
-   �ǥե����: (".scm" ".rb" ".sh")
+   デフォルト: (".scm" ".rb" ".sh")
