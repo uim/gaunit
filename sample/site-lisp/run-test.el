@@ -51,38 +51,41 @@
                  (flatten (cdr lst))))
         (t (cons (car lst) (flatten (cdr lst))))))
 
-(defun get-verbose-level-arg (num)
+(defun run-test-get-verbose-level-arg (num)
   (let ((elem (assoc num run-test-verbose-level-table)))
     (concat " "
             (if elem (cdr elem) ""))))
 
-(defun find-run-test-files-in-directory (directory filenames)
+(defun run-test-executable-file-p (file)
+  (and (file-executable-p test-file)
+       (not (file-directory-p test-file))))
+
+(defun run-test-find-run-test-files-in-directory (directory filenames)
   (mapcar (lambda (filename)
             (do ((test-file (concat directory filename)
                             (concat "../" test-file))
                  (rest-dir filename (and (string-match "\/\(.*\)" rest-dir)
                                          (match-string 1))))
-                ((or (and (file-executable-p test-file)
-                          (not (file-directory-p test-file)))
+                ((or (run-test-executable-file-p test-file)
                      (null rest-dir))
-                 (if (null rest-dir)
-                     nil
-                   (cons filename test-file)))))
+                 (if (run-test-executable-file-p test-file)
+                     (cons filename test-file)
+                   nil))))
           filenames))
 
-(defun find-run-test-files (directory filenames)
+(defun run-test-find-run-test-files (directory filenames)
   (if (string= "/" (expand-file-name directory))
       nil
-    (append (find-run-test-files (concat directory "../") filenames)
-            (find-run-test-files-in-directory directory filenames))))
+    (append (run-test-find-run-test-files-in-directory directory filenames)
+            (run-test-find-run-test-files (concat directory "../") filenames))))
 
-(defun find-test-files ()
+(defun run-test-find-test-files ()
   (let ((filenames (mapcar (lambda (filename)
                              (mapcar (lambda (suffix)
                                        (concat filename suffix))
                                      run-test-suffixes))
                            run-test-file-names)))
-    (find-run-test-files "./" (flatten filenames))))
+    (run-test-find-run-test-files "./" (flatten filenames))))
 
 (defun run-test-if-find (test-file-infos verbose-arg runner)
   (cond ((null test-file-infos) nil)
@@ -106,8 +109,8 @@
 
 (defun run-test (&optional arg)
   (interactive "P")
-  (run-test-if-find (find-test-files)
-                    (get-verbose-level-arg (prefix-numeric-value arg))
+  (run-test-if-find (run-test-find-test-files)
+                    (run-test-get-verbose-level-arg (prefix-numeric-value arg))
                     (lambda (command)
                       (compilation-start command 'run-test-mode))))
 
@@ -224,7 +227,7 @@
 (defun run-test-in-mini-buffer (&optional arg)
   (interactive "P")
   (run-test-if-find (find-test-files)
-                    (get-verbose-level-arg (prefix-numeric-value arg))
+                    (run-test-get-verbose-level-arg (prefix-numeric-value arg))
                     (lambda (command)
                       (shell-command command))))
 
