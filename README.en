@@ -174,7 +174,7 @@ You can get verbose log if you type following.
 
 === Reference
 
-==== Assertions
+==== Assertions and so on
 
 GaUnit has some procedures to test.
 
@@ -285,6 +285,17 @@ is a procedure test result is passed to the procedure.
     
     It succeeds when (({(rxmatch expected actual)})) is not
     #f.
+
+--- pend(message [thunk])
+
+    It pends the test. ((|message|)) is the reason of
+    pending. If non-argument procedure ((|thunk|)) is
+    specified and evaluation of the ((|thunk|)) doesn't
+    cause an error or a failure, the test fails. Because it
+    assumes that you pend the test because a content of the
+    ((|thunk|)) has a problem. If a content of the
+    ((|thunk|)) doesn't have a problem, it's a problem. It
+    means a failure.
 
 == Accessory
 
