@@ -85,13 +85,15 @@
        #//
        #//
        #//)
-     (test-run-all :run-context (let ((run-context (make <test-run-context>)))
-                                  (push! (listeners-of run-context)
-                                         (make ui :verbose verbose))
-                                  run-context)
-                   :test-suite-regexp suite
-                   :test-case-regexp case
-                   :test-regexp test))
-  0)
+     (if (test-run-all
+          :run-context (let ((run-context (make <test-run-context>)))
+                         (push! (listeners-of run-context)
+                                (make ui :verbose verbose))
+                         run-context)
+          :test-suite-regexp suite
+          :test-case-regexp case
+          :test-regexp test)
+       0
+       1)))
 
 (provide "test/unit/auto-runner")

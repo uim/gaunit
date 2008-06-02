@@ -42,6 +42,7 @@
 
 (define (test-success-failure-result)
   (assert-run-result
+   #f
    0 1 1
    1 0 0 1 0
    (car (%test-cases-of test-suite)))
@@ -49,6 +50,7 @@
 
 (define (test-success-error-result)
   (assert-run-result
+   #f
    0 1 2
    1 0 0 1 1
    (cadr (%test-cases-of test-suite)))
@@ -56,6 +58,7 @@
 
 (define (test-pending-result)
   (assert-run-result
+   #f
    0 1 3
    1 0 2 1 0
    (caddr (%test-cases-of test-suite)))
@@ -63,6 +66,7 @@
 
 (define (test-suite-result)
   (assert-run-result
+   #f
    1 3 6
    3 0 2 3 1
    test-suite)

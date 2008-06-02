@@ -275,6 +275,14 @@
   (for-each apply-empty-argument-procedure (teardown-procedures-of self)))
 
 (use gauche.interactive)
+
+(define (run-test-case test-suite run-context test-case
+                       test-case-regexp test-regexp)
+  (test-run test-case
+            :run-context run-context
+            :test-case-regexp test-case-regexp
+            :test-regexp test-regexp))
+
 (define-method test-run ((self <test-suite>) . options)
   (let-keywords* options ((run-context (make <test-run-context>))
                           (test-suite-regexp #//)
@@ -282,17 +290,18 @@
                           (test-regexp #//))
     (when (rxmatch test-suite-regexp (name-of self))
       (test-run-context-start-test-suite run-context self)
-      (let ((counter (make <real-time-counter>)))
-        (with-time-counter counter
-                           (for-each
-                            (lambda (test-case)
-                              (test-run test-case
-                                        :run-context run-context
-                                        :test-case-regexp test-case-regexp
-                                        :test-regexp test-regexp))
-                            (test-cases-of self))))
-      (set-ran! self #t)
-      (test-run-context-finish-test-suite run-context self))))
+      (let* ((counter (make <real-time-counter>))
+             (success (with-time-counter counter
+                        (fold (lambda (test-case prev-success)
+                                (and (run-test-case self run-context test-case
+                                                    test-case-regexp
+                                                    test-regexp)
+                                     prev-success))
+                              #t
+                              (test-cases-of self)))))
+        (set-ran! self #t)
+        (test-run-context-finish-test-suite run-context self)
+        success))))
 
 (define (wrap-thunk-with-error-handling test run-context thunk)
   (lambda ()
@@ -316,8 +325,7 @@
                         (setup-proc)
                         (test-run test
                                   :run-context run-context
-                                  :test-regexp test-regexp)
-                        #t)))
+                                  :test-regexp test-regexp))))
     (guard (e (else
                (test-run-context-error run-context test e)
                #f))
@@ -336,7 +344,7 @@
                               (and (run-test self run-context test test-regexp
                                              setup-proc teardown-proc)
                                    prev-success))
-                            #f
+                            #t
                             (tests-of self))))
         (test-run-context-finish-test-case run-context self)
         success))))

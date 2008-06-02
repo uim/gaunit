@@ -7,6 +7,7 @@
 
 (define (test-assert)
   (assert-run-result
+   #f
    0 1 2
    2 1 0 1 0
    (make-test-case "Test assert"
@@ -22,6 +23,7 @@
 
 (define (test-assert-equal)
   (let* ((run-context (assert-run-result
+                       #f
                        0 1 2
                        2 1 0 1 0
                        (make-test-case "Test assert-equal"
@@ -47,6 +49,7 @@
 
 (define (test-assert-not-equal)
   (assert-run-result
+   #f
    0 1 3
    1 1 0 2 0
    (make-test-case "Test assert-not-equal"
@@ -60,6 +63,7 @@
 
 (define (test-assert-null)
   (assert-run-result
+   #f
    0 1 3
    1 1 0 2 0
    (make-test-case "Test assert-null"
@@ -73,6 +77,7 @@
 
 (define (test-assert-not-null)
   (assert-run-result
+   #f
    0 1 2
    2 1 0 1 0
    (make-test-case "Test assert-not-null"
@@ -85,6 +90,7 @@
 
 (define (test-assert-true)
   (assert-run-result
+   #f
    0 1 3
    1 1 0 2 0
    (make-test-case "Test assert-true"
@@ -98,6 +104,7 @@
 
 (define (test-assert-false)
   (assert-run-result
+   #f
    0 1 3
    1 1 0 2 0
    (make-test-case "Test assert-false"
@@ -111,6 +118,7 @@
 
 (define (test-assert-instance-of)
   (assert-run-result
+   #f
    0 1 3
    1 1 0 2 0
    (make-test-case "Test assert-instance-of"
@@ -124,6 +132,7 @@
 
 (define (test-assert-raise)
   (assert-run-result
+   #f
    0 1 3
    1 1 0 2 0
    (make-test-case "Test assert-raise"
@@ -137,6 +146,7 @@
 
 (define (test-assert-error)
   (assert-run-result
+   #f
    0 1 3
    1 1 0 2 0
    (make-test-case "Test assert-error"
@@ -150,6 +160,7 @@
 
 (define (test-assert-not-raise)
   (assert-run-result
+   #f
    0 1 3
    1 1 0 2 0
    (make-test-case "Test assert-not-raise"
@@ -163,6 +174,7 @@
 
 (define (test-assert-each)
   (assert-run-result
+   #f
    0 1 3
    5 1 0 1 1
    (make-test-case "Test assert-each"
@@ -209,6 +221,7 @@
 
 (define (test-assert-macro1)
   (assert-run-result
+   #f
    0 1 3
    3 1 0 1 1
    (make-test-case "Test assert-macro1"
@@ -237,6 +250,7 @@
 
 (define (test-assert-macro)
   (assert-run-result
+   #f
    0 1 3
    3 1 0 1 1
    (make-test-case "Test assert-macro"
@@ -264,6 +278,7 @@
 
 (define (test-assert-lset-equal)
   (assert-run-result
+   #f
    0 1 3
    3 1 0 1 1
    (make-test-case "Test assert-lset-equal"
@@ -283,6 +298,7 @@
 
 (define (test-assert-values-equal)
   (assert-run-result
+   #f
    0 1 3
    3 1 0 1 1
    (make-test-case "Test assert-values-equal"
@@ -305,6 +321,7 @@
 
 (define (test-assert-in-delta)
   (assert-run-result
+   #f
    0 1 3
    3 1 0 1 1
    (make-test-case "Test assert-in-delta"
@@ -320,6 +337,7 @@
 
 (define (test-assert-output)
   (assert-run-result
+   #f
    0 1 3
    4 1 0 1 1
    (make-test-case "Test assert-output"
@@ -336,6 +354,7 @@
 
 (define (test-assert-match)
   (assert-run-result
+   #f
    0 1 4
    2 1 0 2 1
    (make-test-case "Test assert-match"

@@ -5,11 +5,6 @@
   (export-all))
 (select-module test.gaunit-test-utils)
 
-(define (run-test test)
-  (let ((run-context (make <test-run-context>)))
-    (test-run test :run-context run-context)
-    run-context))
-
 (define (run-test-with-ui test . options)
   (let ((run-context (make <test-run-context>)))
     (push! (listeners-of run-context) (apply make <test-ui-text> options))
@@ -37,12 +32,17 @@
                   (n-errors . ,(n-errors-of run-context))))
   run-context)
 
-(define (assert-run-result n-test-suites n-test-cases n-tests
+(define (assert-run-result success
+                           n-test-suites n-test-cases n-tests
                            n-assertions n-successes n-pendings
                            n-failures n-errors
-                           test-case)
-  (assert-run-context n-test-suites n-test-cases n-tests
-                      n-assertions n-successes n-pendings n-failures n-errors
-                      (run-test test-case)))
+                           test)
+  (let ((run-context (make <test-run-context>)))
+    (if success
+      (assert-true (test-run test :run-context run-context))
+      (assert-false (test-run test :run-context run-context)))
+    (assert-run-context n-test-suites n-test-cases n-tests
+                        n-assertions n-successes n-pendings n-failures n-errors
+                        run-context)))
 
 (provide "test/gaunit-test-utils")
