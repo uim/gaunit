@@ -64,6 +64,8 @@ GaUnitはGaucheで実装されたUnit Testing Frameworkです．おまけ
 
   (provide "test-your-module")
 
+'test-'から始まる関数が1つのテストとして実行されます。
+
 '-u test.unit'オプション付きでプログラムを実行します。GaUnit
 はtest.unitモジュールでテストを走らせる(({main}))手続きを提供
 しています。test.unitをuseすれば、(({main}))手続きを定義する

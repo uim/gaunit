@@ -71,6 +71,8 @@ Make the program that define some tests.
 
   (provide "test-your-module")
 
+Function start with 'test-' will be ran as a test.
+
 Execute the program with '-u test.unit' option. GaUnit
 exports (({main})) procedure that run test in test.unit
 module. So you don't need to define (({main})) procedure if
