@@ -1,6 +1,7 @@
 #!/usr/bin/env gosh
 
 (add-load-path "./lib")
+(add-load-path ".")
 
 (use test.unit)
 
