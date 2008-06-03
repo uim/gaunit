@@ -78,13 +78,11 @@
 
 (define-method initialize ((self <test-case>) args)
   (next-method)
-  (let-keywords args ((setup #f)
-                      (teardown #f)
-                      . rest)
-                (set! (setup-procedures-of self)
-                      `(,@*default-setup-procs* ,setup))
-                (set! (teardown-procedures-of self)
-                      (cons teardown (reverse *default-teardown-procs*)))))
+  (set! (setup-procedures-of self)
+        `(,@*default-setup-procs* ,(get-keyword :setup args #f)))
+  (set! (teardown-procedures-of self)
+        (cons (get-keyword :teardown args #f)
+              (reverse *default-teardown-procs*))))
 
 (define-class <test-suite> (<collection>)
   ((name :accessor name-of :init-keyword :name)
