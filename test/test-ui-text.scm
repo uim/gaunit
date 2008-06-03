@@ -28,8 +28,10 @@
   (set! original-emacs-env (sys-getenv "EMACS")))
 
 (define (teardown)
-  (sys-putenv "TERM" original-term-env)
-  (sys-putenv "EMACS" original-emacs-env))
+  (if (or original-term-env (sys-getenv "TERM"))
+    (sys-putenv "TERM" (or original-term-env "")))
+  (if (or original-emacs-env (sys-getenv "EMACS"))
+    (sys-putenv "EMACS" (or original-emacs-env ""))))
 
 (define (test-empty-test-suite)
   (assert-output ""
