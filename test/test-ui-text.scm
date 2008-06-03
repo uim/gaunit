@@ -4,10 +4,16 @@
   (use test.gaunit-test-utils))
 (select-module test.test-base)
 
+(define %guess-color-availability
+  (with-module test.unit.ui.text guess-color-availability))
+
 (define empty-test-suite #f)
 (define empty-test-case #f)
 (define empty-test #f)
 (define pending-test #f)
+
+(define original-term-env #f)
+(define original-emacs-env #f)
 
 (define (setup)
   (set! empty-test-suite (make <test-suite> :name "empty test suite"))
@@ -16,7 +22,14 @@
 
   (set! pending-test (make <test>
                        :name "pending test"
-                       :thunk (lambda () (pend "not implemented yet")))))
+                       :thunk (lambda () (pend "not implemented yet"))))
+
+  (set! original-term-env (sys-getenv "TERM"))
+  (set! original-emacs-env (sys-getenv "EMACS")))
+
+(define (teardown)
+  (sys-putenv "TERM" original-term-env)
+  (sys-putenv "EMACS" original-emacs-env))
 
 (define (test-empty-test-suite)
   (assert-output ""
@@ -65,5 +78,24 @@
                  (lambda ()
                    (run-test-with-ui pending-test :verbose 'verbose)))
   #f)
+
+
+(define (assert-color-available expected term-env emacs-env)
+  (sys-putenv "TERM" term-env)
+  (sys-putenv "EMACS" emacs-env)
+  (assert-equal expected (%guess-color-availability))
+  (with-output-to-string
+    (lambda () (assert-false (%guess-color-availability)))))
+
+(define (test-guess-color-availability)
+  (unless (sys-isatty (current-output-port))
+    (pend "need a tty output port for this test."))
+  (assert-color-available #f "" "")
+  (assert-color-available #t "" "t")
+  (assert-color-available #t "xterm" "")
+  (assert-color-available #t "mlterm" "")
+  (assert-color-available #t "screen" "")
+  (assert-color-available #t "xterm-color" "")
+  (assert-color-available #f "unknown" ""))
 
 (provide "test/test-base")
