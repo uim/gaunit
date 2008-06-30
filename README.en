@@ -271,9 +271,14 @@ is a procedure test result is passed to the procedure.
     ((|expected|)).
 
 --- assert-match(expected actual [message])
-    
+
     It succeeds when (({(rxmatch expected actual)})) is not
     #f.
+
+--- assert-not-match(expected actual [message])
+
+    It succeeds when (({(not (rxmatch expected actual))}))
+    is not #f.
 
 --- pend(message [thunk])
 

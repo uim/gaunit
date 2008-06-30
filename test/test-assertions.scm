@@ -369,4 +369,21 @@
                     (assert-match "***" ("***")))))
   #f)
 
+(define (test-assert-not-match)
+  (assert-run-result
+   #f
+   0 1 4
+   2 1 0 2 1
+   (make-test-case "Test assert-not-match"
+                   ("assert-not-match 2 passes"
+                    (assert-not-match #/\*+/ "ERROR")
+                    (assert-not-match #/^FIXME/ "<FIXME>"))
+                   ("assert-not-match fail1"
+                    (assert-not-match #/\*+/ "*** ERROR:"))
+                   ("assert-not-match fail2"
+                    (assert-not-match "***" "???"))
+                   ("assert-not-match error"
+                    (assert-not-match "***" ("???")))))
+  #f)
+
 (provide "test/test-assertions")

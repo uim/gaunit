@@ -283,4 +283,16 @@
     (assertion-failure
      (format #f "expected <~s> must be a regexp" expected))))
 
+(define-assertion (assert-not-match expected actual . message)
+  (if (regexp? expected)
+    (if (rxmatch expected actual)
+      (assertion-failure
+       (get-optional message
+                     (make-message-handler expected
+                                           :after-expected " is not matched"))
+       actual)
+      #t)
+    (assertion-failure
+     (format #f "expected <~s> must be a regexp" expected))))
+
 (provide "test/unit/assertions")
