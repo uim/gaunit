@@ -7,6 +7,7 @@
   (use gauche.time)
   (use gauche.sequence)
   (use srfi-2)
+  (use srfi-13)
   (export <test-ui-text>))
 (select-module test.unit.ui.text)
 
@@ -63,8 +64,12 @@
                        message)))
         (display message)))))
 
-(define (output-error-line self stack)
-  (and-let* ((line (error-line stack)))
+(define (output-stack-trace self stack-trace)
+  (let ((message (error-message #f stack-trace :max-depth 5)))
+    (unless (string-null? message)
+      (output self message)
+      (output self "\n")))
+  (and-let* ((line (error-line stack-trace)))
     (output self #`",|line|\n")))
 
 (define (color self key)
@@ -99,17 +104,13 @@
                                          message stack-trace)
   (output self "P" (color self 'pending) 'progress)
   (push! (faults-of self)
-         (list 'pending "Pending" test
-               #`",|message|\n,(error-message #f stack-trace :max-depth 3)"
-               stack-trace)))
+         (list 'pending "Pending" test message stack-trace)))
 
 (define-method test-listener-on-failure ((self <test-ui-text>) run-context test
                                          message stack-trace)
   (output self "F" (color self 'failure) 'progress)
   (push! (faults-of self)
-         (list 'failure "Failure" test
-               #`",|message|\n,(error-message #f stack-trace :max-depth 5)"
-               stack-trace)))
+         (list 'failure "Failure" test message stack-trace)))
 
 (define-method test-listener-on-error ((self <test-ui-text>)
                                        run-context test err)
@@ -147,8 +148,9 @@
               (output self
                       (format "~a: ~a\n" label (name-of test))
                       (color self type))
-              (output self #`",message\n\n")
-              (output-error-line self stack-trace))
+              (output-stack-trace self stack-trace)
+              (output self message)
+              (output self "\n\n"))
             i
             args))
    (reverse (faults-of self)))
