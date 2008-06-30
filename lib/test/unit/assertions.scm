@@ -1,6 +1,7 @@
 (define-module test.unit.assertions
   (extend test.unit.common)
   (use srfi-1)
+  (use srfi-13)
   (use text.diff)
   (use slib)
   (use test.unit.base)
@@ -42,27 +43,57 @@
         (message actual)
         message)))
 
+(define (pretty-print-object object)
+  (string-trim-right (with-output-to-string (lambda () (pretty-print object)))))
+
 (define (format-diff from to)
-  (let* ((from (with-output-to-string (lambda () (pretty-print from))))
-         (to (with-output-to-string (lambda () (pretty-print to)))))
-    (with-output-to-string
-      (lambda ()
-        (diff-report from to)))))
+  (string-trim-right (with-output-to-string (lambda () (diff-report from to)))))
+
+(define (need-fold? diff)
+  (#/^[-+].{79}/ diff))
+
+(define (fold-string string)
+  (string-join (map (lambda (line)
+                      (regexp-replace #/(.{78})/ line "\\1\n"))
+                    (string-split string "\n"))
+               "\n"))
+
+(define (format-folded-diff from to)
+  (format-diff (fold-string from) (fold-string to)))
 
 (define (make-message-handler expected . keywords)
   (let-keywords* keywords ((after-expected "")
                            (after-actual ""))
     (lambda (actual)
-      (format #f
-              (string-append
-               "expected: <~s>~a\n"
-               " but was: <~s>~a\n"
-               "\n"
-               "diff:\n"
-               "~a")
-              expected after-expected
-              actual after-actual
-              (regexp-replace #/\s*$/ (format-diff expected actual) "")))))
+      (let ((pretty-printed-expected (pretty-print-object expected))
+            (pretty-printed-actual (pretty-print-object actual)))
+        (call-with-output-string
+          (lambda (output)
+            (format output
+                    (string-append
+                     "expected: <~a>~a\n"
+                     " but was: <~a>~a")
+                    pretty-printed-expected after-expected
+                    pretty-printed-actual after-actual)
+            (unless (string=? pretty-printed-expected pretty-printed-actual)
+              (let ((diff (format-diff pretty-printed-expected
+                                       pretty-printed-actual)))
+                (format output
+                        (string-append
+                         "\n"
+                         "\n"
+                         "diff:\n"
+                         "~a")
+                        diff)
+                (if (need-fold? diff)
+                  (format output
+                          (string-append
+                           "\n"
+                           "\n"
+                           "folded diff:\n"
+                           "~a")
+                          (format-folded-diff pretty-printed-expected
+                                              pretty-printed-actual)))))))))))
 
 (define-method test-handle-exception ((test <test>)
                                       run-context (e <assertion-failure>))
