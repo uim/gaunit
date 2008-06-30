@@ -340,8 +340,9 @@
       (let* ((setup-proc (lambda () (setup self)))
              (teardown-proc (lambda () (teardown self)))
              (success (fold (lambda (test prev-success)
-                              (and (run-test self run-context test test-regexp
-                                             setup-proc teardown-proc)
+                              (and (parameterize ((test-run-context run-context))
+                                     (run-test self run-context test test-regexp
+                                               setup-proc teardown-proc))
                                    prev-success))
                             #t
                             (tests-of self))))
