@@ -77,7 +77,7 @@
          (skip skip (- skip 1))
          (depth offset (+ depth 1)))
         ((or (null? (cdr stack))
-             (> depth max-depth))
+             (>= depth max-depth))
          (string-join (reverse! lines) "\n"))
       (and-let* (((<= skip 0))
                  (line (error-line (car stack))))
