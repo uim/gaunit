@@ -301,19 +301,9 @@
         (test-run-context-finish-test-suite run-context self)
         success))))
 
-(define (wrap-thunk-with-error-handling test run-context thunk)
-  (lambda ()
-    (with-error-handler
-        (lambda (error)
-          (test-run-context-error run-context test error)
-          #f)
-      (lambda ()
-        (thunk)
-        #t))))
-
 (define-method test-handle-exception ((self <test-case>) (test <test>)
                                       run-context e)
-  (test-run-context-error run-context test e)
+  (test-run-context-error run-context test e (retrieve-target-stack-trace))
   #f)
 
 (define (run-test test-case run-context test test-regexp
@@ -326,7 +316,7 @@
                                   :run-context run-context
                                   :test-regexp test-regexp))))
     (guard (e (else
-               (test-run-context-error run-context test e)
+               (test-handle-exception test-case test run-context e)
                #f))
            (teardown-proc)
            success)))
@@ -350,7 +340,7 @@
         success))))
 
 (define-method test-handle-exception ((self <test>) run-context e)
-  (test-run-context-error run-context self e))
+  (test-run-context-error run-context self e (retrieve-target-stack-trace)))
 
 (define-method test-run ((self <test>) . options)
   (let-keywords* options ((run-context (make <test-run-context>))

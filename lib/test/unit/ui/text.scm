@@ -113,14 +113,12 @@
          (list 'failure "Failure" test message stack-trace)))
 
 (define-method test-listener-on-error ((self <test-ui-text>)
-                                       run-context test err)
-  (let ((stack-trace (retrieve-target-stack-trace
-                      (cdddr (vm-get-stack-trace-lite)))))
-    (output self "E" (color self 'error) 'progress)
-    (push! (faults-of self)
-           (list 'error "Error" test
-                 (error-message err stack-trace :max-depth 0)
-                 stack-trace))))
+                                       run-context test err stack-trace)
+  (output self "E" (color self 'error) 'progress)
+  (push! (faults-of self)
+         (list 'error "Error" test
+               (error-message err stack-trace :max-depth 0)
+               stack-trace)))
 
 (define-method test-listener-on-finish-test ((self <test-ui-text>)
                                              run-context test)

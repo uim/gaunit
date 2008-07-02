@@ -83,10 +83,10 @@
   (push! (faults-of run-context) (list 'failure test message stack-trace))
   (notify run-context 'failure test message stack-trace))
 
-(define (test-run-context-error run-context test error)
+(define (test-run-context-error run-context test error stack-trace)
   (inc! (n-errors-of run-context))
-  (push! (faults-of run-context) (list 'error test error))
-  (notify run-context 'error test error))
+  (push! (faults-of run-context) (list 'error test error stack-trace))
+  (notify run-context 'error test error stack-trace))
 
 (define (test-run-context-finish-test run-context test)
   (inc! (n-tests-of run-context))
