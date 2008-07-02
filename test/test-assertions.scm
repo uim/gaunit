@@ -37,14 +37,53 @@
                     "assert-equal fail"
                     ,(string-append
                       "expected: <1>\n"
-                      " but was: <-1>\n"
-                      "\n"
-                      "diff:\n"
-                      "- 1\n"
-                      "+ -1"))
+                      " but was: <-1>"))
                   `(,(car failure)
                     ,(name-of (cadr failure))
                     ,(caddr failure))))
+  #f)
+
+(define (test-assert-equal-diff)
+  (let ((run-context (assert-run-result
+                      #f
+                      0 1 3
+                      0 0 0 3 0
+                      (make-test-case "Test assert-equal"
+                                      ("3: assert-equal fail without diff"
+                                       (assert-equal "a" "A"))
+                                      ("1: assert-equal fail with long line"
+                                       (assert-equal "aaaaaaaaaaabaaaaaaaaaa"
+                                                     "aaaaaaaaaaaBaaaaaaaaaa"))
+                                      ("2: assert-equal fail with multi lines"
+                                       (assert-equal "a\nb" "a\nc"))))))
+    (assert-equal `((failure
+                     "1: assert-equal fail with long line"
+                     ,(string-append
+                       "expected: <\"aaaaaaaaaaabaaaaaaaaaa\">\n"
+                       " but was: <\"aaaaaaaaaaaBaaaaaaaaaa\">"))
+                    (failure
+                     "2: assert-equal fail with multi lines"
+                     ,(string-append
+                       "expected: <\"a\nb\">\n"
+                       " but was: <\"a\nc\">\n"
+                       "\n"
+                       "diff:\n"
+                       "  \"a\n"
+                       "- b\"\n"
+                       "+ c\""))
+                    (failure
+                     "3: assert-equal fail without diff"
+                     ,(string-append
+                       "expected: <\"a\">\n"
+                       " but was: <\"A\">")))
+                  (map (lambda (failure)
+                         `(,(car failure)
+                           ,(name-of (cadr failure))
+                           ,(caddr failure)))
+                       (sort (faults-of run-context)
+                             (lambda (failure1 failure2)
+                               (string<? (name-of (cadr failure1))
+                                         (name-of (cadr failure2))))))))
   #f)
 
 (define (test-assert-not-equal)

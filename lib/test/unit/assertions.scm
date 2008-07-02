@@ -49,6 +49,9 @@
 (define (format-diff from to)
   (string-trim-right (with-output-to-string (lambda () (diff-report from to)))))
 
+(define (interested-diff? diff)
+  (#/^(?:.*\n){2}/ diff))
+
 (define (need-fold? diff)
   (#/^[-+].{79}/ diff))
 
@@ -60,6 +63,26 @@
 
 (define (format-folded-diff from to)
   (format-diff (fold-string from) (fold-string to)))
+
+(define (append-diff-message output expected actual)
+  (unless (string=? expected actual)
+    (let ((diff (format-diff expected actual)))
+      (when (interested-diff? diff)
+        (format output
+                (string-append
+                 "\n"
+                 "\n"
+                 "diff:\n"
+                 "~a")
+                diff)
+        (if (need-fold? diff)
+          (format output
+                  (string-append
+                   "\n"
+                   "\n"
+                   "folded diff:\n"
+                   "~a")
+                  (format-folded-diff expected actual)))))))
 
 (define (make-message-handler expected . keywords)
   (let-keywords* keywords ((after-expected "")
@@ -75,25 +98,9 @@
                      " but was: <~a>~a")
                     pretty-printed-expected after-expected
                     pretty-printed-actual after-actual)
-            (unless (string=? pretty-printed-expected pretty-printed-actual)
-              (let ((diff (format-diff pretty-printed-expected
-                                       pretty-printed-actual)))
-                (format output
-                        (string-append
-                         "\n"
-                         "\n"
-                         "diff:\n"
-                         "~a")
-                        diff)
-                (if (need-fold? diff)
-                  (format output
-                          (string-append
-                           "\n"
-                           "\n"
-                           "folded diff:\n"
-                           "~a")
-                          (format-folded-diff pretty-printed-expected
-                                              pretty-printed-actual)))))))))))
+            (append-diff-message output
+                                 pretty-printed-expected
+                                 pretty-printed-actual)))))))
 
 (define-method test-handle-exception ((test <test>)
                                       run-context (e <assertion-failure>))
