@@ -102,6 +102,14 @@
                                  pretty-printed-expected
                                  pretty-printed-actual)))))))
 
+(define-method test-handle-exception ((test-case <test-case>) (test <test>)
+                                      run-context (e <assertion-failure>))
+  (test-run-context-failure run-context
+                            test
+                            (failure-message-of e)
+                            (stack-trace-of e))
+  #f)
+
 (define-method test-handle-exception ((test <test>)
                                       run-context (e <assertion-failure>))
   (test-run-context-failure run-context
