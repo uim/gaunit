@@ -57,7 +57,7 @@
 
 (define (fold-string string)
   (string-join (map (lambda (line)
-                      (regexp-replace #/(.{78})/ line "\\1\n"))
+                      (regexp-replace-all #/(.{78})/ line "\\1\n"))
                     (string-split string "\n"))
                "\n"))
 
@@ -67,22 +67,22 @@
 (define (append-diff-message output expected actual)
   (unless (string=? expected actual)
     (let ((diff (format-diff expected actual)))
-      (when (interested-diff? diff)
+      (if (interested-diff? diff)
         (format output
                 (string-append
                  "\n"
                  "\n"
                  "diff:\n"
                  "~a")
-                diff)
-        (if (need-fold? diff)
-          (format output
-                  (string-append
-                   "\n"
-                   "\n"
-                   "folded diff:\n"
-                   "~a")
-                  (format-folded-diff expected actual)))))))
+                diff))
+      (if (need-fold? diff)
+        (format output
+                (string-append
+                 "\n"
+                 "\n"
+                 "folded diff:\n"
+                 "~a")
+                (format-folded-diff expected actual))))))
 
 (define (make-message-handler expected . keywords)
   (let-keywords* keywords ((after-expected "")
