@@ -62,7 +62,8 @@
                                       message
                                       (escape-sequence-of (reset-color-of self)))
                        message)))
-        (display message)))))
+        (display message)
+        (flush)))))
 
 (define (output-stack-trace self stack-trace)
   (let ((message (error-message #f stack-trace :max-depth 5)))
