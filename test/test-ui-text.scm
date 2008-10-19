@@ -104,4 +104,4 @@
   (assert-color-available #t "xterm-color" "")
   (assert-color-available #f "unknown" ""))
 
-(provide "test/test-base")
+(provide "test/test-ui-text")
