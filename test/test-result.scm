@@ -46,6 +46,9 @@
    #f
    0 1 1
    1 0 0 1 0
+   `((failure "1 passes, 2 failures"
+              ,(string-append "expected: <1>\n"
+                              " but was: <3>")))
    (car (%test-cases-of test-suite)))
   #f)
 
@@ -54,6 +57,11 @@
    #f
    0 1 2
    1 0 0 1 1
+   `((failure "0 passes, 2 failures, 1 errors"
+              ,(string-append "expected: <#f>\n"
+                              " but was: <#t>"))
+     (error "1 passes, 0 failures, 1 errors"
+            "#<error \"invalid application: (1)\">"))
    (cadr (%test-cases-of test-suite)))
   #f)
 
@@ -62,6 +70,9 @@
    #f
    0 1 3
    1 0 2 1 0
+   `((pending "1 pending" "not work yet")
+     (failure "1 failure" "Pending thunk should not be passed: not work yet")
+     (pending "1 pass, 1 pending" "not work yet"))
    (caddr (%test-cases-of test-suite)))
   #f)
 
@@ -70,6 +81,7 @@
    #t
    0 0 1
    1 0 1 0 0
+   '((pending "1 pass, 1 pending" "not work yet"))
    (car (%tests-of (caddr (%test-cases-of test-suite)))))
   #f)
 
@@ -78,6 +90,17 @@
    #f
    1 3 6
    3 0 2 3 1
+   `((pending "1 pending" "not work yet")
+     (failure "1 failure" "Pending thunk should not be passed: not work yet")
+     (pending "1 pass, 1 pending" "not work yet")
+     (failure "0 passes, 2 failures, 1 errors"
+              ,(string-append "expected: <#f>\n"
+                              " but was: <#t>"))
+     (error "1 passes, 0 failures, 1 errors"
+            "#<error \"invalid application: (1)\">")
+     (failure "1 passes, 2 failures"
+              ,(string-append "expected: <1>\n"
+                              " but was: <3>")))
    test-suite)
   #f)
 

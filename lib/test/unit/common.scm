@@ -24,7 +24,8 @@
   (define (in-library? stack)
     (or (not (pair? stack))
         (rxmatch #/\/test\/unit\//
-                 (car (stack->source-info stack '("") 0)))))
+                 (car (stack->source-info stack '("") 0))))
+    #f)
   (let-optionals* options ((stack-trace (cddr (vm-get-stack-trace-lite))))
     (remove in-library? (unwrap-syntax stack-trace))))
 

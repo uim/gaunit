@@ -10,6 +10,9 @@
    #f
    0 1 2
    2 1 0 1 0
+   `((failure "assert eq?"
+              ,(string-append "expected: <#t>\n"
+                              " but was: <#f>")))
    (make-test-case "Test assert"
                    ("assert eq?"
                     (assert eq? #t #t)
@@ -22,68 +25,52 @@
   #f)
 
 (define (test-assert-equal)
-  (let* ((run-context (assert-run-result
-                       #f
-                       0 1 2
-                       2 1 0 1 0
-                       (make-test-case "Test assert-equal"
-                                       ("assert-equal success"
-                                        (assert-equal 3 3)
-                                        (assert-equal 5 5))
-                                       ("assert-equal fail"
-                                        (assert-equal 1 -1)))))
-         (failure (car (faults-of run-context))))
-    (assert-equal `(failure
-                    "assert-equal fail"
-                    ,(string-append
-                      "expected: <1>\n"
-                      " but was: <-1>"))
-                  `(,(car failure)
-                    ,(name-of (cadr failure))
-                    ,(caddr failure))))
+  (assert-run-result
+   #f
+   0 1 2
+   2 1 0 1 0
+   `((failure "assert-equal fail"
+              ,(string-append
+                "expected: <1>\n"
+                " but was: <-1>")))
+   (make-test-case "Test assert-equal"
+                   ("assert-equal success"
+                    (assert-equal 3 3)
+                    (assert-equal 5 5))
+                   ("assert-equal fail"
+                    (assert-equal 1 -1))))
   #f)
 
 (define (test-assert-equal-diff)
-  (let ((run-context (assert-run-result
-                      #f
-                      0 1 3
-                      0 0 0 3 0
-                      (make-test-case "Test assert-equal"
-                                      ("3: assert-equal fail without diff"
-                                       (assert-equal "a" "A"))
-                                      ("1: assert-equal fail with long line"
-                                       (assert-equal "aaaaaaaaaaabaaaaaaaaaa"
-                                                     "aaaaaaaaaaaBaaaaaaaaaa"))
-                                      ("2: assert-equal fail with multi lines"
-                                       (assert-equal "a\nb" "a\nc"))))))
-    (assert-equal `((failure
-                     "1: assert-equal fail with long line"
-                     ,(string-append
-                       "expected: <\"aaaaaaaaaaabaaaaaaaaaa\">\n"
-                       " but was: <\"aaaaaaaaaaaBaaaaaaaaaa\">"))
-                    (failure
-                     "2: assert-equal fail with multi lines"
-                     ,(string-append
-                       "expected: <\"a\nb\">\n"
-                       " but was: <\"a\nc\">\n"
-                       "\n"
-                       "diff:\n"
-                       "  \"a\n"
-                       "- b\"\n"
-                       "+ c\""))
-                    (failure
-                     "3: assert-equal fail without diff"
-                     ,(string-append
-                       "expected: <\"a\">\n"
-                       " but was: <\"A\">")))
-                  (map (lambda (failure)
-                         `(,(car failure)
-                           ,(name-of (cadr failure))
-                           ,(caddr failure)))
-                       (sort (faults-of run-context)
-                             (lambda (failure1 failure2)
-                               (string<? (name-of (cadr failure1))
-                                         (name-of (cadr failure2))))))))
+  (assert-run-result
+   #f
+   0 1 3
+   0 0 0 3 0
+   `((failure "2: assert-equal fail with multi lines"
+              ,(string-append
+                "expected: <\"a\nb\">\n"
+                " but was: <\"a\nc\">\n"
+                "\n"
+                "diff:\n"
+                "  \"a\n"
+                "- b\"\n"
+                "+ c\""))
+     (failure "1: assert-equal fail with long line"
+              ,(string-append
+                "expected: <\"aaaaaaaaaaabaaaaaaaaaa\">\n"
+                " but was: <\"aaaaaaaaaaaBaaaaaaaaaa\">"))
+     (failure "3: assert-equal fail without diff"
+              ,(string-append
+                "expected: <\"a\">\n"
+                " but was: <\"A\">")))
+   (make-test-case "Test assert-equal"
+                   ("3: assert-equal fail without diff"
+                    (assert-equal "a" "A"))
+                   ("1: assert-equal fail with long line"
+                    (assert-equal "aaaaaaaaaaabaaaaaaaaaa"
+                                  "aaaaaaaaaaaBaaaaaaaaaa"))
+                   ("2: assert-equal fail with multi lines"
+                    (assert-equal "a\nb" "a\nc"))))
   #f)
 
 (define (test-assert-not-equal)
@@ -91,6 +78,12 @@
    #f
    0 1 3
    1 1 0 2 0
+   `((failure "assert-not-equal fail2"
+              ,(string-append "expected: <#t> to not be equal?\n"
+                             " but was: <#t>"))
+     (failure "assert-not-equal fail1"
+              ,(string-append "expected: <3> to not be equal?\n"
+                              " but was: <3>")))
    (make-test-case "Test assert-not-equal"
                    ("assert-not-equal success"
                     (assert-not-equal 1 -1))
@@ -105,6 +98,12 @@
    #f
    0 1 3
    1 1 0 2 0
+   `((failure "assert-null fail2"
+              ,(string-append "expected: <()>\n"
+                              " but was: <(1 1 2 -2)>"))
+     (failure "assert-null fail1"
+              ,(string-append "expected: <()>\n"
+                              " but was: <1>")))
    (make-test-case "Test assert-null"
                    ("assert-null success"
                     (assert-null '()))
@@ -119,6 +118,9 @@
    #f
    0 1 2
    2 1 0 1 0
+   `((failure "assert-not-null fail"
+              ,(string-append "expected: <()> to not be ()\n"
+                              " but was: <()>")))
    (make-test-case "Test assert-not-null"
                    ("assert-not-null success"
                     (assert-not-null 1)
@@ -132,6 +134,12 @@
    #f
    0 1 3
    1 1 0 2 0
+   `((failure "assert-true fail2"
+              ,(string-append "expected: <#t>\n"
+                              " but was: <#f>"))
+     (failure "assert-true fail1"
+              ,(string-append "expected: <#t>\n"
+                              " but was: <1>")))
    (make-test-case "Test assert-true"
                    ("assert-true success"
                     (assert-true #t))
@@ -146,6 +154,12 @@
    #f
    0 1 3
    1 1 0 2 0
+   `((failure "assert-false fail2"
+              ,(string-append "expected: <#f>\n"
+                              " but was: <#t>"))
+     (failure "assert-false fail1"
+              ,(string-append "expected: <#f>\n"
+                              " but was: <1>")))
    (make-test-case "Test assert-false"
                    ("assert-false success"
                     (assert-false #f))
@@ -160,6 +174,14 @@
    #f
    0 1 3
    1 1 0 2 0
+   `((failure "assert-instance-of fail2"
+              ,(string-append
+                " expected:<#f> is an instance of <#<class <list>>>\n"
+                "  but was:<#<class <boolean>>>"))
+     (failure "assert-instance-of fail1"
+              ,(string-append
+                " expected:<#t> is an instance of <#<class <integer>>>\n"
+                "  but was:<#<class <boolean>>>")))
    (make-test-case "Test assert-instance-of"
                    ("assert-instance-of success"
                     (assert-instance-of <integer> 1))
@@ -174,6 +196,12 @@
    #f
    0 1 3
    1 1 0 2 0
+   `((failure "assert-raise fail2"
+              ,(string-append " expected:<#<class <error>>> class exception\n"
+                              "  but was:<#<class <assertion-failure>>>"))
+     (failure "assert-raise fail1"
+              ,(string-append " expected:<#<class <integer>>> class exception\n"
+                              "  but was:<#<class <error>>>")))
    (make-test-case "Test assert-raise"
                    ("assert-raise success"
                     (assert-raise <error> (lambda () (1))))
@@ -188,6 +216,10 @@
    #f
    0 1 3
    1 1 0 2 0
+   `((failure "assert-error fail2"
+              " <#f> must be procedure")
+     (failure "assert-error fail1"
+              " None expection was thrown"))
    (make-test-case "Test assert-error"
                    ("assert-error success"
                     (assert-error (lambda () (1))))
@@ -202,6 +234,12 @@
    #f
    0 1 3
    1 1 0 2 0
+   `((failure "assert-not-raise fail2"
+              " <#f> must be procedure")
+     (failure "assert-not-raise fail1"
+              ,(string-append
+                " expected no exception was thrown\n"
+                "  but <#<class <error>>> class exception was thrown")))
    (make-test-case "Test assert-not-raise"
                    ("assert-not-raise success"
                     (assert-not-raise (lambda () 1)))
@@ -216,6 +254,11 @@
    #f
    0 1 3
    5 1 0 1 1
+   `((error "assert-each error"
+            "#<error \"list required, but got #t\">")
+     (failure "assert-each fail-1"
+              ,(string-append "expected: <#t>\n"
+                              " but was: <#f>")))
    (make-test-case "Test assert-each"
                    ("assert-each success"
                     (assert-each assert-equal
@@ -263,6 +306,11 @@
    #f
    0 1 3
    3 1 0 1 1
+   `((error "assert-marcro1 error"
+            "#<error \"wrong number of arguments for  ...\">")
+     (failure "assert-macro1 fail"
+              ,(string-append "expected: <(error 1)>\n"
+                              " but was: <(error \"1\")>")))
    (make-test-case "Test assert-macro1"
                    ("assert-macro1 success"
                     (assert-macro1 '(error "error string!")
@@ -292,6 +340,11 @@
    #f
    0 1 3
    3 1 0 1 1
+   `((error "assert-marcro error"
+            "#<error \"wrong number of arguments for  ...\">")
+     (failure "assert-macro fail"
+              ,(string-append "expected: <(and #t (die \"must be fail!\"))>\n"
+                              " but was: <(or #t (die \"must be fail!\"))>")))
    (make-test-case "Test assert-macro"
                    ("assert-macro success"
                     (assert-macro '(or #t
@@ -320,6 +373,14 @@
    #f
    0 1 3
    3 1 0 1 1
+   `((error "assert-lset-equal error"
+            "#<error \"argument must be a list, but g ...\">")
+     (failure "assert-lset-equal fail"
+              ,(string-append
+                "expected: <(a b c)>\n"
+                " but was: <(a b c d)>\n"
+                " diff for expected<->actual:<()>\n"
+                " diff for actual<->expected:<(d)>")))
    (make-test-case "Test assert-lset-equal"
                    ("assert-lset-equal success"
                     (assert-lset-equal '(1 2 3)
@@ -340,6 +401,11 @@
    #f
    0 1 3
    3 1 0 1 1
+   `((error "assert-values-equal error"
+            "#<error \"invalid application: (1)\">")
+     (failure "assert-values-equal fail"
+              ,(string-append "expected: <(a b c)>\n"
+                              " but was: <((a b c))>")))
    (make-test-case "Test assert-values-equal"
                    ("assert-values-equal success"
                     (assert-values-equal '(1 2 3)
@@ -363,6 +429,12 @@
    #f
    0 1 3
    3 1 0 1 1
+   `((error "assert-in-delta error"
+            "#<error \"wrong number of arguments for  ...\">")
+     (failure "assert-in-delta fail"
+              ,(string-append
+                "expected: <1> +/- <0.5>\n"
+                " but was: <2>")))
    (make-test-case "Test assert-in-delta"
                    ("assert-in-delta success"
                     (assert-in-delta 0.9 0.1 1)
@@ -379,6 +451,11 @@
    #f
    0 1 3
    4 1 0 1 1
+   `((error "assert-output error-1"
+            "#<error \"invalid application: (\"***\")\">")
+     (failure "assert-output fail-1"
+              ,(string-append "expected: <\"***\">\n"
+                              " but was: <\"\">")))
    (make-test-case "Test assert-output"
                    ("assert-output success-4"
                     (assert-output #/\*+/ (lambda () (display "***")))
@@ -396,6 +473,13 @@
    #f
    0 1 4
    2 1 0 2 1
+   `((error "assert-match error"
+            "#<error \"invalid application: (\"***\")\">")
+     (failure "assert-match fail2"
+              "expected <\"***\"> must be a regexp")
+     (failure "assert-match fail1"
+              ,(string-append "expected: <#/\\*+/> is matched\n"
+                              " but was: <\"\">")))
    (make-test-case "Test assert-match"
                    ("assert-match 2 passes"
                     (assert-match #/\*+/ "*****")
@@ -413,6 +497,14 @@
    #f
    0 1 4
    2 1 0 2 1
+   `((error "assert-not-match error"
+            "#<error \"invalid application: (\"???\")\">")
+     (failure "assert-not-match fail2"
+              "expected <\"***\"> must be a regexp")
+     (failure "assert-not-match fail1"
+              ,(string-append
+                "expected: <#/\\*+/> is not matched\n"
+                " but was: <\"*** ERROR:\">")))
    (make-test-case "Test assert-not-match"
                    ("assert-not-match 2 passes"
                     (assert-not-match #/\*+/ "ERROR")

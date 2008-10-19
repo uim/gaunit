@@ -7,7 +7,7 @@
   (use test.unit.base)
   (use test.unit.run-context)
   (use gauche.parameter)
-  (export define-assertion))
+  (export define-assertion pretty-print-object))
 (select-module test.unit.assertions)
 
 (require 'pretty-print)
@@ -44,7 +44,12 @@
         message)))
 
 (define (pretty-print-object object)
-  (string-trim-right (with-output-to-string (lambda () (pretty-print object)))))
+  (let ((pretty-printed-object
+         (string-trim-right (with-output-to-string
+                              (lambda () (pretty-print object))))))
+    (if (equal? pretty-printed-object "#[unknown]")
+      (x->string object)
+      pretty-printed-object)))
 
 (define (format-diff from to)
   (string-trim-right (with-output-to-string (lambda () (diff-report from to)))))
