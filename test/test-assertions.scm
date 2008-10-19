@@ -526,9 +526,25 @@
 (define (test-assert-valid-module)
   (assert-run-result
    #f
-   0 1 4
-   4 2 0 1 1
-   `((error "assert-valid-module error - string"
+   0 1 8
+   3 2 0 5 1
+   `((failure "assert-valid-module failure - full"
+              ,(string-append
+                "<#<module #>> isn't valid module\n"
+                "unautoloadable symbols: <(aaa)>\n"
+                "nonexistent exported symbols: <(yyy xxx)>\n"
+                "unresolvable references: <(\"nonexistent(zzz)\")>"))
+     (failure "assert-valid-module failure - unresolvable references"
+              ,(string-append
+                "<#<module #>> isn't valid module\n"
+                "unresolvable references: <(\"nonexistent(xxx)\")>"))
+     (failure "assert-valid-module failure - dangling autoloads"
+              ,(string-append "<#<module #>> isn't valid module\n"
+                              "unautoloadable symbols: <(xxx)>"))
+     (failure "assert-valid-module failure - nonexistent symbols"
+              ,(string-append "<#<module #>> isn't valid module\n"
+                              "nonexistent exported symbols: <(yyy)>"))
+     (error "assert-valid-module error - string"
             "#<error \"symbol required, but got \\\"nonexistent-module\\\"\">")
      (failure "assert-valid-module failure - nonexistent module"
               "expected: <nonexistent-module> is existent module"))
@@ -542,20 +558,38 @@
                     (assert-valid-module 'nonexistent-module))
                    ("assert-valid-module error - string"
                     (assert-valid-module "nonexistent-module"))
-                   ("assert-valid-module 2 passes - valid symbols"
-                    (let ((anonymous-valid-symbols-module (make-module #f)))
+                   ("assert-valid-module pass - valid symbols"
+                    (let ((valid-symbols-module (make-module #f)))
                       (eval '(begin
                                (export xxx)
                                (define xxx "xxx"))
-                            anonymous-valid-symbols-module)
-                      (assert-valid-module anonymous-valid-symbols-module))
-                    (let ((valid-symbols-module
-                           (make-module 'valid-symbols-module)))
+                            valid-symbols-module)
+                      (assert-valid-module valid-symbols-module)))
+                   ("assert-valid-module failure - nonexistent symbols"
+                    (let ((nonexistent-symbols-module (make-module #f)))
                       (eval '(begin
-                               (export xxx)
-                               (define xxx "xxx"))
-                            valid-symbols-module))
-                    (assert-valid-module 'valid-symbols-module))))
+                               (export xxx yyy)
+                               (define xxx "XXX"))
+                            nonexistent-symbols-module)
+                      (assert-valid-module nonexistent-symbols-module)))
+                   ("assert-valid-module failure - dangling autoloads"
+                    (let ((dangling-autoloads-module (make-module #f)))
+                      (eval '(autoload "nonexistent" xxx)
+                            dangling-autoloads-module)
+                      (assert-valid-module dangling-autoloads-module)))
+                   ("assert-valid-module failure - unresolvable references"
+                    (let ((unresolvable-references-module (make-module #f)))
+                      (eval '(define (xxx) nonexistent)
+                            unresolvable-references-module)
+                      (assert-valid-module unresolvable-references-module)))
+                   ("assert-valid-module failure - full"
+                    (let ((unresolvable-references-module (make-module #f)))
+                      (eval '(begin
+                               (export xxx yyy zzz)
+                               (autoload "nonexistent" aaa yyy)
+                               (define (zzz) nonexistent))
+                            unresolvable-references-module)
+                      (assert-valid-module unresolvable-references-module)))))
   #f)
 
 (provide "test/test-assertions")

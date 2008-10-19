@@ -7,6 +7,8 @@
   (use test.unit.base)
   (use test.unit.run-context)
   (use gauche.parameter)
+  (use gauche.collection)
+  (use gauche.test)
   (export define-assertion pretty-print-object))
 (select-module test.unit.assertions)
 
@@ -353,6 +355,44 @@
     (assertion-failure
      (format #f "expected <~s> must be a regexp" expected))))
 
+(define (collect-dangling-autoloads module)
+  (filter (lambda (symbol)
+            (guard (_ (else #t))
+                   (global-variable-ref module symbol)
+                   #f))
+          (map (lambda (key&value)
+                 (car key&value))
+               (module-table module))))
+
+(define (collect-nonexistent-exported-symbols module)
+  (let ((exported-symbols (module-exports module)))
+    (if (pair? exported-symbols)
+      (filter (lambda (symbol)
+                (guard (_ (else #t))
+                       (global-variable-ref module symbol)
+                       #f))
+              exported-symbols)
+      '())))
+
+(define (toplevel-closures module)
+  (filter closure?
+          (map (lambda (sym)
+                 (guard (_ (else #f))
+                        (global-variable-ref module sym #f)))
+               (hash-table-keys (module-table module)))))
+(define closure-grefs (with-module gauche.test closure-grefs))
+(define dangling-gref? (with-module gauche.test dangling-gref?))
+
+(define (collect-unresolvable-references module)
+  (fold (lambda (closure previous)
+          (append (filter (lambda (x) x)
+                          (map (lambda (gref)
+                                 (dangling-gref? gref closure))
+                               (closure-grefs closure)))
+                  previous))
+        '()
+        (toplevel-closures module)))
+
 (define-assertion (assert-valid-module module-or-name . message)
   (let ((module (if (module? module-or-name)
                   module-or-name
@@ -360,6 +400,37 @@
     (unless module
       (assertion-failure
        (format #f "expected: <~s> is existent module" module-or-name)))
+    (let* ((nonexistent-exported-modules
+            (collect-nonexistent-exported-symbols module))
+           (dangling-autoloads
+            (lset-difference eq?
+                             (collect-dangling-autoloads module)
+                             nonexistent-exported-modules))
+           (unresolvable-references
+            (collect-unresolvable-references module))
+           (message (call-with-output-string
+                      (lambda (output)
+                        (unless (null? dangling-autoloads)
+                          (format output
+                                  "unautoloadable symbols: <~a>\n"
+                                  (pretty-print-object dangling-autoloads)))
+                        (unless (null? nonexistent-exported-modules)
+                          (format output
+                                  "nonexistent exported symbols: <~a>\n"
+                                  (pretty-print-object
+                                   nonexistent-exported-modules)))
+                        (unless (null? unresolvable-references)
+                          (format output
+                                  "unresolvable references: <~a>\n"
+                                  (pretty-print-object
+                                   (map (lambda (gref)
+                                          (format #f "~a(~a)"
+                                                  (car gref) (cdr gref)))
+                                        unresolvable-references))))))))
+      (unless (equal? "" message)
+        (assertion-failure
+         (format #f "<~s> isn't valid module\n~a"
+                 module (string-trim-right message)))))
     #t))
 
 (provide "test/unit/assertions")
