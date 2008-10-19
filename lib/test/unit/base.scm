@@ -141,13 +141,15 @@
                  (test-procedure? symbol test-case-module))
                (hash-table-keys (module-table test-case-module)))))
 
+(define (make-test-case-from-module module)
+  (make <test-case>
+    :name (symbol->string (module-name module))
+    :setup (retrieve-procedure 'setup module)
+    :teardown (retrieve-procedure 'teardown module)
+    :tests (collect-tests module)))
+
 (define (find-test-case-modules base-test-case-module)
-  (map (lambda (test-case-module)
-         (make <test-case>
-           :name (symbol->string (module-name test-case-module))
-           :setup (retrieve-procedure 'setup test-case-module)
-           :teardown (retrieve-procedure 'teardown test-case-module)
-           :tests (collect-tests test-case-module)))
+  (map make-test-case-from-module
        (filter (lambda (mod)
                  (member base-test-case-module (module-parents mod)))
                (all-modules))))
@@ -157,12 +159,23 @@
     (push! (listeners-of run-context) (default-test-ui))
     run-context))
 
+(define (user-module-test-mode?)
+  (and-let* ((user-module (find-module 'user))
+             (test-unit-module (find-module 'test.unit))
+             ((member test-unit-module (module-imports user-module))))
+    user-module))
+
+(define (add-user-module-test-case-if-need test-suite)
+  (and-let* ((user-module (user-module-test-mode?)))
+    (add-test-case! test-suite (make-test-case-from-module user-module))))
+
 (define (test-run-all . options)
   (unless *default-test-suite*
     (eval '(use test.unit.ui.text) (current-module)))
   (for-each (lambda (test-case)
               (add-test-case! *default-test-suite* test-case))
             (find-test-case-modules (find-module 'test.unit.test-case)))
+  (add-user-module-test-case-if-need *default-test-suite*)
   (let-keywords* options ((run-context (make-default-run-context))
                           (test-suite-regexp #//)
                           (test-case-regexp #//)
