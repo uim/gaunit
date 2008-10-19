@@ -4,3 +4,7 @@
 
 
 (provide "test/unit/test-case")
+
+(if (find-module 'user)
+  (with-module user
+    (autoload test.unit.auto-runner main)))
