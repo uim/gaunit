@@ -307,7 +307,9 @@
    0 1 3
    3 1 0 1 1
    `((error "assert-marcro1 error"
-            "#<error \"wrong number of arguments for  ...\">")
+            ,(string-append
+              "#<error \"wrong number of arguments for #<closure die> "
+              "(required 1, got 0)\">"))
      (failure "assert-macro1 fail"
               ,(string-append "expected: <(error 1)>\n"
                               " but was: <(error \"1\")>")))
@@ -341,7 +343,9 @@
    0 1 3
    3 1 0 1 1
    `((error "assert-marcro error"
-            "#<error \"wrong number of arguments for  ...\">")
+            ,(string-append
+              "#<error \"wrong number of arguments for "
+              "#<closure or-die> (required 2, got 0)\">"))
      (failure "assert-macro fail"
               ,(string-append "expected: <(and #t (die \"must be fail!\"))>\n"
                               " but was: <(or #t (die \"must be fail!\"))>")))
@@ -374,7 +378,7 @@
    0 1 3
    3 1 0 1 1
    `((error "assert-lset-equal error"
-            "#<error \"argument must be a list, but g ...\">")
+            "#<error \"argument must be a list, but got: #(1)\">")
      (failure "assert-lset-equal fail"
               ,(string-append
                 "expected: <(a b c)>\n"
@@ -430,7 +434,9 @@
    0 1 3
    3 1 0 1 1
    `((error "assert-in-delta error"
-            "#<error \"wrong number of arguments for  ...\">")
+            ,(string-append
+              "#<error \"wrong number of arguments for "
+              "#<closure assert-in-delta> (required 3, got 2)\">"))
      (failure "assert-in-delta fail"
               ,(string-append
                 "expected: <1> +/- <0.5>\n"
@@ -452,7 +458,7 @@
    0 1 3
    4 1 0 1 1
    `((error "assert-output error-1"
-            "#<error \"invalid application: (\"***\")\">")
+            "#<error \"invalid application: (\\\"***\\\")\">")
      (failure "assert-output fail-1"
               ,(string-append "expected: <\"***\">\n"
                               " but was: <\"\">")))
@@ -474,7 +480,7 @@
    0 1 4
    2 1 0 2 1
    `((error "assert-match error"
-            "#<error \"invalid application: (\"***\")\">")
+            "#<error \"invalid application: (\\\"***\\\")\">")
      (failure "assert-match fail2"
               "expected <\"***\"> must be a regexp")
      (failure "assert-match fail1"
@@ -498,7 +504,7 @@
    0 1 4
    2 1 0 2 1
    `((error "assert-not-match error"
-            "#<error \"invalid application: (\"???\")\">")
+            "#<error \"invalid application: (\\\"???\\\")\">")
      (failure "assert-not-match fail2"
               "expected <\"***\"> must be a regexp")
      (failure "assert-not-match fail1"
@@ -515,6 +521,41 @@
                     (assert-not-match "***" "???"))
                    ("assert-not-match error"
                     (assert-not-match "***" ("???")))))
+  #f)
+
+(define (test-assert-valid-module)
+  (assert-run-result
+   #f
+   0 1 4
+   4 2 0 1 1
+   `((error "assert-valid-module error - string"
+            "#<error \"symbol required, but got \\\"nonexistent-module\\\"\">")
+     (failure "assert-valid-module failure - nonexistent module"
+              "expected: <nonexistent-module> is existent module"))
+   (make-test-case "Test assert-valid-module"
+                   ("assert-valid-module 2 passes - empty module"
+                    (let ((anonymous-empty-module (make-module #f)))
+                      (assert-valid-module anonymous-empty-module))
+                    (make-module 'empty-module)
+                    (assert-valid-module 'empty-module))
+                   ("assert-valid-module failure - nonexistent module"
+                    (assert-valid-module 'nonexistent-module))
+                   ("assert-valid-module error - string"
+                    (assert-valid-module "nonexistent-module"))
+                   ("assert-valid-module 2 passes - valid symbols"
+                    (let ((anonymous-valid-symbols-module (make-module #f)))
+                      (eval '(begin
+                               (export xxx)
+                               (define xxx "xxx"))
+                            anonymous-valid-symbols-module)
+                      (assert-valid-module anonymous-valid-symbols-module))
+                    (let ((valid-symbols-module
+                           (make-module 'valid-symbols-module)))
+                      (eval '(begin
+                               (export xxx)
+                               (define xxx "xxx"))
+                            valid-symbols-module))
+                    (assert-valid-module 'valid-symbols-module))))
   #f)
 
 (provide "test/test-assertions")

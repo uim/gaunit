@@ -48,7 +48,14 @@
          (string-trim-right (with-output-to-string
                               (lambda () (pretty-print object))))))
     (if (equal? pretty-printed-object "#[unknown]")
-      (x->string object)
+      (if (is-a? object <error>)
+        (format #f
+                "#<~a ~s>"
+                (regexp-replace-all #/(^<|>$)/
+                                    (x->string (class-name (class-of object)))
+                                    "")
+                (ref object 'message))
+        (x->string object))
       pretty-printed-object)))
 
 (define (format-diff from to)
@@ -345,5 +352,14 @@
       #t)
     (assertion-failure
      (format #f "expected <~s> must be a regexp" expected))))
+
+(define-assertion (assert-valid-module module-or-name . message)
+  (let ((module (if (module? module-or-name)
+                  module-or-name
+                  (find-module module-or-name))))
+    (unless module
+      (assertion-failure
+       (format #f "expected: <~s> is existent module" module-or-name)))
+    #t))
 
 (provide "test/unit/assertions")
