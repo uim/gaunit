@@ -1,4 +1,5 @@
 (define-module test.unit.auto-runner
+  (use file.util)
   (use srfi-13)
   (use srfi-37)
   (use test.unit.base)
@@ -14,7 +15,7 @@
   (define default-verbose (cons 'normal "normal"))
   (define (usage)
     (print #`"Usage:")
-    (print #`"  ,(car args) [OPTIONS]")
+    (print #`"  ,(car args) [OPTIONS] [TEST ...]")
     (print)
     (print #`"Options:")
     (print #`"\t-u, --ui=UI\t\tUse the given UI. (default ,(cdr default-ui))")
@@ -79,6 +80,9 @@
          (print "Unrecognized option: " name)
          (usage))
        (lambda (operand ui verbose suite case test) ; operand
+         (let ((feature (path-sans-extension operand)))
+           (unless (provided? feature)
+             (load operand)))
          (values ui verbose suite case test))
        (car default-ui)
        (car default-verbose)
