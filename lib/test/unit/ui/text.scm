@@ -31,6 +31,17 @@
         ((equal? (sys-getenv "EMACS") "t") #t)
         (else #f)))
 
+(define (guess-progress-row-max)
+  (cond ((and-let* ((term-width (sys-getenv "TERM_WIDTH")))
+           (string->number term-width)))
+        ((not (sys-isatty (current-output-port))) -1)
+        ((and-let* ((term (sys-getenv "TERM"))
+                    ((or (#/term(?:-color)?$/ term)
+                         (equal? term "screen")))))
+         79)
+        ((equal? (sys-getenv "EMACS") "t") -1)
+        (else -1)))
+
 (define-class <test-ui-text> (<test-ui-base>)
   ((verbose :accessor verbose-of :init-keyword :verbose
             :init-value 'normal)
@@ -40,7 +51,10 @@
    (color-scheme :accessor color-scheme-of
                  :init-form (cdr (assoc 'default *color-schemes*)))
    (reset-color :accessor reset-color-of
-                :init-form (make-color "reset"))))
+                :init-form (make-color "reset"))
+   (progress-row :accessor progress-row-of :init-value 0)
+   (progress-row-max :accessor progress-row-max-of
+                     :init-thunk guess-progress-row-max)))
 
 (define *verbose-level* (make-hash-table 'eq?))
 
@@ -53,6 +67,10 @@
   (>= (hash-table-get *verbose-level* l1)
       (hash-table-get *verbose-level* l2)))
 
+(define (level=? l1 l2)
+  (= (hash-table-get *verbose-level* l1)
+     (hash-table-get *verbose-level* l2)))
+
 (define-method output ((self <test-ui-text>) message . options)
   (let-optionals* options ((color #f)
                            (level 'normal))
@@ -64,6 +82,14 @@
                        message)))
         (display message)
         (flush)))))
+
+(define (output-progress self mark status)
+  (output self mark (color self status) 'progress)
+  (set! (progress-row-of self) (+ (progress-row-of self) (string-length mark)))
+  (when (<= 0 (progress-row-max-of self) (progress-row-of self))
+    (unless (level=? (verbose-of self) 'verbose)
+      (output self "\n" #f 'progress))
+    (set! (progress-row-of self) 0)))
 
 (define (output-stack-trace self stack-trace)
   (let ((message (error-message #f stack-trace :max-depth 5)))
@@ -95,7 +121,7 @@
   (output self #`"--- (test) ,(name-of test): " #f 'verbose))
 
 (define-method test-listener-on-success ((self <test-ui-text>) run-context test)
-  (output self "." (color self 'success) 'progress))
+  (output-progress self "." 'success))
 
 (define-method test-listener-on-pass-assertion ((self <test-ui-text>)
                                                 run-context test)
@@ -103,19 +129,19 @@
 
 (define-method test-listener-on-pending ((self <test-ui-text>) run-context test
                                          message stack-trace)
-  (output self "P" (color self 'pending) 'progress)
+  (output-progress self "P" 'pending)
   (push! (faults-of self)
          (list 'pending "Pending" test message stack-trace)))
 
 (define-method test-listener-on-failure ((self <test-ui-text>) run-context test
                                          message stack-trace)
-  (output self "F" (color self 'failure) 'progress)
+  (output-progress self "F" 'failure)
   (push! (faults-of self)
          (list 'failure "Failure" test message stack-trace)))
 
 (define-method test-listener-on-error ((self <test-ui-text>)
                                        run-context test err stack-trace)
-  (output self "E" (color self 'error) 'progress)
+  (output-progress self "E" 'error)
   (push! (faults-of self)
          (list 'error "Error" test
                (error-message err stack-trace :max-depth 0)
