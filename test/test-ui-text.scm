@@ -4,6 +4,10 @@
   (use test.gaunit-test-utils))
 (select-module test.test-base)
 
+(define (test-module)
+  (assert-valid-module 'test.unit.ui)
+  (assert-valid-module 'test.unit.ui.text))
+
 (define %guess-color-availability
   (with-module test.unit.ui.text guess-color-availability))
 

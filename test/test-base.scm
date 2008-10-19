@@ -3,6 +3,14 @@
   (use test.unit.base))
 (select-module test.test-base)
 
+(define (test-module)
+  (assert-valid-module 'test.unit.base)
+  (assert-valid-module 'test.unit.test-case)
+  (assert-valid-module 'test.unit.common)
+  (assert-valid-module 'test.unit.pending)
+  (assert-valid-module 'test.unit.run-context)
+  (assert-valid-module 'test.unit.listener))
+
 (define %test.unit.base (find-module 'test.unit.base))
 (define %test-procedure? (eval 'test-procedure? %test.unit.base))
 

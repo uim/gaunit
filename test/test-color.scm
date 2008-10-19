@@ -3,6 +3,9 @@
   (use test.unit.color))
 (select-module test.test-color)
 
+(define (test-module)
+  (assert-valid-module 'test.unit.color))
+
 (define (assert-escape-sequence expected color)
   (assert-equal expected (sequence-of color))
   (let ((escape-sequence (escape-sequence-of color)))

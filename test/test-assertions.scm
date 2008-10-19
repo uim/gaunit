@@ -5,6 +5,9 @@
   (use test.gaunit-test-utils))
 (select-module test.test-assertions)
 
+(define (test-module)
+  (assert-valid-module 'test.unit.assertions))
+
 (define (test-assert)
   (assert-run-result
    #f

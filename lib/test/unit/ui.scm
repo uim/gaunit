@@ -4,7 +4,7 @@
   (use srfi-1)
   (use srfi-2)
   (export test-succeeded test-failed test-erred
-          test-run test-case-run
+          test-run
           test-case-setup test-case-teardown
           test-start test-case-start test-suite-start
           test-finish test-case-finish test-suite-finish))
