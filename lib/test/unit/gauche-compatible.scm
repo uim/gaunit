@@ -1,5 +1,6 @@
 (define-module test.unit.gauche-compatible
   (use test.unit.base)
+  (use test.unit.test-case)
   (export *test-error* test-start test-section test-end
           test* test test-module))
 (select-module test.unit.gauche-compatible)
@@ -22,14 +23,10 @@
 
 (define tests-of (global-variable-ref 'test.unit.base 'tests-of))
 (define (test name expect expression . compare)
-  (push! (tests-of *test-case*)
-         (make <test>
-           :name name
-           :test (lambda ()
-                   (if (eq? *test-error* expect)
-                     (assert-raise <exception> expression)
-                     (assert-equal expect (expression)))
-                   #f))))
+  (if (eq? *test-error* expect)
+    (assert-raise <exception> expression)
+    (assert-equal expect (expression)))
+  #f)
 
 (define (test-module module)
   #f)

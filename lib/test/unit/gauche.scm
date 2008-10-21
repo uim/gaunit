@@ -14,42 +14,34 @@
                 define-macro define-syntax define-constant))))
 
 (define (load-gauche-test-file file)
-  (let ((test-module-name #f)
-        (sexp-list (call-with-input-file file
+  (let* ((sexp-list (call-with-input-file file
                      (lambda (input)
-                       (port->sexp-list input)))))
-    (for-each (lambda (expression)
-                (cond ((equal? '(use gauche.test) expression) #f)
-                      ((and (list? expression)
-                            (eq? 'test-start (car expression)))
-                       (set! test-module-name (cadr expression)))))
-              sexp-list)
-    (when test-module-name
-      (let* ((test-module (make-module (string->symbol test-module-name)))
-             (test-case-name (cadar
-                              (filter (lambda (sexp)
-                                        (and (list? sexp)
-                                             (equal? (car sexp) 'test-start)))
-                                      sexp-list)))
-             (test-case (make <test-case> :name test-case-name)))
-        (eval '(extend test.unit.test-case)
-              test-module)
-        (eval '(use test.unit.gauche-compatible)
-              test-module)
-        (eval `(begin
-                 ,@(filter top-level-form? sexp-list))
-              test-module)
-        (push! (tests-of test-case)
-               (make <test>
-                 :name "gauche.test test"
-                 :test (eval `(lambda ()
-                                ,@(remove (lambda (sexp)
-                                            (or (equal? sexp '(use gauche.test))
-                                                (top-level-form? sexp)))
-                                          sexp-list))
-                             test-module)))
-        (test-suite-add-test-case! (gaunit-default-test-suite)
-                                   test-case)))))
+                       (port->sexp-list input))))
+         (test-module (make-module #f))
+         (test-case-name (cadar
+                          (filter (lambda (sexp)
+                                    (and (list? sexp)
+                                         (equal? (car sexp) 'test-start)))
+                                  sexp-list)))
+         (test-case (make <test-case> :name test-case-name)))
+    (eval '(extend test.unit.test-case)
+          test-module)
+    (eval '(use test.unit.gauche-compatible)
+          test-module)
+    (eval `(begin
+             ,@(filter top-level-form? sexp-list))
+          test-module)
+    (push! (tests-of test-case)
+           (make <test>
+             :name "gauche.test test"
+             :thunk (eval `(lambda ()
+                             ,@(remove (lambda (sexp)
+                                         (or (equal? sexp '(use gauche.test))
+                                             (top-level-form? sexp)))
+                                       sexp-list))
+                          test-module)))
+    (test-suite-add-test-case! (gaunit-default-test-suite)
+                               test-case)))
 
 (define auto-runner-main main)
 (define (main args)
