@@ -17,6 +17,9 @@
           reset-test-suites soft-reset-test-suites
           set-default-test-ui!
           name-of elapsed-of |setter of elapsed-of|
+          tests-of |setter of tests-of|
+
+          test-suite-add-test-case!
 
           test-handle-exception
 
@@ -210,6 +213,9 @@
      (make <test-suite>
        :name name
        :test-cases (make-test-cases test-case ...)))))
+
+(define (test-suite-add-test-case! test-suite test-case)
+  (add-test-case! test-suite test-case))
 
 (define-method add-test-case! ((self <test-suite>) test-case)
   (push! (test-cases-of self)
