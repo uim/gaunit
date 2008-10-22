@@ -81,7 +81,9 @@ run-test.scm:
   (use test.unit)
 
   (define base-dir (sys-dirname *program-name*))
-  (for-each load (glob #`",|base-dir|/**/test-*.scm"))
+  (define gaunit-main main)
+  (define (main args)
+    (gaunit-main (append args (glob #`",|base-dir|/**/test-*.scm"))))
 
 You can run the script like the following:
 
