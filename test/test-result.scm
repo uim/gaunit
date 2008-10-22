@@ -1,5 +1,5 @@
 (define-module test.test-result
-  (extend test.unit.test-case)
+  (use test.unit.test-case)
   (use test.unit)
   (use test.gaunit-test-utils))
 (select-module test.test-result)

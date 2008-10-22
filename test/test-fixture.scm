@@ -1,5 +1,5 @@
 (define-module test.test-fixture
-  (extend test.unit.test-case)
+  (use test.unit.test-case)
   (use test.unit.base))
 (select-module test.test-fixture)
 

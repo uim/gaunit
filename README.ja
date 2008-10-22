@@ -43,7 +43,7 @@ GaUnitはGaucheで実装されたUnit Testing Frameworkです．
 テスト用のモジュールを定義したプログラムを用意します．
 
   (define-module test-your-module
-    (extend test.unit.test-case)
+    (use test.unit.test-case)
     (use your-module))
   (select-module test-your-module)
 

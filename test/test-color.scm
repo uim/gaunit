@@ -1,5 +1,5 @@
 (define-module test.test-color
-  (extend test.unit.test-case)
+  (use test.unit.test-case)
   (use test.unit.color))
 (select-module test.test-color)
 

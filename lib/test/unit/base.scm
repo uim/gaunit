@@ -154,7 +154,8 @@
 (define (find-test-case-modules base-test-case-module)
   (map make-test-case-from-module
        (filter (lambda (mod)
-                 (member base-test-case-module (module-parents mod)))
+                 (or (member base-test-case-module (module-parents mod))
+                     (member base-test-case-module (module-imports mod))))
                (all-modules))))
 
 (define (make-default-run-context)

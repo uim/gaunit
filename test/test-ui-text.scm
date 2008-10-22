@@ -1,5 +1,5 @@
 (define-module test.test-base
-  (extend test.unit.test-case)
+  (use test.unit.test-case)
   (use test.unit.ui.text)
   (use test.gaunit-test-utils))
 (select-module test.test-base)

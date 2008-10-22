@@ -1,5 +1,5 @@
 (define-module test.test-assertions
-  (extend test.unit.test-case)
+  (use test.unit.test-case)
   (use test.unit.base)
   (use test.unit.run-context)
   (use test.gaunit-test-utils))

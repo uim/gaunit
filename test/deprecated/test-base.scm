@@ -1,7 +1,7 @@
-(define-module test.test-base
-  (use test.unit.test-case)
+(define-module test.deprecated.test-base
+  (extend test.unit.test-case)
   (use test.unit.base))
-(select-module test.test-base)
+(select-module test.deprecated.test-base)
 
 (define (test-module)
   (assert-valid-module 'test.unit.base)
@@ -23,4 +23,4 @@
   (assert-false (%test-procedure? '%test.have.base (current-module)))
   (assert-false (%test-procedure? '%test-procedure? (current-module))))
 
-(provide "test/test-base")
+(provide "test/deprecated/test-base")

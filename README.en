@@ -44,7 +44,7 @@ What about `go-ni-tto'?
 Make the program that define some tests.
 
   (define-module test-your-module
-    (extend test.unit.test-case)
+    (use test.unit.test-case)
     (use your-module))
   (select-module test-your-module)
 

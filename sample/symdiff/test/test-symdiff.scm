@@ -1,5 +1,5 @@
 (define-module test.test-symdiff
-  (extend test.unit.test-case))
+  (use test.unit.test-case))
 (select-module test.test-symdiff)
 
 (require "symdiff")
