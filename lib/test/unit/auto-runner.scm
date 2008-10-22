@@ -4,6 +4,7 @@
   (use srfi-37)
   (use test.unit.base)
   (use test.unit.run-context)
+  (use test.unit.gauche)
   (export main))
 (select-module test.unit.auto-runner)
 
@@ -73,31 +74,33 @@
           (option '(#\h "help") #f #f
                   (lambda (option name arg ui verbose . others)
                     (usage)))))
-   (receive (ui verbose suite case test)
-     (args-fold (cdr args)
-       options
-       (lambda (option name arg . seeds)         ; unrecognized
-         (print "Unrecognized option: " name)
-         (usage))
-       (lambda (operand ui verbose suite case test) ; operand
-         (let ((feature (path-sans-extension operand)))
-           (unless (provided? feature)
-             (load operand)))
-         (values ui verbose suite case test))
-       (car default-ui)
-       (car default-verbose)
-       #//
-       #//
-       #//)
-     (if (test-run-all
-          :run-context (let ((run-context (make <test-run-context>)))
-                         (push! (listeners-of run-context)
-                                (make ui :verbose verbose))
-                         run-context)
-          :test-suite-regexp suite
-          :test-case-regexp case
-          :test-regexp test)
-       0
-       1)))
+  (receive (ui verbose suite case test)
+    (args-fold (cdr args)
+      options
+      (lambda (option name arg . seeds)         ; unrecognized
+        (print "Unrecognized option: " name)
+        (usage))
+      (lambda (operand ui verbose suite case test) ; operand
+        (if (gaunit-gauche-file? operand)
+          (gaunit-gauche-load operand)
+          (let ((feature (path-sans-extension operand)))
+            (unless (provided? feature)
+              (load operand))))
+        (values ui verbose suite case test))
+      (car default-ui)
+      (car default-verbose)
+      #//
+      #//
+      #//)
+    (if (test-run-all
+         :run-context (let ((run-context (make <test-run-context>)))
+                        (push! (listeners-of run-context)
+                               (make ui :verbose verbose))
+                        run-context)
+         :test-suite-regexp suite
+         :test-case-regexp case
+         :test-regexp test)
+      0
+      1)))
 
 (provide "test/unit/auto-runner")
