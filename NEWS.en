@@ -4,6 +4,16 @@
 
 $Id$
 
+== Changes 0.1.6 from 0.1.5: 2008-10-22
+
+  * improve diff output
+  * add assert-valid-module
+  * support folded progress display
+  * support tests in user module
+  * add gauche.test compatible layer
+  * accept (use test.unit.test-case) too
+    note: before: (extend test.unit.test-case)
+
 == Changes 0.1.5 from 0.1.4: 2008-06-30
 
   * add assert-not-match
