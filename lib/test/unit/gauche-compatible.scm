@@ -25,6 +25,7 @@
   #f)
 
 (define (test-module module)
+  (assert-valid-module module)
   #f)
 
 (provide "test/unit/gauche-compatible")
