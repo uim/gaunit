@@ -21,11 +21,9 @@
 (define (test name expect expression . compare)
   (if (eq? *test-error* expect)
     (assert-raise <exception> expression)
-    (assert-equal expect (expression)))
-  #f)
+    (assert-equal expect (expression))))
 
 (define (test-module module)
-  (assert-valid-module module)
-  #f)
+  (assert-valid-module module))
 
 (provide "test/unit/gauche-compatible")
