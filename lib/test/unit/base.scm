@@ -185,19 +185,23 @@
                           (test-case-regexp #//)
                           (test-regexp #//))
     (test-run-context-start run-context)
-    (let ((success (fold (lambda (suite prev-success)
-                           (and (if (and (not (null? (test-cases-of suite)))
-                                         (not (ran? suite)))
-                                  (test-run suite
-                                            :run-context run-context
-                                            :test-suite-regexp test-suite-regexp
-                                            :test-case-regexp test-case-regexp
-                                            :test-regexp test-regexp))
-                                prev-success))
-                         #t
-                         (reverse *test-suites*))))
-      (test-run-context-finish run-context)
-      success)))
+    (call/cc
+     (lambda (return)
+       (set-signal-handler! SIGINT
+                            (lambda (signal-number)
+                              (set-signal-handler! signal-number #t)
+                              (return #f)))
+       (for-each (lambda (suite)
+                   (if (and (not (null? (test-cases-of suite)))
+                            (not (ran? suite)))
+                     (test-run suite
+                               :run-context run-context
+                               :test-suite-regexp test-suite-regexp
+                               :test-case-regexp test-case-regexp
+                               :test-regexp test-regexp)))
+                 (reverse *test-suites*))))
+    (test-run-context-finish run-context)
+    (null? (faults-of run-context))))
 
 (define-syntax define-test-suite
   (syntax-rules ()
