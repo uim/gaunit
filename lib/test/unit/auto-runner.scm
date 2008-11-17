@@ -1,5 +1,6 @@
 (define-module test.unit.auto-runner
   (use file.util)
+  (use srfi-1)
   (use srfi-13)
   (use srfi-37)
   (use test.unit.base)
@@ -10,6 +11,21 @@
 
 (autoload test.unit.ui.text <test-ui-text>)
 (autoload test.unit.ui.gtk <test-ui-gtk>)
+
+(define (gaunit-load-test path)
+  (if (file-is-directory? path)
+    (for-each (lambda (sub-path)
+                (if (or (file-is-directory? sub-path)
+                        (#/^test-.*\.scm$/ (sys-basename sub-path)))
+                  (gaunit-load-test sub-path)))
+              (remove (lambda (sub-path)
+                        (#/^(CVS|\.svn|\.git)$/ (sys-basename sub-path)))
+                      (directory-list path :children? #t :add-path? #t)))
+    (if (gaunit-gauche-file? path)
+      (gaunit-gauche-load path)
+      (let ((feature (path-sans-extension path)))
+        (unless (provided? feature)
+          (load path))))))
 
 (define (main args)
   (define default-ui (cons <test-ui-text> "text"))
@@ -81,11 +97,7 @@
         (print "Unrecognized option: " name)
         (usage))
       (lambda (operand ui verbose suite case test) ; operand
-        (if (gaunit-gauche-file? operand)
-          (gaunit-gauche-load operand)
-          (let ((feature (path-sans-extension operand)))
-            (unless (provided? feature)
-              (load operand))))
+        (gaunit-load-test operand)
         (values ui verbose suite case test))
       (car default-ui)
       (car default-verbose)
