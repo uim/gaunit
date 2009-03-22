@@ -332,18 +332,18 @@
 
 (define (run-test test-case run-context test test-regexp
                   setup-proc teardown-proc)
-  (let ((success (guard (e (else
-                            (test-handle-exception test-case test
-                                                   run-context e)))
-                        (setup-proc)
-                        (test-run test
-                                  :run-context run-context
-                                  :test-regexp test-regexp))))
-    (guard (e (else
-               (test-handle-exception test-case test run-context e)
-               #f))
-           (teardown-proc)
-           success)))
+  (if (rxmatch test-regexp (name-of test))
+    (let ((success (guard (e (else
+                              (test-handle-exception test-case test
+                                                     run-context e)))
+                          (setup-proc)
+                          (test-run test :run-context run-context))))
+      (guard (e (else
+                 (test-handle-exception test-case test run-context e)
+                 #f))
+             (teardown-proc)
+             success))
+    #t))
 
 (define-method test-run ((self <test-case>) . options)
   (let-keywords* options ((run-context (make <test-run-context>))
@@ -367,21 +367,19 @@
   (test-run-context-error run-context self e (retrieve-target-stack-trace)))
 
 (define-method test-run ((self <test>) . options)
-  (let-keywords* options ((run-context (make <test-run-context>))
-                          (test-regexp #//))
-    (when (rxmatch test-regexp (name-of self))
-      (let ((counter (make <real-time-counter>)))
-        (test-run-context-start-test run-context self)
-        (let ((success (guard (e (else
-                                  (test-handle-exception self run-context e)))
-                              (parameterize ((test-run-context run-context)
-                                             (current-test self))
-                                (with-time-counter counter ((thunk-of self))))
-                              (test-run-context-success run-context self)
-                              #t)))
-          (set! (elapsed-of self) (time-counter-value counter))
-          (test-run-context-finish-test run-context self)
-          success)))))
+  (let-keywords* options ((run-context (make <test-run-context>)))
+    (let ((counter (make <real-time-counter>)))
+      (test-run-context-start-test run-context self)
+      (let ((success (guard (e (else
+                                (test-handle-exception self run-context e)))
+                            (parameterize ((test-run-context run-context)
+                                           (current-test self))
+                              (with-time-counter counter ((thunk-of self))))
+                            (test-run-context-success run-context self)
+                            #t)))
+        (set! (elapsed-of self) (time-counter-value counter))
+        (test-run-context-finish-test run-context self)
+        success))))
 
 
 (define-method elapsed-of ((self <test-suite>))
