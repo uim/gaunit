@@ -433,4 +433,38 @@
                  module (string-trim-right message)))))
     #t))
 
+;;; FIXME
+(define-assertion (assert-predicate predicate arguments . message)
+  (let ((actual (apply predicate arguments)))
+    (if actual
+      #t
+      (assertion-failure
+       (get-optional message
+                     (make-message-handler `(,predicate ,@arguments)))
+       actual))))
+
+;;; FIXME
+(define-assertion (assert-not-predicate predicate arguments . message)
+  (let ((actual (apply predicate arguments)))
+    (if actual
+      (assertion-failure
+       (get-optional message
+                     (make-message-handler `(,predicate ,@arguments)))
+       actual)
+      #t)))
+
+;;; FIXME
+(export assert-predicate*)
+(define-macro (assert-predicate* predicate-form . message)
+  `(assert-predicate ,(car predicate-form)
+                     (list ,@(cdr predicate-form))
+                     (format #f "<~s> should #t" ',predicate-form)))
+
+;;; FIXME
+(export assert-not-predicate*)
+(define-macro (assert-not-predicate* predicate-form . message)
+  `(assert-not-predicate ,(car predicate-form)
+                         (list ,@(cdr predicate-form))
+                         (format #f "<~s> should #f" ',predicate-form)))
+
 (provide "test/unit/assertions")
