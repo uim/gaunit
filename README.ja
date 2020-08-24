@@ -32,7 +32,7 @@ GaUnitはGaucheで実装されたUnit Testing Frameworkです．
 
 ((<URL:http://www.cozmixng.org/~kou/download/gaunit.tar.gz>))
 
-  % svn co http://www.cozmixng.org/repos/gauche/gaunit/trunk gaunit
+  % git clone --recursive https://github.com/kou/gaunit.git
 
 == インストール
 
