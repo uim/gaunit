@@ -204,7 +204,7 @@
                               "  but was:<#<class <assertion-failure>>>"))
      (failure "assert-raise fail1"
               ,(string-append " expected:<#<class <integer>>> class exception\n"
-                              "  but was:<#<class <error>>>")))
+                              "  but was:<#<class <assertion-failure>>>")))
    (make-test-case "Test assert-raise"
                    ("assert-raise success"
                     (assert-raise <error> (lambda () (1))))
@@ -242,7 +242,8 @@
      (failure "assert-not-raise fail1"
               ,(string-append
                 " expected no exception was thrown\n"
-                "  but <#<class <error>>> class exception was thrown")))
+                "  but <#<class <assertion-failure>>> class exception "
+                "was thrown")))
    (make-test-case "Test assert-not-raise"
                    ("assert-not-raise success"
                     (assert-not-raise (lambda () 1)))
@@ -258,7 +259,7 @@
    0 1 3
    5 1 0 1 1
    `((error "assert-each error"
-            "#<error \"list required, but got #t\">")
+            "#<error \"improper list not allowed: #t\">")
      (failure "assert-each fail-1"
               ,(string-append "expected: <#t>\n"
                               " but was: <#f>")))
@@ -311,7 +312,7 @@
    3 1 0 1 1
    `((error "assert-marcro1 error"
             ,(string-append
-              "#<error \"wrong number of arguments for #<closure die> "
+              "#<error \"wrong number of arguments for #<closure (#f message)> "
               "(required 1, got 0)\">"))
      (failure "assert-macro1 fail"
               ,(string-append "expected: <(error 1)>\n"
@@ -348,7 +349,7 @@
    `((error "assert-marcro error"
             ,(string-append
               "#<error \"wrong number of arguments for "
-              "#<closure or-die> (required 2, got 0)\">"))
+              "#<closure (#f body message)> (required 2, got 0)\">"))
      (failure "assert-macro fail"
               ,(string-append "expected: <(and #t (die \"must be fail!\"))>\n"
                               " but was: <(or #t (die \"must be fail!\"))>")))
@@ -439,7 +440,8 @@
    `((error "assert-in-delta error"
             ,(string-append
               "#<error \"wrong number of arguments for "
-              "#<closure assert-in-delta> (required 3, got 2)\">"))
+              "#<closure (assert-in-delta expected delta actual . message)> "
+              "(required 3, got 2)\">"))
      (failure "assert-in-delta fail"
               ,(string-append
                 "expected: <1> +/- <0.5>\n"
